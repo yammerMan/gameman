@@ -1,0 +1,26 @@
+#Tue Apr 20 18:10:02 CST 2010
+eclipse.preferences.version=1
+encoding//big5/item.properties=UTF-8
+encoding//big5/lang.properties=UTF-8
+encoding//big5/quest.properties=UTF-8
+encoding//big5/questQuestions.properties=UTF-8
+encoding//big5/questType.properties=UTF-8
+encoding//big5/serverMsg.properties=UTF-8
+encoding//cn/item.properties=UTF-8
+encoding//cn/lang.properties=UTF-8
+encoding//cn/quest.properties=UTF-8
+encoding//cn/questQuestions.properties=UTF-8
+encoding//cn/questType.properties=UTF-8
+encoding//cn/serverMsg.properties=UTF-8
+encoding//en/lang.properties=UTF-8
+encoding//en/quest.properties=UTF-8
+encoding//en/questQuestions.properties=UTF-8
+encoding//en/serverMsg.properties=UTF-8
+encoding//ko/item.properties=UTF-8
+encoding//ko/lang.properties=UTF-8
+encoding//ko/langImg.properties=UTF-8
+encoding//ko/quest.properties=UTF-8
+encoding//ko/questQuestions.properties=UTF-8
+encoding//ko/questType.properties=UTF-8
+encoding//ko/serverMsg.properties=UTF-8
+encoding/<project>=UTF-8
