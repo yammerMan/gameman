@@ -1,0 +1,1281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+	layout="absolute" width="1000" height="600"
+	verticalAlign="middle" horizontalAlign="center"
+	usePreloader="false" creationComplete="init()"
+ 	>
+	<mx:ViewStack id="viewstack1" left="5" top="5" right="100" bottom="5" backgroundColor="#000000">
+		 	<mx:Canvas  width="1000" height="600"  id="myCommon">
+				<mx:Panel layout="absolute" title="Common" left="5" top="5">
+					<mx:VBox top="5" left="5" right="5" bottom="5">
+						<mx:HBox width="100%">
+							<mx:RadioButton label="Radio"/>
+							<mx:Label text="Radio"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:CheckBox label="Checkbox"/>
+							<mx:Label selectable="true" text="Checkbox"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:CheckBox label="loginCheckBox" styleName="loginCheckBox"/>
+							<mx:Label selectable="true" text="loginCheckBox"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:HSlider/>
+							<mx:Label selectable="true" text="HSlider"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:DateField/>
+							<mx:Label selectable="true" text="DateField"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:HRule/>
+							<mx:Label selectable="true" text="HRule"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:HRule styleName="playerInfoHRule"/>
+							<mx:Label selectable="true" text="playerInfoHRule"/>
+							<mx:Label selectable="true" text="玩家信息框间隔线条样式"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:HRule styleName="questInfoHRule"/>
+							<mx:Label selectable="true" text="questInfoHRule"/>
+							<mx:Label selectable="true" text="任务间隔线条样式"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:VRule height="30"/>
+							<mx:Label selectable="true" text="VRule"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:HRule styleName="bufferBarVRule"/>
+							<mx:Label selectable="true" text="bufferBarVRule"/>
+							<mx:Label selectable="true" text="bufferbar分割线"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:Button id="mybutton" label="Open Menu" click="showMenu();"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:NumericStepper/>
+							<mx:Label selectable="true" text="NumericStepper"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:ComboBox dataProvider="{cards}"></mx:ComboBox>
+							<mx:Label selectable="true" text="ComboBox"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:TextArea text="U can write here"/>
+							<mx:Label selectable="true" text="TextArea"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:Text text="U cann't write here"/>
+							<mx:Label selectable="true" text="Text"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:Text text="电视公告样式" styleName="tvShowText"/>
+							<mx:Label selectable="true" text="Text"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:TextInput text="U can write here"/>
+							<mx:Label selectable="true" text="TextInput"/>
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:TextInput text="U can write here" styleName="LoginTextInput"/>
+							<mx:Label selectable="true" text="LoginTextInput"/>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:Panel>
+				<mx:VBox top="5" right="5">
+					<mx:Panel layout="absolute" title="ComboBox">
+						<mx:HBox left="5" right="5" top="5">
+							<mx:ComboBox styleName="buttonStyle"></mx:ComboBox>
+							<mx:Label selectable="true" text="聊天区ComboBox，仿按钮"/>
+						</mx:HBox>
+					</mx:Panel>
+					<mx:Panel layout="absolute" title="noBGList">
+						<mx:HBox left="5" right="5" top="5">
+							<mx:List styleName="noBGList"></mx:List>
+							<mx:Label selectable="true" text="没有背景的list"/>
+						</mx:HBox>
+					</mx:Panel>
+					<mx:Panel layout="absolute" title="ToggleButtonBar">
+						<mx:HBox left="5" right="5" top="5">
+								<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar">
+								      <mx:dataProvider>
+								          <mx:Array>
+								              <mx:String>Queue</mx:String>
+								              <mx:String>Procution</mx:String>
+								          </mx:Array>
+								      </mx:dataProvider>
+								  </mx:ToggleButtonBar>
+							<mx:Label selectable="true" text="titleToggleButtonBar"/>
+							<mx:Label selectable="true" text="ToggleButtonBar标题栏"/>
+						</mx:HBox>
+					</mx:Panel>
+					<mx:Panel layout="absolute" width="100%" height="200" title="DataGrid">
+						<mx:VBox width="100%" height="100%">
+							<mx:HBox left="5" top="5" bottom="5" right="5">
+							<mx:DataGrid id="dg" height="100%" width="100%">
+							  		<mx:dataProvider>
+							  		              <mx:Array id="initDG">
+							  		                  <mx:Object PLAYER="Rafer Alston" POS="G" FROM="Fresno"/>
+							  		                  <mx:Object PLAYER="Luther Head" POS="G" FROM="lllinois"/>
+							  		                  <mx:Object PLAYER="Tracy McGrady" POS="F-G" FROM="Mount"/>
+							  		                   <mx:Object PLAYER="Rafer Alston" POS="G" FROM="Fresno"/>
+							  		                  <mx:Object PLAYER="Luther Head" POS="G" FROM="lllinois"/>
+							  		                  <mx:Object PLAYER="Tracy McGrady" POS="F-G" FROM="Mount"/>
+							  		                   <mx:Object PLAYER="Rafer Alston" POS="G" FROM="Fresno"/>
+							  		                  <mx:Object PLAYER="Luther Head" POS="G" FROM="lllinois"/>
+							  		                  <mx:Object PLAYER="Tracy McGrady" POS="F-G" FROM="Mount"/>
+							  		              </mx:Array>
+							  		       </mx:dataProvider>
+							 </mx:DataGrid>
+							<mx:Label selectable="true" text="DataGrid"/>
+						</mx:HBox>
+						<mx:HBox left="5" top="5" bottom="5" right="5">
+							<mx:DataGrid id="dg2" height="100%" width="100%" styleName="heroListDataGrid">
+							  		<mx:dataProvider>
+							  		              <mx:Array id="init2DG">
+							  		                  <mx:Object PLAYER="Rafer Alston" POS="G" FROM="Fresno"/>
+							  		                  <mx:Object PLAYER="Luther Head" POS="G" FROM="lllinois"/>
+							  		                  <mx:Object PLAYER="Tracy McGrady" POS="F-G" FROM="Mount"/>
+							  		                   <mx:Object PLAYER="Rafer Alston" POS="G" FROM="Fresno"/>
+							  		                  <mx:Object PLAYER="Luther Head" POS="G" FROM="lllinois"/>
+							  		                  <mx:Object PLAYER="Tracy McGrady" POS="F-G" FROM="Mount"/>
+							  		                   <mx:Object PLAYER="Rafer Alston" POS="G" FROM="Fresno"/>
+							  		                  <mx:Object PLAYER="Luther Head" POS="G" FROM="lllinois"/>
+							  		                  <mx:Object PLAYER="Tracy McGrady" POS="F-G" FROM="Mount"/>
+							  		              </mx:Array>
+							  		       </mx:dataProvider>
+							 </mx:DataGrid>
+							<mx:Label selectable="true" text="DataGrid"/>
+						</mx:HBox>
+						</mx:VBox>
+						
+					</mx:Panel>
+				</mx:VBox>
+			</mx:Canvas>
+		 	<mx:Canvas label="Button" width="100%" height="100%" id="myButton">
+		 		 	<mx:Panel layout="absolute" title="Button" top="5" left="5">
+		 		 		<mx:VBox verticalGap="0" left="0" right="0" top="0" bottom="195">
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button label="通用样式"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="Button"/>
+		 		 					<mx:Label selectable="true" text="通用样式" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button label="通用样式" styleName="commomNormalBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="commomNormalBtn"/>
+		 		 					<mx:Label selectable="true" text="通用按钮，字体不加粗" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button label="二级按钮" styleName="secondaryBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="secondaryBtn"/>
+		 		 					<mx:Label selectable="true" text="二级菜单按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="buildingSpeedUpBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="buildingSpeedUpBtn"/>
+		 		 					<mx:Label selectable="true" text="建筑加速按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="buildingNowSpeedUpBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="buildingNowSpeedUpBtn"/>
+		 		 					<mx:Label selectable="true" text="在建建筑加速按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="shopForBuyBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="shopForBuyBtn"/>
+		 		 					<mx:Label selectable="true" text="商城买按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="turnToLeftBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="turnToLeftBtn"/>
+		 		 					<mx:Label selectable="true" text="兵种左移按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="turnToRightBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="turnToRightBtn"/>
+		 		 					<mx:Label selectable="true" text="兵种右移按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="interchangeBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="interchangeBtn"/>
+		 		 					<mx:Label selectable="true" text="兵种互换按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="uninstallBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="uninstallBtn"/>
+		 		 					<mx:Label selectable="true" text="兵种卸载按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="apportionmentBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="apportionmentBtn"/>
+		 		 					<mx:Label selectable="true" text="分配兵力按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="topButton" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="topButton"/>
+		 		 					<mx:Label selectable="true" text="顶部按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="collectionModifyBtn" width="16" height="11"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="collectionModifyBtn"/>
+		 		 					<mx:Label selectable="true" text="收藏修改按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="agreeBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="agreeBtn"/>
+		 		 					<mx:Label selectable="true" text="赞成按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="cureBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="cureBtn"/>
+		 		 					<mx:Label selectable="true" text="治疗按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="loginBigSizeBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="loginBigSizeBtn"/>
+		 		 					<mx:Label selectable="true" text="login界面登陆按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bufferArmyBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bufferArmyBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar army按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bugBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bugBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar bug按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bufferBuddiesBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bufferBuddiesBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar 好友按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bufferRankingBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bufferRankingBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar 排行按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bufferForumBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bufferForumBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar论坛按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bufferBarBuildingBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bufferBarBuildingBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar building按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+  		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="turntableSubmitBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="turntableSubmitBtn"/>
+		 		 					<mx:Label selectable="true" text="轮盘确定按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="turntableMinBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="turntableMinBtn"/>
+		 		 					<mx:Label selectable="true" text="轮盘最小化按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="add3PointBtn" width="50" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="add3PointBtn"/>
+		 		 					<mx:Label selectable="true" text="英雄增加三点属性按钮样式" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="comboBoxBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="comboBoxBtn"/>
+		 		 					<mx:Label selectable="true" text="仿combobox按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="collectionCoordinateBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="collectionCoordinateBtn"/>
+		 		 					<mx:Label selectable="true" text="收藏坐标按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="collectionComboBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="collectionComboBtn"/>
+		 		 					<mx:Label selectable="true" text="收藏按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="increaseAttributeBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="increaseAttributeBtn"/>
+		 		 					<mx:Label selectable="true" text="增加英雄点数按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="checkOutArmyBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="checkOutArmyBtn"/>
+		 		 					<mx:Label selectable="true" text="查看军队动态按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="cityFindBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="cityFindBtn"/>
+		 		 					<mx:Label selectable="true" text="查看城市坐标按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="popUpWinTitleBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="popUpWinTitleBtn"/>
+		 		 					<mx:Label selectable="true" text="弹出窗口标题按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="popUpWinTitle2Btn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="popUpWinTitle2Btn"/>
+		 		 					<mx:Label selectable="true" text="弹出窗口标题按钮2" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" backgroundColor="#718FEF">
+		 		 				<mx:Button styleName="chatPureColorBtn" width="50" height="25"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatPureColorBtn"/>
+		 		 					<mx:Label selectable="true" text="聊天menu栏目按钮样式" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" backgroundColor="#718FEF">
+		 		 				<mx:Button styleName="friendsPureColorBtn" width="50" height="25"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="friendsPureColorBtn"/>
+		 		 					<mx:Label selectable="true" text="好友menu栏目按钮样式" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" backgroundColor="#718FEF">
+		 		 				<mx:Button styleName="dakCancleBtn" width="50" height="25"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="dakCancleBtn"/>
+		 		 					<mx:Label selectable="true" text="驿站取消连接线按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="maxValueBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="maxValueBtn"/>
+		 		 					<mx:Label selectable="true" text="最大数值按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="minValueBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="minValueBtn"/>
+		 		 					<mx:Label selectable="true" text="最小数值按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="bufferTechBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="bufferTechBtn"/>
+		 		 					<mx:Label selectable="true" text="bufferBar tech按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="SystemBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="SystemBtn"/>
+		 		 					<mx:Label selectable="true" text="聊天区世界系统频道按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="chatWorldBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatWorldBtn"/>
+		 		 					<mx:Label selectable="true" text="聊天区世界频道按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="chatAllianceBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatAllianceBtn"/>
+		 		 					<mx:Label selectable="true" text="聊天区联盟频道按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="chatPrivateBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatPrivateBtn"/>
+		 		 					<mx:Label selectable="true" text="聊天区私聊频道按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="chatTradeBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatTradeBtn"/>
+		 		 					<mx:Label selectable="true" text="聊天区交易频道按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="spyBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="spyBtn"/>
+		 		 					<mx:Label selectable="true" text="侦查" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="getInBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="getInBtn"/>
+		 		 					<mx:Label selectable="true" text="地图进入按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="occupyBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="occupyBtn"/>
+		 		 					<mx:Label selectable="true" text="占领" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="reinforceBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="reinforceBtn"/>
+		 		 					<mx:Label selectable="true" text="增援" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="depredateBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="depredateBtn"/>
+		 		 					<mx:Label selectable="true" text="掠夺" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="collectionBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="collectionBtn"/>
+		 		 					<mx:Label selectable="true" text="收藏" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%" height="40">
+		 		 				<mx:Button styleName="transportBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="transportBtn"/>
+		 		 					<mx:Label selectable="true" text="运输" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="buttonRender" width="30" height="22"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="buttonRender"/>
+		 		 					<mx:Label selectable="true" text="内嵌BUTTON" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="playerInfoBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="playerInfoBtn"/>
+		 		 					<mx:Label selectable="true" text="玩家信息按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="playerInfoMapBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="playerInfoMapBtn"/>
+		 		 					<mx:Label selectable="true" text="玩家信息转换地图按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="tabBtn" width="50" height="20"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="tabBtn"/>
+		 		 					<mx:Label selectable="true" text="仿tab按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="addBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="addBtn"/>
+		 		 					<mx:Label selectable="true" text="加号符号按钮样式" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="nextBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="nextBtn"/>
+		 		 					<mx:Label selectable="true" text="下一个按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="previousBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="previousBtn"/>
+		 		 					<mx:Label selectable="true" text="上一个按钮 " width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="minBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="minBtn"/>
+		 		 					<mx:Label selectable="true" text="最左按钮 " width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="maxBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="maxBtn"/>
+		 		 					<mx:Label selectable="true" text="最右按钮 " width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="closeBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="closeBtn"/>
+		 		 					<mx:Label selectable="true" text="窗体关闭按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="returnWinBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="returnWinBtn"/>
+		 		 					<mx:Label selectable="true" text="窗体返回按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="desctructBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="desctructBtn"/>
+		 		 					<mx:Label selectable="true" text="拆除建筑按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="cancleBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="cancleBtn"/>
+		 		 					<mx:Label selectable="true" text="取消按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="cancleIconBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="cancleIconBtn"/>
+		 		 					<mx:Label selectable="true" text="取消图标按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="commonBigSizeBtn" height="50" width="100"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="commonBigSizeBtn"/>
+		 		 					<mx:Label selectable="true" text="主窗体大型按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="chatFrameSent"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatFrameSent"/>
+		 		 					<mx:Label selectable="true" text="聊天区发送按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="NumericStepperUpBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="NumericStepperUpBtn"/>
+		 		 					<mx:Label selectable="true" text="NumericStepper向上按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="NumericStepperDownBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="NumericStepperDownBtn"/>
+		 		 					<mx:Label selectable="true" text="NumericStepper向下按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="chatFrameResumeMax"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="chatFrameResumeMax"/>
+		 		 					<mx:Label selectable="true" text="聊天区最大化按钮" width="150"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="mapChangeBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="Button.mapChangeBtn"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="loadingStyleBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="loadingStyle按钮"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Button styleName="allianceChatStyleBtn"/>
+		 		 				<mx:HBox width="100%" horizontalAlign="right">
+		 		 					<mx:Label selectable="true" text="联盟按钮样式"/>
+		 		 				</mx:HBox>
+		 		 			</mx:HBox>
+		 		 		</mx:VBox>
+		 		 	</mx:Panel>
+		 	</mx:Canvas>
+		 	<mx:Canvas label="myCanvas" width="100%" height="100%" id="myCanvas">
+		 		 	<mx:HBox left="5" top="5" right="5">
+		 		 		 	<mx:Panel layout="absolute" title="Canvas">
+		 		 		 		<mx:VBox left="0" top="0" right="0" verticalGap="0" bottom="0">
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="baseTooltip" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="BaseTooltip"/>
+		 		 		 				<mx:Label selectable="true" text="tooltips背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="topButtonBarWin" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="topButtonBarWin"/>
+		 		 		 				<mx:Label selectable="true" text="topButtonBar样式"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="OnlyBorder3Canvas" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="OnlyBorder3Canvas"/>
+		 		 		 				<mx:Label selectable="true" text="只有边框的容器"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="shadeBGCanvas" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="shadeBGCanvas"/>
+		 		 		 				<mx:Label selectable="true" text="渐变背景样式"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="brownAlphaBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="brownAlphaBG"/>
+		 		 		 				<mx:Label selectable="true" text="褐色半透明背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="mapJumpBgCancas" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="mapJumpBgCancas"/>
+		 		 		 				<mx:Label selectable="true" text="跳转背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="techIconBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="techIconBG"/>
+		 		 		 				<mx:Label selectable="true" text="科技种类背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="whiteBGEmailBorder" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="whiteBGEmailBorder"/>
+		 		 		 				<mx:Label selectable="true" text="输入框白色背景有边框"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="whiteBGwithBorder" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="whiteBGwithBorder"/>
+		 		 		 				<mx:Label selectable="true" text="白色背景有边框"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="heroArmyBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="heroArmyBG"/>
+		 		 		 				<mx:Label selectable="true" text="英雄军队背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="smallIconBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="smallIconBG"/>
+		 		 		 				<mx:Label selectable="true" text="小图标图片背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="questSelectBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="questSelectBG"/>
+		 		 		 				<mx:Label selectable="true" text="任务选中样式"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="whriteBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="whriteBG"/>
+		 		 		 				<mx:Label selectable="true" text="白色背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="progressBarBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="progressBarBG"/>
+		 		 		 				<mx:Label selectable="true" text="进度条背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="progressBar" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="progressBar"/>
+		 		 		 				<mx:Label selectable="true" text="进度条"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="tecTitleBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="tecTitleBG"/>
+		 		 		 				<mx:Label selectable="true" text="科技栏标题背景"/>
+		 		 		 			</mx:HBox>
+   		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="marketResourceIconBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="marketResourceIconBG"/>
+		 		 		 				<mx:Label selectable="true" text="市场资源icon按钮背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="diatropismShadeBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="diatropismShadeBG"/>
+		 		 		 				<mx:Label selectable="true" text="透明渐变背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="alphaBlackBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="alphaBlackBG"/>
+		 		 		 				<mx:Label selectable="true" text="带透明度有阴影的背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="blackBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="blackBG"/>
+		 		 		 				<mx:Label selectable="true" text="纯黑色背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="dataGridHeaderBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="dataGridHeaderBG"/>
+		 		 		 				<mx:Label selectable="true" text="仿dataGrid标题背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="subContentBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="subContentBG"/>
+		 		 		 				<mx:Label selectable="true" text="内容区背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="smallBuildingLogoBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="smallBuildingLogoBG"/>
+		 		 		 				<mx:Label selectable="true" text="内容区建筑小logo背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="mainWindowContentBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="mainWindowContentBG"/>
+		 		 		 				<mx:Label selectable="true" text="主功能界面内容区背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="BuildingAlphaWindow" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="BuildingAlphaWindow"/>
+		 		 		 				<mx:Label selectable="true" text="半透明背景，用于建筑排程"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="bigBuildingLogo" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="bigBuildingLogo"/>
+		 		 		 				<mx:Label selectable="true" text="大建筑图标背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="smallLogoBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="smallLogoBG"/>
+		 		 		 				<mx:Label selectable="true" text="小图标边框边框"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="progressBarBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="progressBarBG"/>
+		 		 		 				<mx:Label selectable="true" text="进度条背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="textInputBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="textInputBG"/>
+		 		 		 				<mx:Label selectable="true" text="输入框背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="doubleBordorBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="doubleBordorBG"/>
+		 		 		 				<mx:Label selectable="true" text="双bordor背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="resourchBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="resourchBG"/>
+		 		 		 				<mx:Label selectable="true" text="资源栏背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="playerInfoBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="playerInfoBG"/>
+		 		 		 				<mx:Label selectable="true" text="玩家信息背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="resourceInfoBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="resourceInfoBG"/>
+		 		 		 				<mx:Label selectable="true" text="资源信息背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="chatBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="chatBG"/>
+		 		 		 				<mx:Label selectable="true" text="聊天栏背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 			<mx:HBox width="100%">
+		 		 		 				<mx:Canvas styleName="alphaBlackcolorBG" width="100" height="100">
+		 		 		 				</mx:Canvas>
+		 		 		 				<mx:Label selectable="true" text="alphaBlackcolorBG"/>
+		 		 		 				<mx:Label selectable="true" text="黑色透明背景"/>
+		 		 		 			</mx:HBox>
+		 		 		 		</mx:VBox>
+		 		 		 	</mx:Panel>
+		 		 		 	<mx:Panel layout="absolute" width="100%" title="主要窗体界面">
+		 		 		 		 	<mx:VBox left="5" top="5" bottom="5" right="5">
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="mainGameBG">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="mainGameBG"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="主界面背景"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="BaseFunctionWindow">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="BaseFunctionWindow"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="带功能建筑界面"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="buildingInfoBG">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="buildingInfoBG"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="普通界面"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="warningWinBG">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="warningWinBG"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="警告窗口背景"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="buildingInfoContentBG">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="buildingInfoContentBG"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="官府四角带花纹背景"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="popUpWinBG">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="popUpWinBG"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="popupWindow样式"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="onlyBorderCavas">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="onlyBorderCavas"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="只有边框的背景"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 		 	<mx:Canvas width="200" height="150" styleName="shopBG">
+		 		 		 		 		 		 	</mx:Canvas>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="shopBG"/>
+		 		 		 		 		 		 	<mx:Label selectable="true" text="商店背景"/>
+		 		 		 		 		 	</mx:HBox>
+		 		 		 		 	</mx:VBox>
+		 		 		 	</mx:Panel>
+		 		 	</mx:HBox>
+		 	</mx:Canvas>
+		 		<mx:Canvas label="Label" width="100%" height="100%" id="myLabel">
+		 	<mx:HBox left="5" top="5" right="5" bottom="5">
+		 		 	<mx:Panel layout="absolute" title="Label">
+		 		 		<mx:VBox verticalGap="3" left="0" right="0" top="0" bottom="10">
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="默认字体"/>
+		 		 				<mx:Label selectable="true" text="Label"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="深色普通样式" styleName="darkCommonStyle"/>
+		 		 				<mx:Label selectable="true" text="darkCommonStyle"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="窗体标题文字样式" styleName="titleLabel"/>
+		 		 				<mx:Label selectable="true" text="titleLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="窗体标题建筑等级文字样式" styleName="titleLevelLabel"/>
+		 		 				<mx:Label selectable="true" text="titleLevelLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="主界面栏目标题文字样式" styleName="mainFrameTitlLabel"/>
+		 		 				<mx:Label selectable="true" text="mainFrameTitlLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="标题文字样式" styleName="titleNameLabel"/>
+		 		 				<mx:Label selectable="true" text="titleNameLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="加速文字样式" styleName="speedUpLabel"/>
+		 		 				<mx:Label selectable="true" text="speedUpLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="任务名称标题文字样式" styleName="taskNameTitleLabel"/>
+		 		 				<mx:Label selectable="true" text="taskNameTitleLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="任务子标题文字样式" styleName="taskSubLabel"/>
+		 		 				<mx:Label selectable="true" text="taskSubLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="任务通用文字样式" styleName="taskCommonLabel"/>
+		 		 				<mx:Label selectable="true" text="taskCommonLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="任务完成文字样式" styleName="taskDoneLabel"/>
+		 		 				<mx:Label selectable="true" text="taskDoneLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="兵种名字普通状态文字样式" styleName="armyNameNormalLabel"/>
+		 		 				<mx:Label selectable="true" text="armyNameNormalLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="兵种名字选中状态文字样式" styleName="armyNameSelectLabel"/>
+		 		 				<mx:Label selectable="true" text="armyNameSelectLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="等级文字样式" styleName="LvLabel"/>
+		 		 				<mx:Label selectable="true" text="LvLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="打开宝箱宝物数量样式" styleName="goodNumberLable"/>
+		 		 				<mx:Label selectable="true" text="goodNumberLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="普通文字样式" styleName="normalLabel"/>
+		 		 				<mx:Label selectable="true" text="normalLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="登陆加载进度样式（白色）" styleName="loadingSmallLable"/>
+		 		 				<mx:Label selectable="true" text="loadingSmallLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="登陆加载进度样式（蓝色）" styleName="loadingMiddleLable"/>
+		 		 				<mx:Label selectable="true" text="loadingMiddleLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="可点击文字样式1" styleName="addLinkLabel"/>
+		 		 				<mx:Label selectable="true" text="addLinkLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="好的文字提示样式" styleName="goodNoticeLabel"/>
+		 		 				<mx:Label selectable="true" text="goodNoticeLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="提示性文字样式" styleName="clewLabel"/>
+		 		 				<mx:Label selectable="true" text="clewLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="特别的文字提示样式" styleName="specialNoticeLabel"/>
+		 		 				<mx:Label selectable="true" text="specialNoticeLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="资源普通文字样式" styleName="resourceCommonLabel"/>
+		 		 				<mx:Label selectable="true" text="resourceCommonLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="登陆界面title" styleName="loginTitle"/>
+		 		 				<mx:Label selectable="true" text="loginTitle"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="buffer紧凑字体" styleName="samllstyleLabel"/>
+		 		 				<mx:Label selectable="true" text="samllstyleLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="tooltips名称样式" styleName="tooltipsNameLable"/>
+		 		 				<mx:Label selectable="true" text="tooltipsNameLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="tooltips提示样式" styleName="tooltipsTipsLable"/>
+		 		 				<mx:Label selectable="true" text="tooltipsTipsLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="tooltips内容样式" styleName="tooltipsContentLable"/>
+		 		 				<mx:Label selectable="true" text="tooltipsContentLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框坐标" styleName="playerTipAdd"/>
+		 		 				<mx:Label selectable="true" text="playerTipAdd"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框城堡名" styleName="playerTipCityName"/>
+		 		 				<mx:Label selectable="true" text="playerTipCityName"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框城堡名(敌对)" styleName="playerTipCityNameEnemy"/>
+		 		 				<mx:Label selectable="true" text="playerTipCityNameEnemy"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框距离" styleName="playerTipDistence"/>
+		 		 				<mx:Label selectable="true" text="playerTipDistence"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框领主，联盟" styleName="playerTipPlayerName"/>
+		 		 				<mx:Label selectable="true" text="playerTipPlayerName"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框领主，联盟(敌对)" styleName="playerTipPlayerNameEnemy"/>
+		 		 				<mx:Label selectable="true" text="playerTipPlayerNameEnemy"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家提示框荣誉" styleName="playerTipHonor"/>
+		 		 				<mx:Label selectable="true" text="playerTipHonor"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="侦查报告样式" styleName="scoutReport"/>
+		 		 				<mx:Label selectable="true" text="playerTipHonor"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="兵种数量样式（1000以下）" styleName="soldier1000Lable"/>
+		 		 				<mx:Label selectable="true" text="soldier1000Lable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="兵种数量样式（10000以下）" styleName="soldier10000Lable"/>
+		 		 				<mx:Label selectable="true" text="soldier10000Lable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="兵种数量样式（100000以下）" styleName="soldier100000Lable"/>
+		 		 				<mx:Label selectable="true" text="soldier100000Lable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="兵种数量样式（100000以上）" styleName="soldierMaxLable"/>
+		 		 				<mx:Label selectable="true" text="soldierMaxLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="buffer紧凑时间字体" styleName="samllstyleTimeLabel"/>
+		 		 				<mx:Label selectable="true" text="samllstyleTimeLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="好的文字提示小号样式" styleName="goodNoticeSmallLabel"/>
+		 		 				<mx:Label selectable="true" text="goodNoticeSmallLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="普通级别提示样式" styleName="NoticeLabel"/>
+		 		 				<mx:Label selectable="true" text="NoticeLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="升级条件标题 数值" styleName="updataValueLabel"/>
+		 		 				<mx:Label selectable="true" text="updataValueLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="加粗突出显示文字样式(14号字体)" styleName="titleBigBordLabel"/>
+		 		 				<mx:Label selectable="true" text="titleBigBordLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="普通级别提示小号样式" styleName="NoticeSmallLabel"/>
+		 		 				<mx:Label selectable="true" text="NoticeSmallLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="描述性文字样式" styleName="discritionLabel"/>
+		 		 				<mx:Label selectable="true" text="discritionLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="loading界面字体样式" styleName="loadingText"/>
+		 		 				<mx:Label selectable="true" text="loadingText"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="通用的左右有边距的字体样式" styleName="commonMarginLabel"/>
+		 		 				<mx:Label selectable="true" text="commonMarginLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="白色粗边样式" styleName="normalNumberLabel"/>
+		 		 				<mx:Label selectable="true" text="normalBoldLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="城市名称样式" styleName="CityNameLabel"/>
+		 		 				<mx:Label selectable="true" text="CityNameLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="城市按钮名称样式" styleName="cityLogoNameLabel"/>
+		 		 				<mx:Label selectable="true" text="cityLogoNameLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="城市坐标样式" styleName="CityAddLabel"/>
+		 		 				<mx:Label selectable="true" text="CityAddLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="建筑升级状态文字样式" styleName="buildingSituationLabel"/>
+		 		 				<mx:Label selectable="true" text="buildingSituationLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="建筑描述性文字样式" styleName="buildingInfoDisText"/>
+		 		 				<mx:Label selectable="true" text="buildingInfoDisText"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="建筑降级状态文字样式" styleName="buildingSituationWarnLabel"/>
+		 		 				<mx:Label selectable="true" text="buildingSituationWarnLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="加粗突出显示文字样式" styleName="titleBordLabel"/>
+		 		 				<mx:Label selectable="true" text="titleBordLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="玩家信息样式" styleName="playInfoLabel"/>
+		 		 				<mx:Label selectable="true" text="playInfoLabel"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="标题字体样式" styleName="titleLable"/>
+		 		 				<mx:Label selectable="true" text="titleLable"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="系统频道内容样式" styleName="chatSystemNormal"/>
+		 		 				<mx:Label selectable="true" text="chatSystemNormal"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="联盟频道玩家名样式" styleName="chatUnionPlayer"/>
+		 		 				<mx:Label selectable="true" text="chatUnionPlayer"/>
+		 		 			</mx:HBox>
+		 		 			<mx:HBox width="100%">
+		 		 				<mx:Label selectable="true" text="交易频道玩家名样式" styleName="chatTradePlayer"/>
+		 		 				<mx:Label selectable="true" text="chatTradePlayer"/>
+		 		 			</mx:HBox>
+		 		 		</mx:VBox>
+		 		 	</mx:Panel>
+		 		 	<mx:Panel layout="absolute" title="TextArea">
+		 		 		 	<mx:VBox left="5" right="5" top="5" bottom="5">
+		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 	<mx:TextArea text="描述性文字样式" styleName="discritionTextArea"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="discritionTextArea"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="TextArea描述性文字样式"/>
+		 		 		 		 	</mx:HBox>
+		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 	<mx:TextArea text="聊天区文本框样式" styleName="vTextAreaChat"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="vTextAreaChat"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="聊天框TextArea样式"/>
+		 		 		 		 	</mx:HBox>
+		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 	<mx:TextArea text="带边框建筑描述性文字样式" styleName="discritionWithBorderTextArea"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="discritionWithBorderTextArea"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="带边框建筑描述性文字样式"/>
+		 		 		 		 	</mx:HBox>
+		 		 		 		 	<mx:HBox width="100%">
+		 		 		 		 		 	<mx:TextArea text="带边框建筑描述性文字透明背景样式" styleName="discritionWithBorderAlphaTextArea"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="discritionWithBorderAlphaTextArea"/>
+		 		 		 		 		 	<mx:Label selectable="true" text="带边框建筑描述性文字透明背景样式"/>
+		 		 		 		 	</mx:HBox>
+		 		 		 	</mx:VBox>
+		 		 	</mx:Panel>
+		 	</mx:HBox>
+	</mx:Canvas>
+	</mx:ViewStack>
+<mx:Script>
+	<![CDATA[
+		import mx.collections.ArrayCollection;
+		import mx.resources.ResourceManager;
+	 	import mx.controls.Menu;
+        import mx.events.MenuEvent;
+        import mx.controls.Alert;           
+        import flash.geom.Point;
+
+        private var point1:Point = new Point();
+        private var myMenu:Menu;
+        
+        [Bindable]
+        public var cards:ArrayCollection = new ArrayCollection(
+	    [ {label:"Visa", data:1}, 
+	      {label:"MasterCard", data:2}, 
+	      {label:"American Express", data:3} ]);
+   
+        // Create and display the Menu control.
+        private function showMenu():void {
+            myMenu= Menu.createMenu(this, myMenuData, false);
+            myMenu.labelField="@label"
+            myMenu.addEventListener("itemClick", menuHandler);
+            
+            // Calculate position of Menu in Application's coordinates. 
+            point1.x=mybutton.x;
+            point1.y=mybutton.y;                
+            point1=mybutton.localToGlobal(point1);
+
+            myMenu.show(point1.x + 25, point1.y + 25);
+        }
+   
+        // Event handler for the Menu control's change event.
+        private function menuHandler(event:MenuEvent):void  {
+            Alert.show("Label: " + event.item.@label, "Clicked menu item");
+        }    
+
+		private function init():void{
+			StyleManager.loadStyleDeclarations("Style.swf");
+		}
+		
+	]]>
+</mx:Script>
+	
+	<mx:VBox x="908" y="10" height="100%">
+		<mx:Button label="Common" click="viewstack1.selectedChild=myCommon" styleName="speedUpBtn"/>
+		<mx:Button label="Label" click="viewstack1.selectedChild=myLabel" styleName="speedUpBtn"/>
+		<mx:Button label="Button" click="viewstack1.selectedChild=myButton" styleName="speedUpBtn"/>
+		<mx:Button label="Canvas" click="viewstack1.selectedChild=myCanvas" styleName="speedUpBtn"/>
+	</mx:VBox>
+	<mx:XML id="myMenuData">
+        <root>
+            <menuitem label="MenuItem 1" eventName="copy"/>
+            <menuitem label="MenuItem 2" eventName="paste"/>
+        </root>
+    </mx:XML>
+
+
+</mx:Application>

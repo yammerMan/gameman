@@ -1,0 +1,2935 @@
+/* CSS file */
+
+/*主界面背景*/
+Application
+{
+	modalTransparencyBlur: 0;
+	modalTransparencyColor: #000000;
+	backgroundColor: #F8E9C8;
+	backgroundAlpha:0;
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/mainBackGround.png");*/
+}
+
+
+/*通用的字体样式*/
+Label
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #81511c;
+	paddingLeft: 0;
+	paddingRight: 0;
+}
+
+/*通用按钮*/
+Button
+{
+	/*upSkin: ClassReference("skins.CommonButtonSkin");
+	overSkin: ClassReference("skins.CommonButtonSkin");
+	downSkin: ClassReference("skins.CommonButtonSkin");
+	disabledSkin: ClassReference("skins.CommonButtonSkin");
+	selectedUpSkin: ClassReference("skins.CommonButtonSkin");
+	selectedOverSkin: ClassReference("skins.CommonButtonSkin");
+	selectedDownSkin: ClassReference("skins.CommonButtonSkin");
+	selectedDisabledSkin: ClassReference("skins.CommonButtonSkin");*/
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-Normal.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-MouseOver.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-ClickDown.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-Disabled.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+	
+
+	
+    selectedOverSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-MouseOver.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+    selectedUpSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-Normal.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+    selectedDownSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-ClickDown.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+    selectedDisabledSkin: Embed(source="assets/images/EmbedImages/common/button/commonBtn/button_Common-Disabled.png",scaleGridLeft="4",scaleGridTop="4",scaleGridRight="6",scaleGridBottom="18");
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #370D00;
+	textRollOverColor: #733821;
+	textSelectedColor: #370D00;
+	paddingLeft: 7;
+	paddingRight: 7;
+	paddingBottom: 1;
+	paddingTop: 1;
+	disabledColor: #c7ae7c;
+	cornerRadius: 0;
+}
+
+/*
+//------------------------------
+//  HSlider
+//------------------------------
+*/
+HSlider
+{
+	trackSkin: Embed(source="../flash/buttonResource.swf", symbol="SliderTrack_Skin",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="130",scaleGridBottom="5");
+	showTrackHighlight: false;
+	thumbUpSkin: Embed(source="../flash/buttonResource.swf", symbol="SliderThumb_upSkin",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="12",scaleGridBottom="15");
+	thumbOverSkin: Embed(source="../flash/buttonResource.swf", symbol="SliderThumb_overSkin",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="12",scaleGridBottom="15");
+	thumbDownSkin: Embed(source="../flash/buttonResource.swf", symbol="SliderThumb_downSkin",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="12",scaleGridBottom="15");
+	thumbDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="SliderThumb_disabledSkin",scaleGridTop="4",scaleGridLeft="6",scaleGridRight="10",scaleGridBottom="20");
+	/*trackHighlightSkin: Embed(source="../flash/buttonResource.swf", symbol="SliderTrack_Skin",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="130",scaleGridBottom="5");*/
+	dataTipOffset: 5;
+	
+}
+/*
+//------------------------------
+//  ToolTip
+//------------------------------
+*/
+ToolTip
+{
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/tooltipBG.png",scaleGridRight="79",scaleGridLeft="4",scaleGridTop="6",scaleGridBottom="90");*/
+	border-skin: ClassReference('skins.TipSkin');
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #81511c;
+	paddingLeft: 5;
+	paddingRight: 5;
+	paddingTop: 7;
+	paddingBottom: 7;
+	bottom: 0;
+	top: 0;
+	right: 0;
+	left: 0;
+}
+
+/**
+	// ------------------------------------- 
+	// HRule,VRule
+*/
+HRule,VRule
+{
+	strokeWidth: 1;
+	strokeColor: #dccea9;
+	
+}
+
+/*TextArea*/
+TextArea
+{
+	fontSize: 11;
+	color: #370d00;
+	fontFamily: Tahoma,"돋움";
+	borderStyle: none;
+	backgroundAlpha: 0.0;
+	disabledColor: #370D00;
+	leading: 0;
+}
+
+
+
+/**
+	// ------------------------------------- 
+	// DateField
+*/
+DateField
+{
+	dateChooserStyleName: DateChooser;
+}
+
+/*
+//------------------------------
+//  DateChooser
+//------------------------------
+*/
+DateChooser
+{
+	headerColors: #F7EFBE, #DBC385;
+	cornerRadius:0;
+	borderColor:#907A4B;
+	color:#946d34;
+	textRollOverColor:#ffffff;
+	textSelectedColor: #ffffff;
+	selectionColor:#d4c59a;
+	
+	nextMonthDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnDisable");
+	nextMonthDownSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnDown");
+	nextMonthOverSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnOver");
+	nextMonthUpSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnUp");
+	
+	prevMonthDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnDisable");
+	prevMonthDownSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnDown");
+	prevMonthOverSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnOver");
+	prevMonthUpSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnUp");
+	
+	
+	todayStyleName: "dateChooserToday";
+	headerStyleName: "dateChooserHeader";
+	weekDayStyleName: "dateChooserWeekDay";
+	
+	rollOverColor: #d4c59a;
+	fontWeight: bold;
+	focusSkin: Embed(source="images/icon/chat/icon_Addfriend.png");
+	todayColor: #996E37;
+	backgroundAlpha: 1.0;
+	backgroundColor: #F6F0CC;
+	
+}
+
+
+.dateChooserToday
+{
+	color: #FFFFFF;
+	
+}
+
+.dateChooserHeader
+{
+	
+}
+.dateChooserWeekDay
+{
+
+}
+
+
+
+/**
+	// ------------------------------------- 
+	// DataGrid
+*/
+DataGrid
+{
+	verticalGridLineColor: #303743;
+	horizontalGridLines: false;
+	alternatingItemColors: #FCF7E5, #F5E7BD;
+	borderColor: #9B8661;
+	borderThickness: 1;
+	horizontalGridLineColor: #303743;
+	color: #370D00;
+	textRollOverColor: #6A4732;
+	textSelectedColor: #6A4732;
+	rollOverColor: #F5E7BD;
+	selectionColor: #F5E7BD;
+	fontSize: 11;
+	textAlign: center;
+	fontFamily: Tahoma,"돋움";
+	fontWeight: normal;
+	verticalAlign: middle;
+	headerStyleName: dataGridHeader;
+	headerBackgroundSkin: Embed(source="assets/images/EmbedImages/common/dataGrid/DataGridHeaderBg.png");
+	verticalGridLines: false;
+	headerSeparatorSkin: Embed(source="assets/images/EmbedImages/common/dataGrid/fengexian.png");
+	paddingBottom: 0;
+	paddingTop: 0;
+	paddingLeft: 0;
+	paddingRight: 0;
+	verticalScrollBarStyleName: VScrollBar;
+	backgroundColor: #F5E7BD;
+	
+}
+
+/* 隐藏DataGrid边框 */
+DataGrid.borderSkin
+{
+	borderSkin:ClassReference("skins.DataGridBorderSkin");
+}
+
+/**
+	// ------------------------------------- 
+	// TextInput
+*/
+/*输入框样式*/
+TextInput
+{
+	borderColor: #353B4A;
+	color: #370d00;
+	borderStyle: solid;
+	themeColor: #353B4A;
+	fontAlign:center;
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	backgroundColor: #1C0C04;
+	backgroundAlpha: 0.0;
+	cornerRadius: 4;
+	focusThickness: 0;
+	borderSkin: Embed(source="assets/images/EmbedImages/common/inputText/inputBG.png",scaleGridTop="3",scaleGridLeft="3",scaleGridRight="21",scaleGridBottom="20");
+	paddingLeft: 2;
+	paddingRight: 2;
+	paddingTop: 2;
+}
+
+/**
+	// ------------------------------------- 
+	// CheckBox
+*/
+CheckBox{
+	upIcon:  Embed(source="../flash/buttonResource.swf", symbol="comboBoxUp"); 
+	overIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxUp"); 
+	downIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxSelect"); 
+	disabledIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxUp"); 
+	selectedUpIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxSelect"); 
+	selectedOverIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxSelect"); 
+	selectedDownIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxUp"); 
+	selectedDisabledIcon: Embed(source="../flash/buttonResource.swf", symbol="comboBoxSelect"); 
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #370D00;
+	textRollOverColor: #733821;
+	textSelectedColor: #370D00;
+	disabledColor: #B7A099;
+}
+
+/**
+	// ------------------------------------- 
+	// HScrollBar
+*/
+HScrollBar,VScrollBar {
+	/*thumbUpSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarTrack"); 
+	downArrowUpSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollDown"); 
+	downArrowOverSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollDown"); 
+	downArrowDownSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollDown"); 
+	downArrowDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollDown"); 
+	upArrowUpSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarUp"); 
+	upArrowOverSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarUp"); 
+	upArrowDownSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarUp"); 
+	upArrowDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarUp"); 
+	thumbOverSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarTrack");
+	thumbDownSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarTrack");
+	trackColors: #0A0D11, #0A0D11;
+	fillAlphas: 0.0, 1.0, 1.0, 1.0;
+	trackSkin: Embed(source="../flash/buttonResource.swf", symbol="scrollBarTrackBG");*/
+	thumbUpSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/trackUp.png",scaleGridTop="6",scaleGridLeft="1",scaleGridRight="12",scaleGridBottom="7");
+	downArrowUpSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	downArrowOverSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	downArrowDownSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	downArrowDisabledSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	upArrowUpSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	upArrowOverSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	upArrowDownSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	upArrowDisabledSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	thumbOverSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/trackUp.png",scaleGridTop="6",scaleGridLeft="1",scaleGridRight="12",scaleGridBottom="7");
+	thumbDownSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/trackUp.png",scaleGridTop="6",scaleGridLeft="1",scaleGridRight="12",scaleGridBottom="7");
+	trackColors: #0A0D11, #0A0D11;
+	fillAlphas: 0.0, 1.0, 1.0, 1.0;
+	trackSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/track.png",scaleGridBottom="47",scaleGridLeft="1",scaleGridTop="21",scaleGridRight="4");
+
+} 
+
+/*描述性文字样式*/
+Text
+{
+	fontSize: 11;
+	color: #81511c;
+	fontFamily: Tahoma,"돋움";
+	leading: 0;
+}
+
+
+/*Panel*/
+Panel
+{
+	fontSize: 11;
+	fontFamily: Tahoma,"돋움";
+	backgroundColor: #F8EDC9;
+	color: #FFFFFF;
+	
+}
+
+/**
+	// ------------------------------------- 
+	// RadioButton
+*/
+RadioButton{
+	upIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonUp");
+	overIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonUp");
+	downIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonSelect");
+	disabledIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonUp");
+	selectedUpIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonSelect");
+	selectedOverIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonSelect");
+	selectedDownIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonUp");
+	selectedDisabledIcon: Embed(source="../flash/buttonResource.swf", symbol="radioButtonSelect");
+
+}
+
+/**
+	// ------------------------------------- 
+	// ComboBox
+*/
+ComboBox
+{
+	fontFamily: Tahoma,"돋움";
+	upSkin: Embed(source="assets/images/EmbedImages/common/comboBox/DownMenuNor.png",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="96",scaleGridBottom="19");
+	overSkin: Embed(source="assets/images/EmbedImages/common/comboBox/DownMenuHover.png",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="96",scaleGridBottom="19");
+	downSkin: Embed(source="assets/images/EmbedImages/common/comboBox/DownMenuDown.png",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="96",scaleGridBottom="19");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/comboBox/DownMenuDisabled.png",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="96",scaleGridBottom="19");
+	fontAlign:center;
+	textAlign: center;
+	color: #5e341b;
+	textRollOverColor: #733821;
+	textSelectedColor: #370D00;
+	disabledColor: #B7A099;
+	dropdownStyleName: comboBoxDropdown;
+	fontWeight: normal;
+	fontSize: 11;
+	paddingTop: 1;
+}
+
+
+/**
+	// ------------------------------------- 
+	// NumericStepper
+*/
+NumericStepper
+{
+	color: #370D00;
+	textAlign: center;
+	borderColor: #3A404C;
+	cornerRadius: 0;
+	borderThickness: 0;
+	upArrowUpSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnUp");
+	upArrowOverSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnOver");
+	upArrowDownSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnDown");
+	upArrowDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnDisable");
+	downArrowUpSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnUp");
+	downArrowOverSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnOver");
+	downArrowDownSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnDown");
+	downArrowDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnDisable");
+	backgroundAlpha: 0;
+}
+
+
+/*
+//------------------------------
+//  Menu
+//------------------------------
+*/
+Menu
+{
+	fontSize: 11;
+	color: #370d00;
+	fontFamily: Tahoma,"돋움";
+	roundedCorners:0;
+	textRollOverColor: #5E341B;
+	textSelectedColor:#dddddd;
+	shadowDistance: 0;	
+	borderSkin: ClassReference('skins.MenuBorderSkin');
+	/*borderSkin: Embed(source="assets/images/EmbedImages/common/menu/menuBackGround.png",scaleGridRight="79",scaleGridLeft="4",scaleGridTop="5",scaleGridBottom="90");*/
+	rollOverColor: #F7D294;
+	selectionColor: #F7D294;
+	separatorSkin: Embed(source="assets/images/EmbedImages/common/menu/separator.png");
+	focusThickness: 100;
+	paddingTop: 3;
+	paddingBottom: 3;
+	backgroundSize: 0.1;
+}
+
+
+/* 小心提示框 目前用于大地图上的野地信息*/
+Canvas.smallInfoWin
+{
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/tooltipBG.png",scaleGridRight="79",scaleGridLeft="4",scaleGridTop="5",scaleGridBottom="45");*/
+	border-skin: ClassReference('skins.TipSkin');
+}
+
+/*topButtonBar样式*/
+Canvas.topButtonBarWin
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/top_bg.png",scaleGridRight="253",scaleGridLeft="8",scaleGridTop="5",scaleGridBottom="16");
+}
+
+Canvas.baseTooltip
+{
+/*
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/tooltipBG.png",scaleGridRight="79",scaleGridLeft="4",scaleGridTop="6",scaleGridBottom="90");
+*/	
+	border-skin: ClassReference('skins.TipSkin');
+	fontSize: 11;
+}
+
+/*跳转背景*/
+Canvas.mapJumpBgCanvas
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/mapJumpBg.png",scaleGridRight="314",scaleGridLeft="14",scaleGridTop="5",scaleGridBottom="28");
+}
+
+/*主界面背景*/
+Canvas.mainGameBG
+{
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/mainBackGround.png");*/
+	borderSkin: Embed(source="../flash/skinResource.swf", symbol="mainBackGround");
+}
+
+
+/*半透明背景，用于建筑排程 */
+Canvas.BuildingAlphaWindow
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/alphaBackGround.png",scaleGridTop="7",scaleGridLeft="8",scaleGridRight="176",scaleGridBottom="160");
+}
+
+/*警告窗口背景 */
+Canvas.warningWinBG
+{
+/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/BG_warning.png",scaleGridTop="50",scaleGridLeft="42",scaleGridRight="209",scaleGridBottom="150");*/
+	borderSkin: Embed(source="../flash/skinResource.swf", symbol="BG_warning",scaleGridTop="50",scaleGridLeft="42",scaleGridRight="209",scaleGridBottom="150");	
+}
+
+
+/*透明渐变背景*/
+Canvas.diatropismShadeBG
+{
+	borderSkin: ClassReference("skins.DiatropismShadeSkin");	
+}
+
+
+/*大建筑图标背景 */
+Canvas.bigBuildingLogo
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/logoBG/buildingLogoBg.png",scaleGridTop="12",scaleGridLeft="8",scaleGridRight="104",scaleGridBottom="47");
+	
+}
+
+/*白色背景有边框*/
+Canvas.whiteBGwithBorder
+{
+	strokeWidth: 1;
+	borderStyle: solid;
+	backgroundColor: #FFFFFF;
+	borderColor: #DCCEA9;
+	borderThickness: 1;
+}
+
+/*输入框白色背景有边框*/
+Canvas.whiteBGEmailBorder
+{
+	strokeWidth: 1;
+	borderStyle: solid;
+	backgroundColor: #FFFFFF;
+	borderColor: #95876c;
+	borderThickness: 1;
+}
+
+/*小图标边框边框 */
+Canvas.smallLogoBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/logoBG/smallLogoBg.png",scaleGridRight="68",scaleGridLeft="5",scaleGridTop="8",scaleGridBottom="31");
+	
+}
+
+
+/*按钮栏上样式*/
+Canvas.toolBarUpBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/iconbg-2.png",scaleGridLeft="22",scaleGridTop="6",scaleGridRight="254",scaleGridBottom="7");
+}
+
+/*按钮栏下样式*/
+Canvas.toolBarDownBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/iconbg-1.png",scaleGridLeft="13",scaleGridTop="1",scaleGridRight="255",scaleGridBottom="3");
+}
+
+/*任务选中样式*/
+Canvas.questSelectBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/XUANZE3.png",scaleGridRight="10",scaleGridLeft="4",scaleGridTop="9",scaleGridBottom="10");
+	
+}
+
+/*popupWindow样式*/
+Canvas.popUpWinBG
+{
+	/*borderSkin: Embed(source="../flash/skinResource.swf",symbol="upWindowsBG",scaleGridRight="340",scaleGridLeft="24",scaleGridTop="36",scaleGridBottom="253");*/
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/del/functionInfoBG.png",scaleGridRight="797",scaleGridLeft="24",scaleGridTop="36",scaleGridBottom="362");*/
+	borderSkin: ClassReference('skins.FunctionWinSkin');
+}
+
+/*渐变背景样式*/
+Canvas.shadeBGCanvas
+{
+	borderSkin: ClassReference("skins.ShadeSkin");
+}
+
+
+/*进度条背景*/
+Canvas.progressBarBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/ProgressBG.png",scaleGridRight="78",scaleGridLeft="2",scaleGridTop="2",scaleGridBottom="12");
+}
+
+/*白色背景*/
+Canvas.whriteBG
+{
+	backgroundColor: #FFFFFF;
+}
+
+/*进度条*/
+Canvas.progressBar
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/Progress.jpg");
+}
+
+
+/*官府四角带花纹背景*/
+Canvas.buildingInfoContentBG
+{
+	/*borderColor: #95805B;
+	borderStyle: solid;
+	backgroundColor: #F8EDC9;
+	backgroundImage: Embed(source="assets/images/EmbedImages/common/backGround/townHallBG.jpg");
+	borderSkin: ClassReference("skins.ContentBackGroundSkin");*/
+	backgroundColor: #F8E9C8;
+	borderColor: #9A875D;
+	borderStyle: solid;
+}
+
+/*只有边框的容器*/
+Canvas.OnlyBorder3Canvas
+{
+	borderSkin: ClassReference("skins.OnlyBorderSkin");
+}
+
+/*打开物品背景*/
+Tile.ItemCatcherTile
+{
+	borderSkin: ClassReference("skins.ItemContainerSkin");
+}
+
+/*输入框背景*/
+Canvas.textInputBG
+{
+	backgroundColor: #F7ECC9;
+	borderColor: #9C8763;
+	borderStyle: solid;
+	
+}
+
+
+/*间隔条纹背景*/
+Canvas.intervalBG
+{
+	borderSkin: ClassReference("skins.IntervalVeinsSkin");	
+}
+/*只有边框的背景*/
+Canvas.onlyBorderCavas{
+	borderColor: #9A8560;
+	borderStyle: solid;
+}
+
+
+/*双bordor背景*/
+Canvas.doubleBorderBG
+{
+	border-skin: ClassReference('skins.DupBorderSkin');
+	borderColor: #471C1C;
+	cornerRadius: 6;
+	backgroundColor: #FCF3C1;
+}
+
+/*带功能界面*/
+Canvas.BaseFunctionWindow
+{
+	/*borderSkin: ClassReference('skins.BuildInfoWinSkin');*/
+	/*borderSkin: Embed(source="../flash/skinResource.swf", symbol="functionInfoBG",scaleGridLeft="24",scaleGridTop="33",scaleGridRight="799",scaleGridBottom="370");*/
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/del/functionInfoBG.png",scaleGridLeft="24",scaleGridTop="33",scaleGridRight="799",scaleGridBottom="370");*/
+	borderSkin: ClassReference('skins.FunctionWinSkin');
+}
+
+
+/*建筑界面*/
+Canvas.buildingInfoBG
+{
+	borderSkin: Embed(source="../flash/skinResource.swf", symbol="buidingInfoBG",scaleGridLeft="60",scaleGridTop="72",scaleGridRight="762",scaleGridBottom="375");
+}
+
+
+/*小图标图片背景*/
+Canvas.smallIconBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/smallIconBG.png",scaleGridLeft="3",scaleGridTop="3",scaleGridRight="44",scaleGridBottom="44");
+	
+}
+
+/*带透明度的背景，用在主界面资源框背景*/
+Canvas.alphaBlackBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/resourceBG.png",scaleGridTop="12",scaleGridLeft="11",scaleGridRight="181",scaleGridBottom="229");
+	
+}
+
+
+/*资源栏背景*/
+Canvas.resourceBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/BG_resources.png",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="268",scaleGridBottom="109");
+
+}
+/*玩家信息背景*/
+Canvas.playerInfoBG
+{
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/playInfoBG.png",scaleGridTop="63",scaleGridLeft="196",scaleGridRight="257",scaleGridBottom="186");*/
+	borderSkin: Embed(source="../flash/skinResource.swf",symbol="playInfoBG",scaleGridTop="63",scaleGridLeft="196",scaleGridRight="257",scaleGridBottom="186");
+}
+/*资源信息背景*/
+Canvas.resourceInfoBG
+{
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/resourceInfoBG.png",scaleGridTop="36",scaleGridLeft="56",scaleGridRight="271",scaleGridBottom="157");*/
+	borderSkin: Embed(source="../flash/skinResource.swf",symbol="resourceInfoBG",scaleGridTop="36",scaleGridLeft="56",scaleGridRight="271",scaleGridBottom="157");
+}
+
+/*聊天栏背景 */
+/**/
+Canvas.chatBG
+{
+	/*backgroundImage: Embed(source="assets/images/EmbedImages/chat/chatBG.png");*/
+	border-skin: ClassReference('skins.ChatBGSkin');
+}
+
+/*商店背景*/
+Canvas.shopBG
+{
+	borderSkin: Embed(source="../flash/skinResource.swf",symbol="bg_shop",scaleGridTop="57",scaleGridLeft="14",scaleGridRight="787",scaleGridBottom="364");
+}
+
+/*仿dataGridHeager*/
+Canvas.dataGridHeaderBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/DataGridHeaderBg.png",scaleGridLeft="6",scaleGridTop="1",scaleGridRight="739",scaleGridBottom="21");
+	
+}
+
+/*内容区背景*/
+Canvas.subContentBG
+{
+
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/resourceBG.png",scaleGridRight="182",scaleGridLeft="11",scaleGridTop="11",scaleGridBottom="230");
+}
+
+
+/*褐色半透明背景*/
+Canvas.brownAlphaBG
+{
+	backgroundColor: #803900;
+	backgroundAlpha: 0.5;
+	borderSkin: ClassReference("skins.ContainerBGSkin");
+
+}
+
+/*纯黑色背景*/
+Canvas.blackBG
+{
+	backgroundColor: #000000;
+	
+}
+
+
+/*科技种类背景*/
+Canvas.techIconBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/XUANZE_Tech.png",scaleGridTop="8",scaleGridLeft="10",scaleGridRight="80",scaleGridBottom="64");
+}
+
+
+
+
+/*内容区建筑小logo背景*/
+Canvas.smallBuildingLogoBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/common/backGround/logoBG/smallBuildingLogoBG.png",scaleGridTop="4",scaleGridLeft="4",scaleGridRight="51",scaleGridBottom="51");
+}
+
+
+/*市场资源icon按钮背景*/
+Canvas.marketResourceIconBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/Resources_bg.png",scaleGridTop="3",scaleGridLeft="3",scaleGridRight="44",scaleGridBottom="23");
+}
+
+
+
+
+/*主功能界面内容区背景*/
+Canvas.mainWindowContentBG
+{
+	backgroundColor: #F8E9C8;
+	borderColor: #9A875D;
+	borderStyle: solid;
+	
+}
+
+/*英雄军队背景*/
+Canvas.heroArmyBG
+{
+	/*&borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/budui_bg.png",scaleGridRight="89",scaleGridLeft="15",scaleGridTop="15",scaleGridBottom="41");*/
+	borderSkin: Embed(source="../flash/skinResource.swf",symbol="budui_bg",scaleGridRight="89",scaleGridLeft="15",scaleGridTop="15",scaleGridBottom="41");
+}
+
+
+
+
+
+
+/*黑色透明背景*/
+Canvas.alphaBlackcolorBG
+{
+	backgroundColor: #000000;
+	backgroundAlpha: 0.4;
+	
+}
+
+
+/*科技栏标题背景*/
+Canvas.tecTitleBG
+{
+	borderSkin: Embed(source="../flash/skinResource.swf", symbol="tecTitleBG");
+}
+
+/*新手我的物品提示背景*/
+Canvas.newPlayerMyItemBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/myItemTipBg.png",scaleGridBottom="86",scaleGridLeft="50",scaleGridTop="17",scaleGridRight="181");
+}
+
+/*新手任务提示背景*/
+Canvas.newPlayerTaskBG
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/taskTipBg.png",scaleGridTop="43",scaleGridLeft="29",scaleGridRight="159",scaleGridBottom="93");
+}
+
+/*联盟按钮样式*/
+Button.allianceChatStyleBtn
+{
+	color: #194AA2;
+	textRollOverColor: #235DC7;
+	textSelectedColor: #194AA2;
+
+}
+
+/*loadingStyle按钮*/
+Button.loadingStyleBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/LoadingStyleBtn/button_LOGIN1-Normal.png",scaleGridTop="11",scaleGridLeft="10",scaleGridRight="100",scaleGridBottom="17");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/LoadingStyleBtn/button_LOGIN1-MouseOver.png",scaleGridTop="11",scaleGridLeft="10",scaleGridRight="100",scaleGridBottom="17");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/LoadingStyleBtn/button_LOGIN1-ClickDown.png",scaleGridTop="11",scaleGridLeft="10",scaleGridRight="100",scaleGridBottom="17");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/LoadingStyleBtn/button_LOGIN1-Disabled.png",scaleGridTop="11",scaleGridLeft="10",scaleGridRight="100",scaleGridBottom="17");
+	fontWeight: normal;
+	fontSize: 11;
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	disabledColor: #FFFFFF;
+}
+
+
+
+/*收藏修改按钮*/
+Button.collectionModifyBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/collection/icon_pen.png");
+	
+}
+
+/*赞成按钮*/
+Button.agreeBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/agreeBtn/check_1.png");
+	
+}
+
+/*侦查*/
+Button.spyBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/spy.png");
+	
+}
+
+
+/*占领*/
+Button.occupyBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/occupy.png");
+}
+
+/*增援*/
+Button.reinforceBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/reinforce.png");
+}
+/*掠夺*/
+Button.depredateBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/depredate.png");
+}
+
+/*地图进入按钮*/
+Button.getInBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/back.png");
+}
+
+/*收藏*/
+Button.collectionBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/collection.png");
+}
+/*运输*/
+Button.transportBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/mapBtn/transport.png");
+}
+
+
+/*收藏坐标按钮*/
+Button.collectionCoordinateBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="collectionCoordinateBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="collectionCoordinateBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="collectionCoordinateBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="collectionCoordinateBtnDisable");
+}
+
+/*收藏按钮*/
+Button.collectionComboBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/collectionBtn/button_shoucang-Normal.png",scaleGridRight="23",scaleGridLeft="4",scaleGridTop="3",scaleGridBottom="17");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/collectionBtn/button_shoucang-MouseOver.png",scaleGridRight="23",scaleGridLeft="4",scaleGridTop="3",scaleGridBottom="17");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/collectionBtn/button_shoucang-ClickDown.png",scaleGridRight="23",scaleGridLeft="4",scaleGridTop="3",scaleGridBottom="17");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/collectionBtn/button_shoucang-Disabled.png",scaleGridRight="23",scaleGridLeft="4",scaleGridTop="3",scaleGridBottom="17");
+	
+}
+
+/*查看军队动态按钮 */
+Button.checkOutArmyBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/checkOutArmyBtn/checkOutArmy.png");
+	
+}
+
+/*治疗按钮 */
+Button.cureBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/cureBtn/icon_shizi.png");
+}
+
+
+/*上升按钮*/
+Button.moveUpBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/hero/moveup.png");
+}
+
+/*下降按钮*/
+Button.moveDownBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/hero/movedown.png");
+}
+
+/*查看城市坐标按钮 */
+Button.cityFindBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/cityFindBtn/cityFind.png");
+	
+}
+
+
+/*增加英雄点数按钮*/
+Button.increaseAttributeBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/hero/add1PointBtn.png");
+}
+
+
+/*分配兵力按钮*/
+Button.apportionmentBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="apportionmentBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="apportionmentBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="apportionmentBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="apportionmentBtnDisable");
+	
+}
+
+
+/*轮盘确定按钮*/
+Button.turntableSubmitBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableSubmitBtnUp",scaleGridRight="114",scaleGridLeft="18",scaleGridTop="14",scaleGridBottom="19");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableSubmitBtnOver",scaleGridRight="114",scaleGridLeft="18",scaleGridTop="14",scaleGridBottom="19");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableSubmitBtnDown",scaleGridRight="114",scaleGridLeft="18",scaleGridTop="14",scaleGridBottom="19");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableSubmitBtnDisable",scaleGridRight="114",scaleGridLeft="18",scaleGridTop="14",scaleGridBottom="19");
+	fontSize: 14;
+	fontWeight: bold;
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	disabledColor: #FFFFFF;
+	paddingLeft: 20;
+	paddingRight: 20;
+}
+
+
+/*轮盘最小化按钮*/
+Button.turntableMinBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableMinBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableMinBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableMinBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="turntableMinBtnDisable");
+}
+
+
+/*建筑加速按钮*/
+Button.buildingSpeedUpBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingSpeedUpBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingSpeedUpOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingSpeedUpBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingSpeedUpBtnDisable");
+	
+}
+/*在建建筑加速按钮*/
+Button.buildingNowSpeedUpBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingNowSpeedUpBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingNowSpeedUpBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingNowSpeedUpBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="buildingNowSpeedUpBtnDisable");
+	color: #FFFFFF;
+	fontWeight: normal;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	letterSpacing: 0;
+	paddingLeft: 8;
+	
+}
+
+/*通用按钮，字体不加粗*/
+Button.commomNormalBtn
+{
+	fontWeight: normal;
+	disabledColor: #c7ae7c;
+	
+}
+
+/*仿combobox按钮*/
+Button.comboBoxBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="comboBoxBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="comboBoxBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="comboBoxBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="comboBoxBtnDisable");
+}
+
+/*仿tab按钮*/
+Button.tabBtn
+{	
+	overSkin:Embed(source="assets/images/EmbedImages/common/button/tabBtn/label2.png",scaleGridTop="8",scaleGridLeft="6",scaleGridRight="50",scaleGridBottom="18");
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/tabBtn/label2.png",scaleGridTop="8",scaleGridLeft="6",scaleGridRight="50",scaleGridBottom="18");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/tabBtn/label2.png",scaleGridTop="8",scaleGridLeft="6",scaleGridRight="50",scaleGridBottom="18");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/tabBtn/label2.png",scaleGridTop="8",scaleGridLeft="6",scaleGridRight="50",scaleGridBottom="18");
+	
+	
+    selectedOverSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/normal.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedUpSkin:Embed(source="assets/images/EmbedImages/common/toggleButtonBar/normal.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedDownSkin:Embed(source="assets/images/EmbedImages/common/toggleButtonBar/normal.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedDisabledSkin:Embed(source="assets/images/EmbedImages/common/toggleButtonBar/normal.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+	fontWeight: normal;
+	color: #000000;
+	textRollOverColor: #000000;
+	textSelectedColor: #000000;
+}
+
+
+
+
+/*商城买按钮*/
+Button.shopForBuyBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-Normal.png");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-MouseOver.png");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-ClickDown.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-Disabled.png");
+	
+}
+/*二级菜单按钮*/
+Button.secondaryBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-Normal.png",scaleGridRight="42",scaleGridLeft="2",scaleGridTop="2",scaleGridBottom="16");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-MouseOver.png",scaleGridRight="42",scaleGridLeft="2",scaleGridTop="2",scaleGridBottom="16");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-ClickDown.png",scaleGridRight="42",scaleGridLeft="2",scaleGridTop="2",scaleGridBottom="16");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-Disabled.png",scaleGridRight="42",scaleGridLeft="2",scaleGridTop="2",scaleGridBottom="16");
+	fontWeight: normal;
+	paddingLeft: 2;
+	paddingRight: 2;
+	
+}
+
+
+/*最大数值按钮*/
+Button.maxValueBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="maxValueBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="maxValueBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="maxValueBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="maxValueBtnDisable");
+	
+}
+
+/*最小数值按钮*/
+Button.minValueBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="minValueBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="minValueBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="minValueBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="minValueBtnDisable");
+	
+}
+
+/*驿站取消连接线按钮*/
+Button.dakCancleBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="dakCancleBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="dakCancleBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="dakCancleBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="dakCancleBtnDisable");
+	
+}
+
+/*英雄增加三点属性按钮样式*/
+Button.add3PointBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/hero/add3PointBtn.png");
+}
+
+/*英雄增加五点属性按钮样式*/
+Button.add5PointBtn
+{
+	/*upSkin: Embed(source="../flash/buttonResource.swf", symbol="add5PointBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="add5PointBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="add5PointBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="add5PointBtnDisable");*/
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingTop: 0;
+	paddingBottom: 0;
+}
+
+/*聊天menu栏目按钮样式*/
+Button.chatPureColorBtn
+{
+	
+	borderColor: #f8d293;
+	overSkin:ClassReference("skins.ChatMenuSkin");
+	upSkin: ClassReference("skins.ChatMenuSkin");
+	downSkin: ClassReference("skins.ChatMenuSkin");
+	disabledSkin: ClassReference("skins.ChatMenuSkin");
+	
+    selectedOverSkin: ClassReference("skins.ChatMenuSkin");
+    selectedUpSkin:ClassReference("skins.ChatMenuSkin");
+    selectedDownSkin:ClassReference("skins.ChatMenuSkin");
+    selectedDisabledSkin:ClassReference("skins.ChatMenuSkin");
+}
+
+/*好友menu栏目按钮样式*/
+Button.friendsPureColorBtn
+{
+	
+	borderColor: #f8d293;
+	overSkin:ClassReference("skins.ChatMenuSkin");
+	upSkin: ClassReference("skins.ChatMenuSkin");
+	downSkin: ClassReference("skins.ChatMenuSkin");
+	disabledSkin: ClassReference("skins.ChatMenuSkin");
+	
+    selectedOverSkin: ClassReference("skins.ChatMenuSkin");
+    selectedUpSkin:ClassReference("skins.ChatMenuSkin");
+    selectedDownSkin:ClassReference("skins.ChatMenuSkin");
+    selectedDisabledSkin:ClassReference("skins.ChatMenuSkin");
+	fontWeight: normal;
+}
+
+/*bufferBar building按钮*/
+Button.bufferBarBuildingBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnUp.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnUp.png");
+	
+	selectedOverSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnOver.png");
+    selectedUpSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnUp.png");
+    selectedDownSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnUp.png");
+    selectedDisabledSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnUp.png");
+	paddingLeft: 15;
+	fontWeight: normal;
+	textSelectedColor: #FFFFFF;
+	color: #370D00;
+	textRollOverColor: #733821;
+	disabledColor: #c7ae7c;
+}
+Button.bufferBarBuildingSelectBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnUp.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnUp.png");
+	
+	selectedOverSkin: Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnOver.png");
+    selectedUpSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnUp.png");
+    selectedDownSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerBtnUp.png");
+    selectedDisabledSkin:Embed(source="assets/images/EmbedImages/bufferBar/buildViewerSelectBtnUp.png");
+	paddingLeft: 18;
+	fontWeight: normal;
+	textSelectedColor: #FFFFFF;
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+}
+
+
+/*bufferBar army按钮*/
+Button.bufferArmyBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnOver.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnUp.png");
+	
+	selectedOverSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnOver.png");
+    selectedUpSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnUp.png");
+    selectedDownSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnUp.png");
+    selectedDisabledSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnUp.png");
+	paddingLeft: 18;
+	fontWeight: normal;
+	textSelectedColor: #FFFFFF;
+	fontFamily: Tahoma,"돋움";
+	color: #370D00;
+	textRollOverColor: #733821;
+	disabledColor: #c7ae7c;
+}
+
+/*bufferBar bug按钮*/
+Button.bugBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/bug-MouseOver.png",scaleGridLeft="11",scaleGridTop="5",scaleGridRight="230",scaleGridBottom="18");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/bug-Normal.png",scaleGridLeft="11",scaleGridTop="5",scaleGridRight="230",scaleGridBottom="18");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/bug-ClickDown.png",scaleGridLeft="11",scaleGridTop="5",scaleGridRight="230",scaleGridBottom="18");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/bug-Disabled.png",scaleGridLeft="11",scaleGridTop="5",scaleGridRight="230",scaleGridBottom="18");
+	color: #6AFF10;
+	textRollOverColor: #6AFF10;
+	textSelectedColor: #6AFF10;
+	disabledColor: #6AFF10;
+	fontWeight: normal;
+	textDecoration: underline;
+}
+
+/*bufferBar 好友按钮*/
+Button.bufferBuddiesBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/buddiesBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/buddiesBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/buddiesBtnDown.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/buddiesBtnDisable.png");
+	fontWeight: normal;
+	paddingLeft: 18;
+	textSelectedColor: #FFFFFF;
+}
+
+/*bufferBar 排行按钮*/
+Button.bufferRankingBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/rankingBtnOver.png",scaleGridLeft="20",scaleGridTop="1",scaleGridRight="63",scaleGridBottom="16");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/rankingBtnUp.png",scaleGridLeft="20",scaleGridTop="1",scaleGridRight="63",scaleGridBottom="16");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/rankingBtnDown.png",scaleGridLeft="20",scaleGridTop="1",scaleGridRight="63",scaleGridBottom="16");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/rankingBtnDisable.png",scaleGridLeft="20",scaleGridTop="1",scaleGridRight="63",scaleGridBottom="16");
+	fontWeight: normal;
+	paddingLeft: 18;
+	textSelectedColor: #FFFFFF;
+}
+
+/*bufferBar论坛按钮*/
+Button.bufferForumBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/forumBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/forumBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/forumBtnDown.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/forumBtnDisable.png");
+	fontWeight: normal;
+	paddingLeft: 18;
+	textSelectedColor: #FFFFFF;
+}
+
+/*bufferBar用户等级按钮*/
+Button.userLevelBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/krLvBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/krLvBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/krLvBtnDown.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/krLvBtnDisable.png");
+}
+
+/*bufferBar legu按钮*/
+Button.leGuBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/leGuDown.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/leGuUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/leGuUp.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/leGuUp.png");
+}
+
+/*bufferBar baha按钮*/
+Button.baHaBtn
+{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/baHaDown.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/baHaUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/baHaUp.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/baHaUp.png");
+}
+
+/*bufferBar army按钮*/
+Button.bufferArmySelectBtn
+{
+
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnOver.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnUp.png");
+	
+	selectedOverSkin: Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnOver.png");
+    selectedUpSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnUp.png");
+    selectedDownSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerBtnUp.png");
+    selectedDisabledSkin:Embed(source="assets/images/EmbedImages/bufferBar/armyViewerSelectBtnUp.png");
+	
+	paddingLeft: 15;
+	fontWeight: normal;
+	textSelectedColor: #FFFFFF;
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+}
+
+
+
+/*bufferBar tech按钮*/
+Button.bufferTechBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="techBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="techBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="techBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="techBtnUp");
+	
+	selectedOverSkin: Embed(source="../flash/buttonResource.swf", symbol="techBtnOver");
+    selectedUpSkin:Embed(source="../flash/buttonResource.swf", symbol="techBtnUp");
+    selectedDownSkin:Embed(source="../flash/buttonResource.swf", symbol="techBtnDown");
+    selectedDisabledSkin:Embed(source="../flash/buttonResource.swf", symbol="techBtnUp");
+}
+
+/*声音打开按钮*/
+Button.soundOpenBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="soundOpenBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="soundOpenBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="soundOpenBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="soundOpenBtnDown");
+	
+}
+
+/*声音关闭按钮*/
+Button.soundCloseBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="soundCloseBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="soundCloseBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="soundCloseBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="soundCloseBtnDown");
+	
+}
+
+
+
+
+/*联盟升级加速按钮样式*/
+Button.levelUpAddBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="levelUpAddBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="levelUpAddBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="levelUpAddBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="levelUpAddBtnDisable");
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	disabledColor: #B7A099;
+	fontWeight: normal;
+}
+
+
+/*加号符号按钮样式*/
+Button.addBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="addBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="addBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="addBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="addBtnDisable");
+	
+}
+
+
+/*顶部按钮*/
+Button.topButton
+{
+	color: #FFFFFF;
+	fontWeight: normal;
+	fontFamily: Arial,"돋움";
+	textRollOverColor: #85FFF5;
+	textSelectedColor: #FFFFFF;
+	fontSize: 11;
+	
+}
+
+
+
+
+/*城市按钮*/
+Button.cityChangeBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnDisable");
+	
+	selectedUpSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnUp");
+	selectedOverSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnOver");
+	selectedDownSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnDown");
+	selectedDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="cityChangeBtnDisable");
+	fontWeight: bold;
+	fontSize: 14;
+	fontFamily: Arial,"돋움";
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	
+}
+
+/*地图按钮*/
+Button.mapChangeBtn
+{
+	fontWeight: bold;
+	fontSize: 14;
+	fontFamily: Arial,"돋움";
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnDisable");
+	
+	selectedUpSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnUp");
+	selectedOverSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnOver");
+	selectedDownSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnDown");
+	selectedDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="mapChangeBtnDisable");
+}
+
+
+/*玩家信息栏玩家信息按钮*/
+Button.playerInfoMyInfoBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMyInfoBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMyInfoBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMyInfoBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMyInfoBtnDisable");
+	
+}
+
+/*聊天区发送按钮*/
+Button.chatFrameSent
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameSentUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameSentOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameSentDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameSentDisable");
+}
+
+/*聊天区最大化按钮*/
+Button.chatFrameResumeMax
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameResumeMaxUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameResumeMaxOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameResumeMaxDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="chatFrameResumeMaxDisable");
+}
+
+/*玩家信息栏大地图信息按钮*/
+Button.playerInfoMapBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMapBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMapBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMapBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoMapBtnDisable");
+	
+}
+
+/*玩家信息栏小地图信息按钮*/
+Button.playerInfoFieldBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoFieldBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoFieldBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoFieldBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoFieldBtnDisable");
+	
+}
+
+
+
+
+/*弹出窗口标题按钮 */
+Button.popUpWinTitleBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitleBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitleBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitleBtnUp");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitleBtnUp");
+	
+}
+
+/*弹出窗口标题按钮 2*/
+Button.popUpWinTitle2Btn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitle2BtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitle2BtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitle2BtnUp");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="popUpWinTitle2BtnUp");
+	
+}
+
+/*下一个按钮 */
+Button.nextBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="nextBtnDisable");
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	
+}
+
+
+/*最左按钮 */
+Button.minBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="minBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="minBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="minBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="minBtnDown");
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	
+}
+
+
+/*最右按钮 */
+Button.maxBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="maxBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="maxBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="maxBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="maxBtnDown");
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	
+}
+
+/*NumericStepper向上按钮*/
+Button.NumericStepperUpBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperUpBtnDisable");
+}
+/*NumericStepper向下按钮*/
+Button.NumericStepperDownBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="NumericStepperDownBtnDisable");
+}
+
+
+/*系统频道按钮16w*16h*/
+Button.SystemBtn
+{
+	upSkin: ClassReference("skins.ChatButtonSkin");
+	overSkin: ClassReference("skins.ChatButtonSkin");
+	downSkin: ClassReference("skins.ChatButtonSkin");
+	disabledSkin: ClassReference("skins.ChatButtonSkin");
+	
+	selectedUpSkin: ClassReference("skins.ChatButtonSkin");
+	selectedOverSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDownSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/chat/icon_system.png");
+}
+
+/*聊天区世界频道按钮16w*16h*/
+Button.chatWorldBtn
+{
+	upSkin: ClassReference("skins.ChatButtonSkin");
+	overSkin: ClassReference("skins.ChatButtonSkin");
+	downSkin: ClassReference("skins.ChatButtonSkin");
+	disabledSkin: ClassReference("skins.ChatButtonSkin");
+	
+	selectedUpSkin: ClassReference("skins.ChatButtonSkin");
+	selectedOverSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDownSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/chat/icon_world.png");
+}
+
+
+/*聊天区联盟频道按钮16w*16h*/
+Button.chatAllianceBtn
+{
+	upSkin: ClassReference("skins.ChatButtonSkin");
+	overSkin: ClassReference("skins.ChatButtonSkin");
+	downSkin: ClassReference("skins.ChatButtonSkin");
+	disabledSkin: ClassReference("skins.ChatButtonSkin");
+	selectedUpSkin: ClassReference("skins.ChatButtonSkin");
+	selectedOverSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDownSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/chat/icon_aliance.png");
+}
+
+/*聊天区私聊频道按钮16w*16h*/
+Button.chatPrivateBtn
+{
+	upSkin: ClassReference("skins.ChatButtonSkin");
+	overSkin: ClassReference("skins.ChatButtonSkin");
+	downSkin: ClassReference("skins.ChatButtonSkin");
+	disabledSkin: ClassReference("skins.ChatButtonSkin");
+	selectedUpSkin: ClassReference("skins.ChatButtonSkin");
+	selectedOverSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDownSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/chat/icon_message.png");
+}
+
+
+
+
+
+/*聊天区交易频道按钮16w*16h*/
+Button.chatTradeBtn
+{
+	upSkin: ClassReference("skins.ChatButtonSkin");
+	overSkin: ClassReference("skins.ChatButtonSkin");
+	downSkin: ClassReference("skins.ChatButtonSkin");
+	disabledSkin: ClassReference("skins.ChatButtonSkin");
+	selectedUpSkin: ClassReference("skins.ChatButtonSkin");
+	selectedOverSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDownSkin: ClassReference("skins.ChatButtonSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/chat/icon_system.png");
+}
+
+
+/*内嵌BUTTON */
+Button.buttonRender
+{
+	/*fillAlphas: 1.0, 1.0;
+	fillColors: #F9F0BD, #D5BA78;
+	borderColor: #7a4735;*/
+	cornerRadius: 0;	
+	/*upSkin: ClassReference('skins.MultiBorderSkin');
+	overSkin: ClassReference('skins.MultiBorderSkin');
+	downSkin: ClassReference('skins.MultiBorderSkin');
+	disabledSkin: ClassReference('skins.MultiBorderSkin');
+	color: #431B0B;*/
+	paddingTop: 1;
+	paddingLeft: 3;
+	paddingRight: 1;
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-Normal.jpg",scaleGridTop="2",scaleGridLeft="2",scaleGridRight="42",scaleGridBottom="15");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-MouseOver.jpg",scaleGridTop="2",scaleGridLeft="2",scaleGridRight="42",scaleGridBottom="15");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-ClickDown.jpg",scaleGridTop="2",scaleGridLeft="2",scaleGridRight="42",scaleGridBottom="15");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/shopBuy/button_View-Disabled.jpg",scaleGridTop="2",scaleGridLeft="2",scaleGridRight="42",scaleGridBottom="15");
+}
+
+/*上一个按钮 */
+Button.previousBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="previousBtnDisable");
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	
+}
+
+/*玩家信息按钮*/
+Button.playerInfoBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="playerInfoBtnDisable");
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	paddingBottom: 7;
+	
+}
+
+
+
+/*窗体关闭按钮 */
+Button.closeBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="closeBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="closeBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="closeBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="closeBtnDisable");
+}
+
+/*窗体返回按钮 */
+Button.returnWinBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="returnWinBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="returnWinBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="returnWinBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="returnWinBtnDisabled");
+}
+
+/*拆除建筑按钮*/
+Button.desctructBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="desctructBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="desctructBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="desctructBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="desctructBtnDisable");
+}
+
+
+
+/*取消图标按钮*/
+Button.cancleIconBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="cancleIconBtnUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="cancleIconBtnOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="cancleIconBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="cancleIconBtnDisable");
+}
+
+
+/*login界面登陆按钮*/
+Button.loginBigSizeBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN-Normal.png",scaleGridTop="14",scaleGridLeft="11",scaleGridRight="173",scaleGridBottom="33");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN-MouseOver.png",scaleGridTop="14",scaleGridLeft="11",scaleGridRight="173",scaleGridBottom="33");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN-ClickDown.png",scaleGridTop="14",scaleGridLeft="11",scaleGridRight="173",scaleGridBottom="33");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN-Disabled.png",scaleGridTop="14",scaleGridLeft="11",scaleGridRight="173",scaleGridBottom="33");
+	color: #FFF799;
+	fontWeight: bold;
+	fontSize: 14;
+	textRollOverColor: #FFF799;
+	textSelectedColor: #FFF799;
+	disabledColor: #808080;
+	
+}
+
+/*login界面普通按钮*/
+Button.loginCommonBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN1-Normal.png",scaleGridRight="103",scaleGridLeft="7",scaleGridTop="9",scaleGridBottom="18");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN1-MouseOver.png",scaleGridRight="103",scaleGridLeft="7",scaleGridTop="9",scaleGridBottom="18");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN1-ClickDown.png",scaleGridRight="103",scaleGridLeft="7",scaleGridTop="9",scaleGridBottom="18");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/loginBtn/button_LOGIN1-Disabled.png",scaleGridRight="103",scaleGridLeft="7",scaleGridTop="9",scaleGridBottom="18");
+	color: #FFF799;
+	textRollOverColor: #FFF799;
+	textSelectedColor: #FFF799;
+	fontWeight: normal;
+	
+}
+
+
+
+
+/*兵种互换按钮*/
+Button.interchangeBtn
+{
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="interchangeUp");
+	overSkin: Embed(source="../flash/buttonResource.swf", symbol="interchangeOver");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="interchangeDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="interchangeDisable");
+}
+
+/*兵种卸载按钮*/
+Button.uninstallBtn
+{
+	upSkin: ClassReference("skins.ButtonFilterSkin");
+	overSkin: ClassReference("skins.ButtonFilterSkin");
+	downSkin: ClassReference("skins.ButtonFilterSkin");
+	disabledSkin: ClassReference("skins.ButtonFilterSkin");
+	selectedDisabledIcon: Embed(source="assets/images/EmbedImages/common/button/hero/allc.png");
+}
+
+
+
+/*主窗体大型按钮*/
+Button.commonBigSizeBtn
+{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/common/BigSizeBtn/button_SPEEDUP-Normal.png",scaleGridTop="3",scaleGridLeft="3",scaleGridRight="108",scaleGridBottom="41");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/common/BigSizeBtn/button_SPEEDUP-MouseOver.png",scaleGridTop="3",scaleGridLeft="3",scaleGridRight="108",scaleGridBottom="41");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/common/BigSizeBtn/button_SPEEDUP-ClickDown.png",scaleGridTop="3",scaleGridLeft="3",scaleGridRight="108",scaleGridBottom="41");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/common/BigSizeBtn/button_SPEEDUP-Disabled.png",scaleGridTop="3",scaleGridLeft="3",scaleGridRight="108",scaleGridBottom="41");
+	
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+	fontSize: 16;
+	paddingRight: 10;
+	paddingLeft: 10;
+	paddingTop: 10;
+	paddingBottom: 10;
+}
+
+
+
+/*功能区按钮  外交按钮样式*/
+Button.toolBarDiplomatismBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarDiplomatismBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarDiplomatismBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarDiplomatismBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarDiplomatismBtnDisabled");
+}
+
+
+/*功能区按钮  任务按钮样式*/
+Button.toolBarQuestBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarQuestBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarQuestBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarQuestBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarQuestBtnDisabled");
+}
+
+/*功能区按钮  联盟按钮样式*/
+Button.toolBarAllianceBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarAllanceOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarAllanceUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarAllanceDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarAllanceDisabled");
+}
+
+/*功能区按钮  情报按钮样式*/
+Button.toolBarReportBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarReportsBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarReportsBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarReportsBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarReportsBtnDisabled");
+}
+
+/*功能区按钮  信件按钮样式*/
+Button.toolBarEmailBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarMailOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarMailUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarMailDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarMailDisabled");
+}
+
+/*功能区按钮  商场按钮样式*/
+Button.toolBarShopBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarShopBtnOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarShopBtnUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarShopBtnDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarShopBtnDisabled");
+}
+
+
+
+/*我的物品按钮样式*/
+Button.myItemBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="myItemOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="myItemUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="myItemDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="myItemDisabled");
+}
+
+
+
+
+
+/*
+//------------------------------
+//  ToggleButtonBar
+//------------------------------
+*/
+ToggleButtonBar.titleToggleButtonBar
+{ 
+    buttonStyleName: "firstButtonBarButton"; 
+    firstButtonStyleName: "firstButtonBarButton";
+    lastButtonStyleName: "firstButtonBarButton";
+	selectedButtonTextStyleName: toggleButtonBarSelectedButtonText;
+	verticalGap: 0;
+	verticalAlign: middle;
+	textIndent: 0;
+	paddingTop: 0;
+	paddingBottom: 0;
+}
+
+
+/*资源栏ToggleButtonBar*/
+ToggleButtonBar.resourceToggleButtonBar
+{ 
+    buttonStyleName: "resourceFirstButtonBarButton"; 
+    firstButtonStyleName: "resourceFirstButtonBarButton";
+    lastButtonStyleName: "resourceFirstButtonBarButton";
+	selectedButtonTextStyleName: toggleButtonBarSelectedButtonText;
+	verticalGap: 0;
+	verticalAlign: middle;
+	textIndent: 0;
+	paddingTop: 0;
+	paddingBottom: 0;
+	horizontalGap: 1;
+}
+
+
+.resourceFirstButtonBarButton 
+{ 
+	
+    disabledSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-normal.png"); 
+    downSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-ClickDown.png"); 
+    overSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-MouseOver.png"); 
+    selectedDisabledSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-ClickDown.png"); 
+    selectedDownSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-ClickDown.png"); 
+    selectedOverSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-ClickDown.png");
+    selectedUpSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-ClickDown.png");
+    upSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/resource/label_resources-normal.png");
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	bottom: 0;
+	top: 0;
+	left: 0;
+	right: 0;
+}
+
+
+Button.firstButtonBarButton 
+{ 
+    disabledSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/normal.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    downSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    overSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/over.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedDisabledSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedDownSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedOverSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedUpSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    upSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/normal.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 3;
+	horizontalGap: 0;
+	fontWeight: normal;
+	textSelectedColor: #FFF196;
+	disabledColor: #B7A099;
+}
+
+Button.toggleButtonBarSelectedButton
+{ 
+    disabledSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    downSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    overSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedDisabledSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedDownSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedOverSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    selectedUpSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+    upSkin: Embed(source="assets/images/EmbedImages/common/toggleButtonBar/select.png",scaleGridLeft="8",scaleGridTop="8",scaleGridRight="72",scaleGridBottom="22");
+	fontFamily: Tahoma,"宋体";
+	fontSize: 12;
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	paddingTop: 3;
+	horizontalGap: 0;
+	fontWeight: normal;
+	textSelectedColor: #FFF196;
+	disabledColor: #B7A099;
+	textRollOverColor: #FFF196;
+	color: #FFF196;
+}
+
+.buttonBarButton 
+{ 
+    disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonUp");
+    downSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    overSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonOver");
+    selectedDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    selectedDownSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonUp");
+    selectedOverSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    selectedUpSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    upSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonUp");
+	paddingLeft: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	paddingBottom: 0;
+	paddingRight: 0;
+}
+.lastButtonBarButton 
+{ 
+    disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonUp");
+    downSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    overSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonOver");
+    selectedDisabledSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    selectedDownSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonUp");
+    selectedOverSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    selectedUpSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonDown");
+    upSkin: Embed(source="../flash/buttonResource.swf", symbol="firstButtonBarButtonUp");
+    color: #A50B0B;
+	textRollOverColor: #300600;
+	textSelectedColor: #830202;
+	disabledColor:#510808;
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	paddingLeft: 0;
+	paddingTop: 0;
+	horizontalGap: 0;
+	paddingBottom: 0;
+	paddingRight: 0;
+}
+
+/*登陆界面title*/
+Label.loginTitle
+{
+	fontWeight: bold;
+	fontSize: 20;
+	color: #fdea95;
+	disabledColor: #fdea95;
+}
+
+/*资源普通文字样式*/
+Label.resourceCommonLabel
+{
+	fontWeight: bold;
+	fontSize: 11;
+	color: #81511C;
+	disabledColor: #81511C;
+}
+
+
+
+/*主界面栏目标题文字样式*/
+Label.mainFrameTitlLabel
+{
+	fontFamily: MingLiU,"돋움";
+	fontSize: 11;
+	paddingLeft: 5;
+	paddingRight: 5;
+	color: #ffffff;
+}
+
+/*任务名称标题文字样式*/
+Label.taskNameTitleLabel
+{
+	fontFamily: ，Tahoma,"돋움";
+	fontSize: 18;
+	color: #391c00;
+	fontWeight: bold;
+}
+
+/*任务子标题文字样式*/
+Label.taskSubLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+	fontSize: 11;
+	color: #391c00;
+}
+/*任务通用文字样式*/
+Label.taskCommonLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #5e341b;
+}
+
+/*任务完成文字样式*/
+Label.taskDoneLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #000000;
+	fontWeight: bold;
+}
+
+
+/*窗体标题文字样式*/
+Label.titleLabel
+{
+	fontWeight: bold;
+	fontSize: 14;
+	color: #FFFFFF;
+}
+
+/*等级文字样式*/
+Label.LvLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+	fontSize: 13;
+	color: #FFFFFF;
+}
+
+
+/*登陆加载进度样式（白色）*/
+Label.loadingSmallLable
+{
+	fontWeight: bold;
+	fontSize: 9;
+	color: #FFFFFF;
+}
+
+/*登陆加载进度样式（蓝色）*/
+Label.loadingMiddleLable
+{
+	fontWeight: bold;
+	fontSize: 11;
+	color: #0060b7;
+}
+
+
+/*打开宝箱宝物数量样式*/
+Label.goodNumberLable
+{
+	fontWeight: bold;
+	fontSize: 11;
+	fontFamily: Arial;
+	color: #C0FF3A;
+}
+/*tooltips名称样式*/
+Label.tooltipsNameLable
+{
+	fontWeight: bold;
+	fontSize: 14;
+	color: #372b00;
+}
+
+/*tooltips提示样式*/
+Label.tooltipsTipsLable
+{
+	fontSize: 14;
+	color: #5f8c00;
+}
+
+
+
+/*tooltips内容样式*/
+Label.tooltipsContentLable
+{
+	color: #81511c;
+}
+
+
+/*兵种数量样式（1000以下）*/
+Label.soldier1000Lable
+{
+	fontSize: 10;
+	color: #ffffff;
+}
+
+/*兵种数量样式（10000以下）*/
+Label.soldier10000Lable
+{
+	color: #bcff2e;
+	fontSize: 10;
+}
+
+/*兵种数量样式（100000以下）*/
+Label.soldier100000Lable
+{
+	color: #00ffff;
+	fontSize: 10;
+}
+
+/*兵种数量样式（100000以上）*/
+Label.soldierMaxLable
+{
+	color: #ff00ff;
+	fontSize: 10;
+}
+
+
+/*加粗突出显示文字样式*/
+Label.titleBordLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+	fontSize: 11;
+	color: #5e341b;
+}
+
+/*加粗突出显示文字样式(14号字体)*/
+Label.titleBigBordLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+	fontSize: 14;
+	color: #5e341b;
+}
+
+/*升级条件标题 数值*/
+Label.updataValueLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #5e341b;
+}
+
+
+/*标题字体样式*/
+Label.titleLable {
+	color: #2f1f05;
+}
+
+
+/*loading界面字体样式*/
+Label.loadingText {
+	color: #652d00;
+	fontWeight: bold;
+}
+
+/*窗体标题建筑等级文字样式*/
+Label.titleLevelLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #FFFFFF;
+}
+
+/*加速文字样式*/
+Label.speedUpLabel
+{
+	fontFamily: Tahoma,MingLiU;
+	fontSize: 11;
+	color: #FFFFFF;
+	letterSpacing: 5;
+}
+
+/*buffer紧凑字体*/
+Label.samllstyleLabel
+{
+	color: #FFFFFF;
+	fontWeight: normal;
+	fontFamily: Tahoma,MingLiU;
+	fontSize: 10;
+	letterSpacing: 0;
+	
+}
+
+/*buffer紧凑时间字体*/
+Label.samllstyleTimeLabel
+{
+	color: #FFFFFF;
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	letterSpacing: 0;
+	
+}
+
+/*城市按钮名称样式*/
+Label.cityLogoNameLabel
+{
+	color: #FFFFFF;
+	fontWeight: bold;
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+}
+
+/*普通文字样式*/
+Label.normalLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize:11;
+	color: #7f2d00;
+}
+
+/*建筑升级状态文字样式*/
+Label.buildingSituationLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize:11;
+	color: #ffeba3;
+}
+
+/*建筑降级状态文字样式*/
+Label.buildingSituationWarnLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize:11;
+	color: #ff0000;
+}
+
+/*白色粗边样式*/
+Label.normalBoldLabel
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize:11;
+	color: #ffffff;
+	fontWeight: bold;
+	
+}
+
+/*toolbtn按钮样式*/
+Label.toolBtnLabel
+{
+	fontSize:11;
+	color: #ffffff;	
+}
+
+
+
+/*城市名称样式*/
+Label.CityNameLabel
+{
+	fontFamily: Times New Roman,"돋움";
+	fontWeight: bold;
+	fontSize:19;
+	color: #FFFFFF;
+}
+
+/*城市坐标样式*/
+Label.CityAddLabel
+{
+	fontFamily: Times New Roman,"돋움";
+	fontWeight: bold;
+	fontSize:15;
+	color: #FFFFFF;
+}
+
+
+/*城市图标样式*/
+Label.CityLogoLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize:8;
+	color: #FFFFFF;
+}
+
+
+/*好的文字提示样式*/
+Label.goodNoticeLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #5f8c00;
+}
+
+/*系统提示样式*/
+Label.systemNoticeLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #7d0002;
+}
+
+/*提示性文字样式*/
+Label.clewLabel
+{
+	fontWeight: bold;
+	fontSize: 11;
+	color: #ff6600;
+}
+
+/*特别的文字提示样式*/
+Label.specialNoticeLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #1188cd;
+}
+
+/*好的文字提示小号样式*/
+Label.goodNoticeSmallLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize: 10;
+	color: #5f8c00;
+}
+
+/*普通级别提示样式*/
+Label.NoticeLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #ff0000;
+}
+/*普通级别提示小号样式*/
+Label.NoticeSmallLabel
+{
+	fontFamily: Arial,"돋움";
+	fontSize: 10;
+	color: #ff0000;
+}
+
+/*标题文字样式*/
+Label.titleNameLabel
+{
+	fontSize: 11;
+	color: #000000;
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+}
+
+/*兵种名字普通状态文字样式*/
+Label.armyNameNormalLabel
+{
+	fontSize: 11;
+	color: #370d00;
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+}
+
+/*兵种名字选中状态文字样式*/
+Label.armyNameSelectLabel
+{
+	fontSize: 11;
+	color: #ffffff;
+	fontFamily: Tahoma,"돋움";
+	fontWeight: bold;
+}
+
+/*通用的左右有边距的字体样式*/
+Label.commonMarginLabel
+{
+
+	paddingLeft: 5;
+	paddingRight: 5;
+}
+
+/*深色普通样式*/
+Label.darkCommonStyle
+{
+	color: #370d00;
+}
+
+/*描述性文字样式*/
+Label.discritionLabel
+{
+	color: #81511c;
+}
+
+/*可点击文字样式1*/
+Label.addLinkLabel
+{
+	color: #089ce2;
+	textDecoration: underline;
+}
+
+/*玩家信息样式*/
+Label.playInfoLabel
+{
+	color: #5e341b;
+	disabledColor: #5E341B;
+}
+
+/*玩家提示框坐标*/
+Label.playerTipAdd{
+	fontFamily: Arial,"돋움";
+	fontSize: 18;
+	color: #000000;
+}
+
+/*玩家提示框城堡名*/
+Label.playerTipCityName{
+	fontFamily: Arial,"돋움";
+	fontSize: 16;
+	color: #6c9936;
+}
+
+/*玩家提示框城堡名(敌对)*/
+Label.playerTipCityNameEnemy{
+	fontFamily: Arial,"돋움";
+	fontSize: 18;
+	color: #ff0000;
+}
+
+/*玩家提示框距离*/
+Label.playerTipDistence{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #5e341b;
+}
+
+/*玩家提示框领主，联盟*/
+Label.playerTipPlayerName{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #6c9936;
+}
+
+/*玩家提示框领主，联盟(敌对)*/
+Label.playerTipPlayerNameEnemy{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #ff0000;
+}
+
+/*玩家提示框荣誉*/
+Label.playerTipHonor{
+	fontFamily: Arial,"돋움";
+	fontSize: 11;
+	color: #5e341b;
+}
+
+/*侦查报告样式*/
+Label.scoutReport{
+	color: #601986;
+}
+
+
+/*系统频道内容样式*/
+Label.chatSystemNormal
+{
+	fontFamily: Times New Roman,"돋움";
+	color: #ff0000;
+}
+
+
+
+/*联盟频道玩家名样式*/
+Label.chatUnionPlayer
+{
+	fontWeight: bold;
+	color: #194aa2;
+}
+
+
+/*交易频道玩家名样式*/
+Label.chatTradePlayer
+{
+	fontWeight: bold;
+	fontFamily: Times New Roman,"돋움";
+	color: #4e671f;
+}
+
+
+/*建筑描述性文字样式*/
+TextArea.buildingInfoDisText
+{
+	fontSize: 11;
+	color: #000000;
+	fontFamily: Tahoma,"돋움";
+}
+
+
+
+
+
+
+
+
+
+/*描述性文字样式*/
+TextArea.discritionTextArea
+{
+	color: #81511c;
+	backgroundAlpha: 0;
+	borderStyle: none;
+	themeColor: #F8EDC9;
+	disabledColor: #81511C;
+	leading: 0;
+}
+
+/*带边框建筑描述性文字样式*/
+TextArea.discritionWithBorderTextArea
+{
+	fontSize: 11;
+	color: #81511c;
+	fontFamily: Tahoma,"돋움";
+	backgroundAlpha: 1.0;
+	borderStyle: solid;
+	backgroundColor: #F8EDC9;
+	borderColor: #BEA57B;
+	themeColor: #F8EDC9;
+}
+
+/*带边框建筑描述性文字透明背景样式*/
+TextArea.discritionWithBorderAlphaTextArea
+{
+	fontSize: 11;
+	color: #81511c;
+	fontFamily: Tahoma,"돋움";
+	backgroundAlpha: 0.0;
+	borderStyle: solid;
+	backgroundColor: #F8EDC9;
+	borderColor: #BEA57B;
+	themeColor: #F8EDC9;
+}
+
+
+/*聊天区文本框样式*/
+TextArea.vTextAreaChat{
+	fontFamily:Tahoma,"돋움";
+	color:#FFFFFF;
+	fontSize:12px;
+	backgroundAlpha:0.0;
+	verticalScrollBarStyleName:VScrollBar;
+	backgroundColor: #1C0C04;
+	borderColor: #C8AE54;
+	borderThickness: 1;
+	cornerRadius: 4;
+}
+
+/*聊天区ComboBox，仿按钮*/
+ComboBox.buttonStyle
+{
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/chatFrame/button_Switch-MouseOver.png",scaleGridLeft="6",scaleGridTop="4",scaleGridRight="77",scaleGridBottom="20");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/chatFrame/button_Switch-ClickDown.png",scaleGridLeft="6",scaleGridTop="4",scaleGridRight="77",scaleGridBottom="20");
+	
+	borderColor: #8B6254;
+	themeColor: #F7E0C0;
+	alternatingItemColors: #FFFFFF,#FFFFFF;
+	dropdownStyleName: comboBoxDropdown;
+	fontAlign:center;
+	fontWeight: bold;
+	color:#370D00;
+	fontSize: 11;
+	cornerRadius: 0;
+	textRollOverColor: #5A210F;
+	iconColor: #523A32;
+	fillAlphas: 1.0, 1.0;
+	fillColors: #F9E39D, #D79B56;
+	textAlign: center;
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/chatFrame/button_Switch-Normal.png",scaleGridLeft="6",scaleGridTop="4",scaleGridRight="77",scaleGridBottom="20");
+	paddingLeft: 20;
+	paddingRight: 0;
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/chatFrame/button_Switch-Disabled.png",scaleGridLeft="6",scaleGridTop="4",scaleGridRight="77",scaleGridBottom="20");
+	disabledColor: #B28D5C;
+	textSelectedColor: #370D00;
+}
+
+/*聊天输入框样式*/
+TextInput.chatTextInput
+{
+	borderColor: #C8AE54;
+	color: #370d00;
+	borderStyle: solid;
+	themeColor: #BD9660;
+	fontAlign:center;
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	fontWeight: bold;
+	backgroundColor: #1C0C04;
+	backgroundAlpha: 0.8;
+	cornerRadius: 4;
+}
+
+/*聊天输入框(联盟)样式*/
+TextInput.chatTextAllianceInput
+{
+	borderColor: #C8AE54;
+	color: #194AA2;
+	borderStyle: solid;
+	themeColor: #BD9660;
+	fontAlign:center;
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	fontWeight: bold;
+	backgroundColor: #1C0C04;
+	backgroundAlpha: 0.8;
+	cornerRadius: 4;
+}
+
+/*玩家信息框间隔线条样式*/
+HRule.playerInfoHRule
+{
+	strokeWidth: 2;
+	strokeColor: #D9A660;
+	shadowColor: #FFEBA6;
+	
+}
+
+/*任务间隔线条样式*/
+HRule.questInfoHRule
+{
+	strokeWidth: 2;
+	strokeColor: #eed789;
+	shadowColor: #fcf6d1;
+	
+}
+
+/*bufferbar分割线*/
+VRule.bufferBarVRule
+{
+	strokeWidth: 2;
+	strokeColor: #E4CA6F;
+	shadowColor: #F7F0D4;
+	
+}
+
+
+/**
+	// ------------------------------------- 
+	// VScrollBar
+*/
+/*VScrollBar {
+	thumbUpSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/trackUp.png",scaleGridLeft="1",scaleGridTop="6",scaleGridRight="12",scaleGridBottom="57");
+	downArrowUpSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	downArrowOverSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	downArrowDownSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	downArrowDisabledSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/downNormal.png");
+	upArrowUpSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	upArrowOverSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	upArrowDownSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	upArrowDisabledSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/upNormal.png");
+	thumbOverSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/trackUp.png",scaleGridTop="6",scaleGridLeft="9",scaleGridRight="12",scaleGridBottom="57");
+	thumbDownSkin: Embed(source="assets/images/EmbedImages/common/scrollBar/trackUp.png",scaleGridTop="6",scaleGridLeft="9",scaleGridRight="12",scaleGridBottom="57");
+	trackColors: #0a0d11, #0a0d11;
+
+}*/
+
+/*Login输入框样式*/
+TextInput.LoginTextInput
+{
+	
+	fontFamily: Tahoma,"돋움";
+	fontSize: 14;
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/input_bg.png",scaleGridTop="6",scaleGridLeft="6",scaleGridRight="177",scaleGridBottom="23");
+	paddingLeft: 2;
+	paddingRight: 2;
+	color: #FFFFFF;
+	textAlign: center;
+	paddingTop: 2;
+	paddingBottom: 2;
+}
+
+/**
+	// ------------------------------------- 
+	// LoginCheckBox
+*/
+CheckBox.loginCheckBox{
+	upIcon:  Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxUp"); 
+	overIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxUp"); 
+	downIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxSelect"); 
+	disabledIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxUp"); 
+	selectedUpIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxSelect"); 
+	selectedOverIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxSelect"); 
+	selectedDownIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxUp"); 
+	selectedDisabledIcon: Embed(source="../flash/buttonResource.swf", symbol="loginCheckBoxSelect"); 
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	textSelectedColor: #FFFFFF;
+	disabledColor: #B7A099;
+}
+/*没有背景的list*/
+List.noBGList
+{
+	backgroundAlpha: 0;
+	borderStyle: none;
+	useRollOver: false;
+	
+}
+/*英雄选择*/
+DataGrid.heroListDataGrid
+{
+	fontWeight: bold;
+	color: #234777;
+	textRollOverColor: #234777;
+	backgroundAlpha: 0;
+	borderStyle: none;
+	
+}
+/*电视公告样式*/
+Text.tvShowText
+{
+	fontFamily: Tahoma,"돋움";
+	color: #FFFFFF;
+	fontSize: 20;
+}
+
+
+
+
+.toggleButtonBarSelectedButtonText
+{
+	color: #fff196;
+	textRollOverColor: #FFF196;
+	textSelectedColor: #FFF196;
+}
+
+.dataGridHeader
+{
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+	fontWeight: normal;
+	color: #915A25;
+	textAlign: center;
+}
+.menuVerticalScrollBar
+{
+}
+.comboBoxDropdown
+{
+	/*borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/tooltipBG.png",scaleGridBottom="37",scaleGridLeft="4",scaleGridTop="5",scaleGridRight="79");*/
+	rollOverColor: #FCF7E5;
+	selectionColor: #F5E7BD;
+	textAlign: center;
+	fontFamily: Tahoma,"돋움";
+	fontSize: 11;
+}
+
+
+ToolTip
+{
+	font-size: 12px;
+}
+
+Canvas.beginnerHome
+{
+	borderSkin: Embed(source="../flash/skinResource.swf", symbol="Character");
+}
+
+Canvas.guidetip1
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/guideTipUpRight.png",scaleGridLeft="77",scaleGridTop="44",scaleGridRight="92",scaleGridBottom="55");
+}
+
+Canvas.guidetip2
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/guideTipUpLeft.png",scaleGridRight="34",scaleGridLeft="23",scaleGridTop="43",scaleGridBottom="57");
+}
+
+Canvas.guidetip3
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/guideTipDownLeft.png",scaleGridRight="89",scaleGridLeft="78",scaleGridTop="12",scaleGridBottom="25");
+}
+
+Canvas.guidetip4
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/guideTipDownRight.png",scaleGridRight="33",scaleGridLeft="21",scaleGridTop="14",scaleGridBottom="21");
+}
+
+/* ----------------------------------------------------------------- fdc加 */ 
+
+Button.bugSubmit{
+	textDecoration: underline;
+	fontWeight: normal;
+	color: #C91D01;
+}
+
+/* rollTextBg 样式*/
+Canvas.rollTextBg
+{
+	borderSkin: Embed(source="assets/images/EmbedImages/uiBackGround/rollTextBg.png",scaleGridTop="3",scaleGridLeft="1",scaleGridRight="426",scaleGridBottom="23");
+}
+
+Button.inProgressShow{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/leftMaxOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/leftMaxUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/leftMaxDown.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/leftMaxUp.png");
+}
+Button.inProgressHide{
+	overSkin:Embed(source="assets/images/EmbedImages/bufferBar/leftMinOver.png");
+	upSkin: Embed(source="assets/images/EmbedImages/bufferBar/leftMinUp.png");
+	downSkin: Embed(source="assets/images/EmbedImages/bufferBar/leftMinDown.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/bufferBar/leftMinUp.png");
+}
+
+/*功能区按钮  排名按钮样式*/
+Button.toolBarRankingBtn
+{
+	overSkin:Embed(source="../flash/buttonResource.swf", symbol="toolBarRankingOver");
+	upSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarRankingUp");
+	downSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarRankingDown");
+	disabledSkin: Embed(source="../flash/buttonResource.swf", symbol="toolBarRankingDisabled");
+}
+
+Button.rollTextHide{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_off.png");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_off.png");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_off.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_off.png");
+}
+
+Button.rollTextShow{
+	upSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_on.png");
+	overSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_on.png");
+	downSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_on.png");
+	disabledSkin: Embed(source="assets/images/EmbedImages/common/button/rollText/mini_on.png");
+}
