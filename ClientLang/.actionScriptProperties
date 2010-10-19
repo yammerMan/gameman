@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<actionScriptProperties mainApplicationPath="ClientLangViewer.mxml" version="3">
+  <compiler additionalCompilerArguments="-locale en_US" copyDependentFiles="true" enableModuleDebug="true" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="true" htmlPlayerVersion="9.0.124" htmlPlayerVersionCheck="true" outputFolderPath="bin-debug" sourceFolderPath="src" strict="true" useApolloConfig="false" verifyDigests="true" warn="true">
+    <compilerSourcePath>
+      <compilerSourcePathEntry kind="1" linkType="1" path="cn"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="en"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="big5"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="ko"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="de"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="tr"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="pt"/>
+    </compilerSourcePath>
+    <libraryPath defaultLinkType="1">
+      <libraryPathEntry kind="4" path=""/>
+      <libraryPathEntry kind="1" linkType="1" path="libs"/>
+    </libraryPath>
+    <sourceAttachmentPath/>
+  </compiler>
+  <applications>
+    <application path="ClientLangViewer.mxml"/>
+  </applications>
+  <modules>
+    <module application="src/ClientLangViewer.mxml" destPath="LangEn.swf" optimize="true" sourcePath="en/LangEn.as"/>
+    <module application="src/ClientLangViewer.mxml" destPath="LangBig5.swf" optimize="true" sourcePath="big5/LangBig5.as"/>
+    <module application="src/ClientLangViewer.mxml" destPath="LangKo.swf" optimize="true" sourcePath="ko/LangKo.as"/>
+    <module application="src/ClientLangViewer.mxml" destPath="LangCn.swf" optimize="true" sourcePath="cn/LangCn.as"/>
+    <module application="src/ClientLangViewer.mxml" destPath="LangTr.swf" optimize="true" sourcePath="tr/LangTr.as"/>
+    <module application="src/ClientLangViewer.mxml" destPath="LangPt.swf" optimize="true" sourcePath="pt/LangPt.as"/>
+    <module application="src/ClientLangViewer.mxml" destPath="LangDe.swf" optimize="true" sourcePath="de/LangDe.as"/>
+  </modules>
+  <buildCSSFiles/>
+</actionScriptProperties>

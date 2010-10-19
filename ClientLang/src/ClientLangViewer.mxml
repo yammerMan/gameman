@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" creationComplete="init()">
+<mx:Script>
+	<![CDATA[
+		import mx.resources.ResourceBundle;
+	
+		[ResourceBundle("temp")]
+		private var serverMsg:ResourceBundle;
+
+		private function init():void {
+			var a:LangCn = new LangCn();
+			new LangBig5();
+			new LangEn();
+			new LangKo();
+			new LangTr();
+			new LangDe();
+			new LangPt();
+		}
+	]]>
+</mx:Script>
+</mx:Application>
