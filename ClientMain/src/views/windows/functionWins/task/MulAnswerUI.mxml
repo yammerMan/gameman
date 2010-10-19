@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.common.valueObject.QuestAnswerTargetBean;
+			import roma.common.valueObject.QuestAnswerBean;
+			import mx.controls.CheckBox;
+			import roma.util.CompCache;
+			import mx.collections.ArrayCollection;
+			
+/* 			private var answersArr:ArrayCollection = new ArrayCollection();
+			private var subject:String = ""; */
+			
+			private var questionBean:QuestionBean;
+			private var checkBoxArr:Array  = [];
+			private var answerCacheUI:CompCache = new CompCache(5);
+			public var resultStr:String = "";
+			
+			public function setAnswerBean(bean:QuestionBean):void{
+				questionBean = bean;
+				refresh();
+			}
+			
+			private function refresh():void{
+				if(this.initialized){
+					subjectText.text = questionBean.subject;
+					answerContain.removeAllChildren();
+					for(var i:int=0;i<questionBean.answersArray.length;i++){
+						var tempCheckBox:CheckBox = answerCacheUI.getUI(CheckBox) as CheckBox;
+						tempCheckBox.label = questionBean.answersArray[i];
+						tempCheckBox.id = String(i);
+						tempCheckBox.selected = false;
+						checkBoxArr[i] = tempCheckBox;
+						answerContain.addChild(tempCheckBox);
+						tempCheckBox.width = 220;
+						tempCheckBox.addEventListener(MouseEvent.CLICK,onCheckBoxClick);
+					}
+				}
+			}
+			
+			private function init():void{
+				this.refresh();
+			}
+			
+			public function checkResult():Boolean{
+				resultStr = "";
+				for(var i:int=0;i<checkBoxArr.length;i++){
+					if(CheckBox(checkBoxArr[i]).selected == true){
+						resultStr += String(i+1);
+					}
+				}
+				return (resultStr == questionBean.correctAnswers);
+			}
+			
+			private function onCheckBoxClick(event:MouseEvent):void{
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox verticalGap="0" width="95%">
+		<mx:Text id="subjectText" width="100%" selectable="false"/>
+		<mx:Canvas width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Tile id="answerContain" verticalGap="0" horizontalGap="0" left="20" />
+		</mx:Canvas>
+	</mx:VBox>	
+</mx:Canvas>

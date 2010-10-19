@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BasePopup xmlns="views.spreadUI.popups.*" xmlns:mx="http://www.adobe.com/2006/mxml" kerning="true" styleName="baseTooltip">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.Mail;
+			import roma.message.events.PrivateChatEvent;
+			import roma.message.EvtDispacther;
+			import views.windows.functionWins.mail.Mail;
+			import roma.util.PopupWinManager;
+			import roma.util.MultiLang;
+			import roma.common.constants.PlayerConstant;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.FriendRelationBean;
+		
+			
+			[Bindable]
+			private var playerInfo:FriendRelationBean;
+			private var callBackFun:Function;
+			[Bindable]
+			private var showIndex:int;
+			
+			public function show(f:FriendRelationBean,showIndex:int):void{
+				this.visible = true;
+				this.playerInfo = f;
+				this.showIndex = showIndex;
+			}
+			
+			public function remove():void{
+				this.visible = false;
+			}
+			
+			//增加名单
+			private function addHandle(name:String,relationType:int):void{
+				GameContext.instance.getPlayerObj().playerRelationManager.addOrUpdatePlayerRelation(name,relationType);
+			}
+			
+			//解除关系
+			private function deleteHandle(playerId:int):void{
+				GameContext.instance.getPlayerObj().playerRelationManager.deletePlayer(playerId);
+			}
+			
+			 private function clickHandler(event:MouseEvent):void  {
+
+				switch(event.currentTarget){
+					case this.writeBtn://写信
+						Mail.writeMailToPlayer(this.playerInfo.playerName);
+						PopupWinManager.instance.removePopup();
+					break;
+					
+					case this.whisperBtn://私聊
+						PopupWinManager.instance.removePopup();
+						EvtDispacther.instance.dispatchEvent(new PrivateChatEvent(PrivateChatEvent.EVENT_NAME,this.playerInfo.playerName));
+						
+					break;
+					
+					case this.setNormalBtn://解除关系
+						this.deleteHandle(this.playerInfo.playerId);	
+					break;
+					
+					case this.addBtn://添加关系
+						if(this.showIndex==0){
+							this.addHandle(this.playerInfo.playerName,PlayerConstant.RELATION_BLOCKS);	
+						}else{
+							this.addHandle(this.playerInfo.playerName,PlayerConstant.RELATION_FRIENDS);
+						}
+					break;
+
+					default:
+
+				}
+				this.remove();
+             }
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:VBox top="5" horizontalAlign="center" verticalGap=".5" bottom="5" left="3" right="3">
+		<mx:Button id="writeBtn" width="100%"   styleName="friendsPureColorBtn" horizontalGap="5" label="{MultiLang.msg('mail.button.write')}" click="clickHandler(event)"/>
+		<mx:Button id="whisperBtn" width="100%"  styleName="friendsPureColorBtn" label="{MultiLang.msg('chat.popupBox.whisper')}" click="clickHandler(event)"/>
+		<mx:Button id="addBtn" width="100%"  styleName="friendsPureColorBtn"  label="{this.showIndex==0?MultiLang.msg('chat.popupBox.block'):MultiLang.msg('friendly.addFriends')}" click="clickHandler(event)"/>
+		<mx:Button id="setNormalBtn" width="100%"  styleName="friendsPureColorBtn"  label="{this.showIndex==1?MultiLang.msg('friendly.relieveBlock'):MultiLang.msg('friendly.relieveFriends')}" click="clickHandler(event)"/>
+	</mx:VBox>
+</BasePopup>

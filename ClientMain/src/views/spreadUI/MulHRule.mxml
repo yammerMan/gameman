@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" verticalGap="0">
+	<mx:HRule width="100%" strokeColor="#987444"/>
+    <mx:HRule width="100%" strokeColor="#E3B25F"/>
+    <mx:HRule width="100%" strokeColor="#7D4A37"/>
+</mx:VBox>

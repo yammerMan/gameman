@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="100%" horizontalScrollPolicy="off" height="48" xmlns:ns1="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			
+			[Bindable]
+			public var winTitle:String="";
+			[Bindable]
+			public var show:Boolean; 
+			
+			public var onCloseFun:Function = null;
+			
+			public var callBack:Function;
+					
+			private function onCloseWin():void {
+				if (this.onCloseFun==null) {
+					this.dispatchEvent(new Event("onCloseWindow"));
+				} else {
+					this.onCloseFun.apply(this);
+				}			
+			}
+			
+			private function returnBack():void{
+				if(callBack!=null){
+					callBack.apply(this);
+				}
+			}
+		]]>
+	</mx:Script>
+	<ns1:TitleBar horizontalCenter="0" top="3" winTitle="{this.winTitle}">
+	</ns1:TitleBar>
+	<mx:Button click="returnBack()" styleName="returnWinBtn" right="80" top="5" visible="{show}"/>
+	<mx:Button click="onCloseWin()" styleName="closeBtn" right="25" top="5" />
+</mx:Canvas>

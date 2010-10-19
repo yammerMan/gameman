@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"  width="100%" horizontalGap="3" verticalScrollPolicy="off" horizontalScrollPolicy="off" mouseOver="mouseOverHandle()" mouseOut="mouseOutHandle()">
+	<mx:Label text="{castleBean.name}"  styleName="darkCommonStyle" width="100%"/>	
+	<mx:Label text="{'['+this.posX+','+this.posY+']'}" width="100"/>
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var castleBean:CastleInfoBean;
+			[Bindable]
+			private var posX:int;
+			
+			[Bindable]
+			private var posY:int;
+
+			
+			import roma.common.valueObject.CastleInfoBean;
+			public function set castleInfoBean(castleInfoBean:Object):void{
+				this.castleBean=CastleInfoBean(castleInfoBean);
+				this.posX = CastleInfoBean(castleInfoBean).fieldId/10000;
+				this.posY = CastleInfoBean(castleInfoBean).fieldId%10000;
+			}
+			private function mouseOverHandle():void{
+				this.styleName="shadeBGCanvas";
+			}
+			private function mouseOutHandle():void{
+				this.styleName="";
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

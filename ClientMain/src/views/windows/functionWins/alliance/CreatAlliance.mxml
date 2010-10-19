@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="380" height="360" xmlns:ns1="views.windows.functionWins.alliance.*" creationComplete="init()" xmlns:ns2="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.ranking.RankingWin;
+			import views.PopupWindows;
+			import roma.common.valueObject.AllianceApplyBean;
+			import roma.common.controller.CommonResponse;
+			import roma.common.controller.alliance.AllianceInfoOfOutResponse;
+			import mx.collections.ArrayCollection;
+			import roma.common.action.ControllerFactory;
+			import roma.resource.ImgManager;
+			import views.windows.functionWins.alliance.outOfAlliance.OutAllianceWin;
+			import roma.util.MultiLang;
+			public var goToDesignAllianceLogo:Function;
+			
+			private var applyAlliance:AllianceApplyBean;
+			[Bindable]
+			private var inviateList:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var applyList:ArrayCollection=new ArrayCollection();
+			private function  toDesignAllianceLogo():void{
+				if(this.goToDesignAllianceLogo!=null){
+					this.goToDesignAllianceLogo.apply(this);
+				}
+			}
+			
+			private function init():void{
+				
+			}
+			
+			
+				
+			
+			
+			//获取邀请列表和申请的联盟
+			private function getApplyList():void{
+				this.applyList.removeAll();
+				ControllerFactory.getInstance().getOutOfAllianceController().allianceInfoOfOut(callback);
+				function callback(event:AllianceInfoOfOutResponse):void{
+					if(event.isSuccess()){
+						inviateList.removeAll();
+						applyList.removeAll();
+						if(event.applayBean!=null){
+							applyAlliance=event.applayBean;
+							applyList.addItem(applyAlliance);
+						}
+						if(event.invitedListArray.length>0){
+							inviateList=event.invitedListArray;
+						}
+					}
+					
+				}
+			}
+			//取消申请
+			public function cancleApply(allianceId:int):void{
+				ControllerFactory.getInstance().getOutOfAllianceController().cacelApply(allianceId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						getApplyList();
+					}
+				}
+			}
+			
+			public function refresh():void{
+				this.getApplyList();		
+				if(this.initialized){
+					this.invitedHandleWin.visible=false;
+				}		
+			}
+			
+			//查看联盟
+			public function showAllianceInfo(data:Object):void{
+				this.invitedHandleWin.getLeagueInfo(data);
+				
+			}
+			
+			private function gotoAllianceWin():void{
+				var data:Object=new Object();
+				data.winId=1
+				PopupWindows.openFuncWin(RankingWin.WINDOW_SHOW,data);
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas left="11" top="15" styleName="subContentBG" height="60" right="11">
+		<mx:HBox verticalGap="3" left="11" right="11" top="11" bottom="11" verticalAlign="middle" horizontalGap="2">
+			<mx:Button label="{MultiLang.msg('alliance.create')}" width="50%" click="toDesignAllianceLogo()" height="100%" toolTip="{MultiLang.msg('alliance.create.tip')}"/>
+			<mx:Button label="{MultiLang.msg('alliance.youCanApply')}" width="50%" click="gotoAllianceWin()" height="100%" toolTip="{MultiLang.msg('alliance.youCanApply.tip')}"/>
+		</mx:HBox>
+	</mx:Canvas>
+	<mx:DataGrid headerHeight="22" rowHeight="24"
+		editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" dataProvider="{this.applyList}" height="50" top="77" left="11" right="11">	
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('alliance.youApplyAlliance')}" dataField="leagueName"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="time" width="60">
+				<mx:itemRenderer>
+				             <mx:Component>
+				             	<mx:HBox left="1" right="1" height="24" horizontalAlign="center" verticalAlign="middle">
+				             	  		<mx:Script>
+				                   			<![CDATA[
+				                   				import roma.util.MultiLang;
+				                   			]]>
+				                   		</mx:Script>
+				             	  		<mx:Button label="{MultiLang.msg('public.label.cancel')}" click="parentDocument.cancleApply(data.allianceId);"  styleName="secondaryBtn" height="18"/>
+				             	</mx:HBox>
+				             </mx:Component>
+				      </mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>			
+	</mx:DataGrid>
+	<mx:DataGrid headerHeight="22" rowHeight="24"
+		editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" dataProvider="{this.inviateList}" left="11" right="11" top="129" bottom="11">	
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('alliance.inviateYouAlliance')}" dataField="leagueName"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="time" width="60">
+				<mx:itemRenderer>
+				             <mx:Component>
+				             	<mx:HBox left="1" right="1"  height="24" horizontalAlign="center" verticalAlign="middle">
+				             	  		<mx:Script>
+				                   			<![CDATA[
+				                   				import roma.util.MultiLang;
+				                   			]]>
+				                   		</mx:Script>
+				             	  		<mx:Button label="{MultiLang.msg('public.label.checkOut')}" click="parentDocument.showAllianceInfo(data)" styleName="secondaryBtn" height="18"/>
+				             	</mx:HBox>
+				             </mx:Component>
+				      </mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>			
+	</mx:DataGrid>
+	<ns1:InvitedHandleWin id="invitedHandleWin" visible="false" verticalCenter="0" horizontalCenter="0">
+	</ns1:InvitedHandleWin>
+</mx:Canvas>

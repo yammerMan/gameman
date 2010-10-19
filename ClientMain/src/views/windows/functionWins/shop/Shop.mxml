@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseWin xmlns="views.windows.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="100%" height="100%"  creationComplete="init()" styleName="shopBG" xmlns:ns1="views.spreadUI.*" xmlns:ns2="views.windows.functionWins.shop.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.message.events.BuyEquipEvent;
+			import roma.common.valueObject.EquipBean;
+			import views.windows.functionWins.hero.EquipHelper;
+			import views.spreadUI.speedUp.ItemWin;
+			import roma.common.action.ControllerFactory;
+			import roma.util.JavaScriptHelper;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.util.ImageHandle;
+			import roma.message.events.BuyItemEvent;
+			import mx.collections.ArrayCollection;
+			import roma.util.FiltersUtil;
+			import views.windows.functionWins.myItem.MyItemsWin;
+			import roma.message.EvtDispacther;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ItemRule;
+			import mx.utils.StringUtil;
+			import roma.logic.CaesaryConfig;
+			import views.PopupWindows;
+			import roma.resource.ImgManager;
+			import mx.events.ItemClickEvent;
+			import roma.logic.RomaConstants;
+			import roma.common.constants.GeneralConstants;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import roma.util.MultiLang;
+			public static const WINDOW_SHOW:String = "shopWin.show";
+			public static var isClickByOne:Boolean=false;
+			
+			[Bindable]
+			private var playerInfo:PlayerInfoDataBean; 
+			
+			[Bindable]
+			private var loadComplete:Boolean = false;
+			
+			private var curItemType:int = RomaConstants.ITEM_TYPE_TREASURE;
+			private var treasureArr:ArrayCollection=new ArrayCollection();
+			private var speedUpArr:ArrayCollection=new ArrayCollection();
+			private var produceArr:ArrayCollection=new ArrayCollection();
+			private var chestArr:ArrayCollection=new ArrayCollection();
+			private var curItemArr:ArrayCollection=new ArrayCollection();
+			private var treasureArrInorder:ArrayCollection=new ArrayCollection();
+			private var speedUpArrInorder:ArrayCollection=new ArrayCollection();
+			private var produceArrInorder:ArrayCollection=new ArrayCollection();
+			private var chestArrArrInorder:ArrayCollection=new ArrayCollection();
+			private var luxuryArr:ArrayCollection=new ArrayCollection();
+			private var activityArr:ArrayCollection=new ArrayCollection();
+			private var equipsArr:ArrayCollection=new ArrayCollection();
+			private var isEquip:Boolean=false;
+//			private var itemMap:Dictionary=new Dictionary();
+			[Bindable]
+			private var curPage:int=0;
+			[Bindable]
+			private var totalPage:int=0;
+			
+			private var loadMovieClip:MovieClip;
+			
+			private var curSlectRule:ItemRule;
+			
+			
+			private function init():void {
+				this.initArr();
+				this.equipsArr=EquipHelper.instance.getEquipsInShop();
+				//在买完物品后，需要刷新一下已有物品的数量
+				var afterBuyItem:Function = function(event:Event):void {
+					if(isEquip){
+						EquipHelper.instance.getPlayerEquip();
+					}else{
+						updateItemCount();
+					}
+				}
+				EvtDispacther.instance.addEventListener(EvtDispacther.AFTER_BUY_ITEM_AT_SHOP, afterBuyItem); 
+				EvtDispacther.instance.addEventListener(BuyItemEvent.EVENT_NAME,showItemBuyWin);
+				EvtDispacther.instance.addEventListener(BuyItemEvent.EVENT_NAME_BUY_ONE,submitHandler);
+				
+				EvtDispacther.instance.addEventListener(BuyEquipEvent.EVENT_NAME,showEquipBuyWin);
+				EvtDispacther.instance.addEventListener(BuyEquipEvent.EVENT_NAME_BUY_ONE,submitEquipHandler);
+				EvtDispacther.instance.addEventListener(EvtDispacther.ITEMRULE_CHANGE,onItemRuleChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_EQUIP_CHANGE,equipChangHandle);
+				
+				var timer:Timer = new Timer(5,1);
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE,initShopUi);
+				timer.start();	
+				
+							
+			}
+			
+			private function onItemRuleChange(event:Event):void{
+				this.initArr();
+				this.initShopUi();
+				this.buttonBar.selectedIndex=0;
+			}
+			
+			private function equipChangHandle(event:Event=null):void{
+				if(isEquip){
+					for each (var ui:EquipInShop in this.equipsContainer.getChildren()) {
+						ui.refreshItemCount();
+					}
+				}
+			}
+			
+			private function showItemBuyWin(event:BuyItemEvent):void{
+				this.buyItemWin.show(event.itemRule);
+				this.buyItemWin.visible=true;
+			}
+			
+			private function submitHandler(event:BuyItemEvent):void{
+ 				var amounts:int = 1;
+ 				curSlectRule=null;
+  				if (amounts>0){
+					var totalPrice:int = amounts * event.itemRule.price;
+					var curCoin:int = GameContext.instance.getPlayerObj().getPlayerInfo().coin;  					
+  					
+  					if (totalPrice > curCoin) {
+	  					MyAlert.show(MultiLang.msg("shop.msg.noEnoughCoin"),recharge,MultiLang.msg('systemMsg.getGold'));
+	  				} else {
+	  					curSlectRule=event.itemRule;
+						ControllerFactory.getInstance().getShopController().buyItem(event.itemRule.itemId, amounts , shopBuyResponse);
+	  				}	
+  				} else {
+  					MyAlert.show(MultiLang.msg("shop.msg.mustInputAmount"),null);
+  				}	
+  			}
+  			
+  			private function showEquipBuyWin(event:BuyEquipEvent):void{
+				this.buyEquipWin.show(event.itemRule);
+				this.buyEquipWin.visible=true;
+			}
+			
+			private function submitEquipHandler(event:BuyEquipEvent):void{
+ 				var amounts:int = 1;
+ 				curSlectRule=null;
+  				if (amounts>0){
+					var totalPrice:int = amounts * event.itemRule.price;
+					var curCoin:int = GameContext.instance.getPlayerObj().getPlayerInfo().coin;  					
+  					
+  					if (totalPrice > curCoin) {
+	  					MyAlert.show(MultiLang.msg("shop.msg.noEnoughCoin"),recharge,MultiLang.msg('systemMsg.getGold'));
+	  				} else {
+	  					//curSlectRule=event.itemRule;
+	  					ControllerFactory.getInstance().getEquipController().buyEquip(event.itemRule.type,amounts,shopBuyResponse);
+						//ControllerFactory.getInstance().getShopController().buyItem(event.itemRule.itemId, amounts , shopBuyResponse);
+	  				}	
+  				} else {
+  					MyAlert.show(MultiLang.msg("shop.msg.mustInputAmount"),null);
+  				}	
+  			}
+  			
+  			private function recharge(_true:Boolean):void{
+				if(_true){
+					ClientMain.recharge();
+				}
+			}
+  			
+  			//购买物品返回结果
+			
+			private function shopBuyResponse(event:CommonResponse):void{
+				if( !event.isSuccess() ){
+					MyAlert.showError(event);
+				} else {
+					EvtDispacther.instance.dispatchEvent(new Event(EvtDispacther.AFTER_BUY_ITEM_AT_SHOP));
+					if(curSlectRule!=null){
+						JavaScriptHelper.instance.addItemLog(0,curSlectRule);
+						
+					}
+				}
+			}
+
+			
+			
+			/**
+			 * 根据gameRuleHelper定义的物品类型，将物品加入到显示容器中
+			 */
+			private function initShopUi(event:TimerEvent=null):void {
+				for each (var rule:ItemRule in GameRuleHelper.instance.itemRuleArray) {
+					if (rule.price>0) {
+						this.addToArr(rule);
+					}
+				}
+				this.loadComplete = true;
+				this.itemVisible(RomaConstants.ITEM_TYPE_TREASURE);
+			}
+			//更新数量
+			private function updateItemCount():void {
+				for each (var shopUi:ItemInShop in this.treasureContainer.getChildren()) {
+					shopUi.refreshItemCount();
+				}
+			}
+		
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				this.playerInfo = GameContext.instance.getPlayerObj().getPlayerInfo();
+				if(this.initialized){
+					this.buttonBar.selectedIndex=0;
+					this.itemVisible(RomaConstants.ITEM_TYPE_TREASURE);
+					this.buyItemWin.visible=false;
+					this.buyEquipWin.visible=false;
+					if(winData != null){
+						EvtDispacther.instance.dispatchEvent(new BuyItemEvent(BuyItemEvent.EVENT_NAME,ItemRule(winData)));
+					}
+				}
+			}
+			
+			private function getPlayerEquip():void{
+				
+			}
+			
+			private function tbClick(event:ItemClickEvent):void {
+				switch(event.index){
+					case 0:
+						itemVisible(RomaConstants.ITEM_TYPE_TREASURE);
+						break;
+					case 1:
+						itemVisible(RomaConstants.ITEM_TYPE_SPEEDUP);
+						break;
+					case 2:
+						itemVisible(RomaConstants.ITEM_TYPE_PRODUCE);
+						break;
+					case 3:	
+						itemVisible(RomaConstants.ITEM_TYPE_CHEST);				
+						break;
+					case 4:	
+						itemVisible(RomaConstants.ITEM_TYPE_LUXURY);				
+						break;
+					case 5:	
+						itemVisible(EquipHelper.ITEM_TYPE_EQUIPS);	
+						EquipHelper.instance.getPlayerEquip();
+						break;
+					case 6:	
+						itemVisible(RomaConstants.ITEM_TYPE_ACTIVITY);						
+						break;
+					default:
+				}
+			}
+
+			/**
+			 * 显示相应类型商品
+			 */
+			private function  itemVisible(itemType:int):void{
+				switch(itemType){
+					case RomaConstants.ITEM_TYPE_TREASURE:
+						this.curItemArr=this.treasureArr;
+						break;
+					case RomaConstants.ITEM_TYPE_SPEEDUP:
+						this.curItemArr=this.speedUpArr;
+						break;
+					case RomaConstants.ITEM_TYPE_PRODUCE:
+						this.curItemArr=this.produceArr;
+						break;
+					case RomaConstants.ITEM_TYPE_CHEST:	
+						this.curItemArr=this.chestArr;	
+						break;
+					case RomaConstants.ITEM_TYPE_LUXURY:	
+						this.curItemArr=this.luxuryArr;	
+						break;
+					case RomaConstants.ITEM_TYPE_ACTIVITY:	
+						this.curItemArr=this.activityArr;	
+						break;
+					case EquipHelper.ITEM_TYPE_EQUIPS:	
+						this.curItemArr=this.equipsArr;	
+						break;
+					default:
+				}
+				countCurPage();
+				this.curItemType = itemType;
+				this.isEquip=itemType==EquipHelper.ITEM_TYPE_EQUIPS;
+				this.showItem();
+			}
+			
+			private function switchToMyItemWin():void {
+				PopupWindows.openFuncWin(MyItemsWin.WINDOW_SHOW);
+				//TODO
+			}
+			
+			private function addToArr(itemRule:ItemRule):void{
+//				this.itemMap[itemRule.itemId]=itemRule;
+				switch(itemRule.itemType){
+					case RomaConstants.ITEM_TYPE_TREASURE:
+						this.treasureArr.addItem(itemRule);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_SPEEDUP:
+						this.speedUpArr.addItem(itemRule);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_PRODUCE:
+						this.produceArr.addItem(itemRule);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_CHEST:
+						this.chestArr.addItem(itemRule);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_LUXURY:
+						this.luxuryArr.addItem(itemRule);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_ACTIVITY:
+						this.activityArr.addItem(itemRule);
+					break;
+					
+					default:
+				}
+			}
+			
+			private function initArr():void{
+				this.treasureArr.removeAll();
+				this.speedUpArr.removeAll();
+				this.produceArr.removeAll();
+				this.chestArr.removeAll();
+				this.luxuryArr.removeAll();
+				this.activityArr.removeAll();
+				this.curItemArr.removeAll();
+				this.buyItemWin.visible=false;
+			}
+			
+			private function showItem():void{
+				var startNum:int=(this.curPage-1)*RomaConstants.ITEM_IN_ONPAGE;
+				var endNum:int=this.curItemArr.length>this.curPage*RomaConstants.ITEM_IN_ONPAGE?this.curPage*RomaConstants.ITEM_IN_ONPAGE:this.curItemArr.length;
+				this.treasureContainer.visible=!this.isEquip;
+				this.equipsContainer.visible=this.isEquip;
+				if(this.isEquip){
+					for each (var equipsUi:EquipInShop in this.equipsContainer.getChildren()) {
+						equipsUi.setRule(null);
+					}
+					if(this.curItemArr.length>0){
+						for(var j:int=startNum;j<endNum;j++){
+							EquipInShop(this["equipsInShop"+j%RomaConstants.ITEM_IN_ONPAGE]).setRule(EquipBean(this.curItemArr[j]));
+							EquipInShop(this["equipsInShop"+j%RomaConstants.ITEM_IN_ONPAGE]).refreshItemCount();
+						}
+					}
+				}else{
+					for each (var shopUi:ItemInShop in this.treasureContainer.getChildren()) {
+						shopUi.setRule(null);
+					}
+					if(this.curItemArr.length>0){
+						for(var i:int=startNum;i<endNum;i++){
+							ItemInShop(this["itemInShop"+i%RomaConstants.ITEM_IN_ONPAGE]).setRule(ItemRule(this.curItemArr[i]));
+							ItemInShop(this["itemInShop"+i%RomaConstants.ITEM_IN_ONPAGE]).refreshItemCount();
+						}
+					}
+				}
+			}
+			
+			//显示选中的页数
+			private function showPage(page:int):void{
+				var changePage:int=this.curPage+page;
+				if(changePage>=1&&changePage<=this.totalPage){
+					this.curPage+=page;
+					showItem();
+				}
+				
+			}
+			//计算当前类别的页数情况
+			private function countCurPage():void{
+				this.curPage=this.curItemArr.length>0?1:0;
+				this.totalPage=Math.ceil(this.curItemArr.length/RomaConstants.ITEM_IN_ONPAGE);
+			}
+			
+			
+			/**
+			 * 关闭窗口
+			 */ 
+			private function onCloseWin():void{
+				PopupWindows.closeAll();
+			}
+			
+			private function checkBoxHandle():void{
+//				isClickByOne=this.clickByOne.selected;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="30" left="12" verticalGap="0" right="10">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="tbClick(event);" >
+		  	 <mx:dataProvider>
+		           <mx:Array>
+		               <mx:String>{MultiLang.msg('shop.type.main')}</mx:String>
+		               <mx:String>{MultiLang.msg('shop.type.speedup')}</mx:String>
+		               <mx:String>{MultiLang.msg('shop.type.produce')}</mx:String>
+		               <mx:String>{MultiLang.msg('shop.type.chest')}</mx:String>
+		               <mx:String>{MultiLang.msg('shop.type.luxury')}</mx:String>
+		               <mx:String>{MultiLang.msg('hero.titleBtn.outfit')}</mx:String>
+		               <mx:String>{MultiLang.msg('shop.type.activity')}</mx:String>
+		           </mx:Array>
+		       </mx:dataProvider>
+		</mx:ToggleButtonBar>
+		<ns1:MulHRule>
+		</ns1:MulHRule>
+		   
+	</mx:VBox>
+	<mx:Canvas left="12" bottom="43" top="55" right="10" styleName="mainWindowContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off" id="goodContainer">
+		<!--mx:Label text="Loading..." visible="{!this.loadComplete}"/-->
+		<mx:Tile id="treasureContainer"
+			left="3" top="2" right="2" bottom="0" 
+			backgroundAlpha="0" borderStyle="none" horizontalGap="13" verticalGap="2"  visible="{this.loadComplete}" horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+			<ns2:ItemInShop id="itemInShop0"/>
+			<ns2:ItemInShop id="itemInShop1"/>
+			<ns2:ItemInShop id="itemInShop2"/>
+			<ns2:ItemInShop id="itemInShop3"/>
+			<ns2:ItemInShop id="itemInShop4"/>
+			<ns2:ItemInShop id="itemInShop5"/>
+			<ns2:ItemInShop id="itemInShop6"/>
+			<ns2:ItemInShop id="itemInShop7"/>
+			<ns2:ItemInShop id="itemInShop8"/>
+			<ns2:ItemInShop id="itemInShop9"/>
+			<ns2:ItemInShop id="itemInShop10"/>
+			<ns2:ItemInShop id="itemInShop11"/>
+		</mx:Tile>
+		<mx:Tile id="equipsContainer"
+			left="3" top="2" right="2" bottom="0" 
+			backgroundAlpha="0" borderStyle="none" horizontalGap="13" verticalGap="2"  visible="false" horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+			<ns2:EquipInShop id="equipsInShop0"/>
+			<ns2:EquipInShop id="equipsInShop1"/>
+			<ns2:EquipInShop id="equipsInShop2"/>
+			<ns2:EquipInShop id="equipsInShop3"/>
+			<ns2:EquipInShop id="equipsInShop4"/>
+			<ns2:EquipInShop id="equipsInShop5"/>
+			<ns2:EquipInShop id="equipsInShop6"/>
+			<ns2:EquipInShop id="equipsInShop7"/>
+			<ns2:EquipInShop id="equipsInShop8"/>
+			<ns2:EquipInShop id="equipsInShop9"/>
+			<ns2:EquipInShop id="equipsInShop10"/>
+			<ns2:EquipInShop id="equipsInShop11"/>
+		</mx:Tile>		
+	</mx:Canvas>
+	<mx:HBox horizontalAlign="center" verticalAlign="bottom" horizontalCenter="0" horizontalGap="3" top="1">
+			<mx:Label text="{MultiLang.msg('shop.winTitle')}"  
+				styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+	</mx:HBox>
+	<mx:Button click="onCloseWin()" styleName="closeBtn" top="30" right="37"/>
+	<ns2:PurchaseWin top="60" horizontalCenter="0" id="buyItemWin"/>
+	<ns2:EquipBuyWin top="60" horizontalCenter="0" id="buyEquipWin"/>
+	<mx:HBox left="12" bottom="11" horizontalGap="2" right="12">
+		<mx:Canvas width="277" height="30" styleName="mainWindowContentBG">
+			<mx:HBox left="5" verticalCenter="0" verticalAlign="middle">
+				<mx:Label text="{MultiLang.msg('public.label.amount')}:" styleName="titleBigBordLabel"/>
+				<mx:Label text="{this.playerInfo.coin}" styleName="titleNameLabel"/>
+				<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			</mx:HBox>
+		</mx:Canvas>
+		<mx:Canvas x="316" y="420" width="100%" height="30" styleName="mainWindowContentBG">
+		<mx:HBox horizontalGap="0" visible="{this.curPage==0?false:true}" includeInLayout="{this.curPage==0?false:true}" verticalCenter="0" left="55">
+			<mx:Button id="previousBtn" styleName="previousBtn" click="showPage(-1)"/>
+			<mx:Label width="50" text="{this.curPage}/{this.totalPage}" textAlign="center" styleName="titleBordLabel"/>
+			<mx:Button id="nextBtn" styleName="nextBtn" click="showPage(1)"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="10" verticalCenter="0" right="4">
+			<mx:HBox verticalAlign="middle">
+				<mx:HBox horizontalGap="2">
+					<mx:Button label="{MultiLang.msg('public.label.recharge')}" 
+						click="ClientMain.recharge()" width="122" styleName="commomNormalBtn"/>
+					<mx:Button label="{MultiLang.msg('myItems.winTitle')}" 
+						click="switchToMyItemWin()"  width="122" styleName="commomNormalBtn"/>
+				</mx:HBox>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:Canvas>
+	</mx:HBox>
+</BaseWin>

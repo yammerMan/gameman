@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="110" height="97" styleName="BuildingAlphaWindow" mouseOut="this.garrisonTip.onMouseOut()"
+	mouseOver="this.onMouseOver(event)">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.CastleObj;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.logic.GameContext;
+			import views.spreadUI.tips.GarrisonTip;
+			import roma.logic.object.player.OtherArmyObj;
+			import roma.util.MultiLang;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.logic.object.hero.HeroObj;
+			
+			[Bindable]
+			public var hero:OtherArmyObj;
+			
+			private var garrisonTip:GarrisonTip = ToolTipContainer.instance.garrisonTip;
+			
+			public var repatriate:Function;
+			[Bindable]
+			private var _isHost:Boolean=false;
+			
+			public function refresh():void{
+				
+			}
+			
+/* 			public function set isHost(selectCastle:CastleObj):void{
+				_isHost = selectCastle.conquestManager.isHost(hero.king,selectCastle);
+			} */
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.garrisonTip.setHeroObj(this.hero);
+				this.garrisonTip.onMouseOver(event);
+			}
+			
+			private function doRepatriate():void{
+				if(this.repatriate!=null){
+					this.repatriate.apply(this,[hero]);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas left="0" top="0" bottom="0" right="0" styleName="BuildingAlphaWindow">
+		<mx:VBox horizontalCenter="0" verticalCenter="0" width="100%" horizontalAlign="center" verticalGap="2" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{this.hero.bean.heroInfo.name}" width="100%"/>
+			<mx:Canvas width="80" height="40" styleName="bigBuildingLogo" horizontalCenter="0" verticalCenter="0">
+				<mx:Image source="{ImgManager.clazz(this.hero.bean.heroInfo.logoUrl)}" left="4" scaleX="{72/104}" scaleY="{32/48}" updateComplete="ImageHandle.onLoadComplete(event)" top="4" bottom="4" right="4"/>
+				<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" left="3" top="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{hero.bean.heroInfo.level}" x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center"/>	
+			</mx:Canvas>
+			<mx:Button label="{MultiLang.msg('trainningField.allyRepatriate')}" styleName="secondaryBtn" height="18" click="doRepatriate()" enabled="{!hero.bean.hostCastleArmy}"/>
+		</mx:VBox>	
+	</mx:Canvas>
+	
+
+</mx:Canvas>

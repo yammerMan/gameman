@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="90" height="73" styleName="BuildingAlphaWindow">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.common.valueObject.OtherArmyBean;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.util.ImageHandle;
+			import roma.logic.GameContext;
+			import roma.logic.rule.TroopRule;
+			import roma.logic.object.castle.TFHelper;
+		
+			private var _typeId:int;
+
+			[Bindable]
+			private var _name:String;
+			[Bindable]
+			private var _icon:String;
+			[Bindable]
+			private var count:int;
+			
+			[Bindable]
+			private var valueBean:OtherArmyBean;
+					
+			public function set troop(troop:int):void{
+				this._typeId=troop;
+				this._name = TFHelper.instance.getTfName(this._typeId);
+				this._icon = TFHelper.instance.getTfIcon(this._typeId);
+				
+			}
+			
+			public function set troopBean(troopBean:HeroTroopBean):void{
+				if(troopBean != null){
+					this.count = troopBean.count;
+					this._name = TFHelper.instance.getTfName(troopBean.troopType);
+					this._icon = TFHelper.instance.getTfIcon(troopBean.troopType);
+				}
+			}
+			
+			/* public function refresh(otherForceBean:OtherArmyBean):void {
+				this.valueBean=otherForceBean;
+				
+				this.getArmyConut();
+			}
+			
+			private function getArmyConut():void{
+				this.count = 0;
+				if(this.valueBean!=null){
+					for(var i:int=0;i<this.valueBean.troopsArray.length;i++){
+						var h:HeroTroopBean = this.valueBean.troopsArray[i] as HeroTroopBean;
+						if(h.troop==this._typeId){
+							this.count=h.count;
+							break;
+						}
+					}
+				}
+			} */
+		]]>
+	</mx:Script>
+	<mx:Canvas  styleName="smallLogoBG" width="80" height="40" horizontalCenter="0" top="5" visible="{this.count>0?true:false}">
+		<mx:Image source="{this._icon}"  id="iconCon" top="3" left="3" bottom="3" right="3" scaleY="{34/46}" scaleX="{74/102}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	</mx:Canvas>
+	<mx:Canvas width="74" height="10" styleName="blackBG" alpha="0.8" horizontalCenter="0" verticalCenter="0" visible="{this.count>0?true:false}"/>
+	<mx:Label text="{this._name}" horizontalCenter="0" bottom="5" width="80" textAlign="center" visible="{this.count>0?true:false}"/>
+	<mx:Label text="{this.count}" verticalCenter="1" visible="{this.count>0?true:false}"
+			  styleName="titleLevelLabel"  enabled="false" filters="{[FiltersUtil.glowFilter]}" right="5" fontSize="11" left="5" textAlign="right"/>
+</mx:Canvas>

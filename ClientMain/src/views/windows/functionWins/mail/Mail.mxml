@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow2
+	width="800" height="400" 
+	borderStyle="none"
+	title="{MultiLang.msg('mail.label.mail')}"
+	xmlns:ui="views.spreadUI.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml"  
+	xmlns:ns1="views.spreadUI.*"
+    verticalScrollPolicy="off"
+    horizontalScrollPolicy="off"
+	xmlns:functionWins="views.windows.functionWins.*" xmlns:mail="views.windows.functionWins.mail.*" xmlns:post="views.windows.functionWins.post.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="Mail_.as"/>
+	<mx:VBox left="11" top="30" verticalGap="0" right="11">
+		 <mx:ToggleButtonBar itemClick="tbClick(event);"   
+		 	styleName="titleToggleButtonBar" id="buttonBar" >
+	        <mx:dataProvider>
+	            <mx:Array>
+	                <mx:String>{MultiLang.msg('mail.button.inbox')}</mx:String>
+	                <mx:String>{MultiLang.msg('mail.button.battle')}</mx:String>
+	                <mx:String>{MultiLang.msg('mail.button.systemLetter')}</mx:String>
+	                <mx:String>{MultiLang.msg('mail.button.sentBox')}</mx:String>
+	                <mx:String>{MultiLang.msg('mail.button.write')}</mx:String>
+	            </mx:Array>
+	        </mx:dataProvider>
+	    </mx:ToggleButtonBar>
+	    <ns1:MulHRule/>
+	</mx:VBox>
+	<mx:HBox left="11" bottom="11" horizontalGap="2" right="11" styleName="mainWindowContentBG" height="30" verticalAlign="middle">
+		<mx:Spacer width="5"/>
+		<mx:Label text="{MultiLang.msg('mail.msg.timeLimit')}" verticalCenter="0"/>
+	</mx:HBox>
+	<mx:ViewStack id="viewStach" top="30" bottom="0" left="11" right="11"  verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mail:NormalMailCanvas width="878" height="370" id="normalMailCanvas" label="普通邮箱"/>
+		<mail:SystemMailCanvas width="878" height="370" id="systemMailCanvas" label="系统邮箱"/>
+		<mail:WriteMailCanvas  width="878" height="370" id="writeMailCanvas" label="写邮件"/>
+	</mx:ViewStack>
+</functionWins:BaseFunctionWindow2>
+

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" backgroundAlpha="0.0" creationComplete="init()" xmlns:ui="view.ui.*" xmlns:ns1="views.windows.functionWins.alliance.*" xmlns:ns2="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.SortField;
+			import mx.collections.Sort;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.alliance.AllianceMessageListResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var eventList:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var total_page:int = 0;
+			[Bindable]
+			private var cur_page:int = 1;
+			private var page_size:int = 10;
+			
+			public function refresh():void{
+				cur_page=1;
+				getDataArr();
+			}
+			private function init():void{
+				if(this.initialized){
+					this.refresh();
+				}
+			}
+			
+			private function getDataArr():void{
+				ControllerFactory.getInstance().getAllianceController().getLeagueEventList(cur_page,page_size,onGetAllianceEventList,false);
+			}
+
+			private function onGetAllianceEventList(event:AllianceMessageListResponse):void{
+				eventList.removeAll();
+				if(event.isSuccess()){
+					eventList=event.eventListArray;
+					this.total_page=event.totalPage;
+				}else{
+						MyAlert.showError(event);
+				}
+			}
+			
+			/**
+		 	 * 事件列表响应
+		 	 */ 
+			private function onGetEventList(event:*):void{
+			}
+			
+			private function turnPage(p:int):void{
+				var old:int = cur_page;
+				cur_page += p;
+				if (cur_page >=1 && cur_page <= total_page) {
+					getDataArr();
+				} else {
+					cur_page = old;
+				}
+			}
+			
+			private function gotoTargetPage(p:int):void{
+				if(p<=0){
+					p=1;
+				}
+				if(p>total_page){
+					p=total_page;
+				}
+				if (p>0 && p<=this.total_page) {
+					cur_page = p;
+					getDataArr();
+				}
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:DataGrid dataProvider="{eventList}" top="25" bottom="36" left="0" right="0" headerHeight="22" rowHeight="25"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" useRollOver="false" selectable="false">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('alliance.event')}" dataField="xmlContent">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="0" right="0" top="0" bottom="0" horizontalGap="0" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<ns1:AllianceEventResolveLabel text="{data.xmlContent}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.time')}" dataField="time" width="200">
+				<mx:itemRenderer>
+	                <mx:Component>
+	                	<mx:HBox left="1" right="1"  top="1" bottom="1" horizontalAlign="center" verticalAlign="middle">
+	                   		<ns2:TransLabel timeData="{data.time}"/>
+	               		</mx:HBox>
+	                </mx:Component>
+		        </mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox horizontalAlign="right" verticalAlign="middle" right="5" bottom="13" visible="{this.total_page>0}" includeInLayout="{this.total_page>0}" horizontalGap="2">
+		<mx:Label text="{MultiLang.msg('public.label.page')}" styleName="darkCommonStyle" visible="{total_page>2}" includeInLayout="{total_page>2}"/>
+		<mx:TextInput width="50" restrict="0-9" id="targetPageInput" visible="{total_page>2}" includeInLayout="{total_page>2}" textAlign="center"/>
+		<mx:Button label="{MultiLang.msg('public.page.goto')}" styleName="commomNormalBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(targetPageInput.text==''?0:int(targetPageInput.text))"/>
+		<mx:Spacer width="3" includeInLayout="{total_page>2}"/>
+		<mx:Button styleName="minBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(1)"/>
+		<mx:Button  id="toLeftBtn" styleName="previousBtn" click="this.turnPage(-1)"/>
+		<mx:Label text="{cur_page}/{this.total_page}"/>
+		<mx:Button id="toRightBtn" styleName="nextBtn" click="this.turnPage(1)"/>
+		<mx:Button styleName="maxBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(total_page)"/>
+	</mx:HBox>
+</mx:Canvas>

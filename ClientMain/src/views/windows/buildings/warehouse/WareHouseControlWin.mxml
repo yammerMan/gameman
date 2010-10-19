@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" height="100%" width="100%"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script>
+		<![CDATA[
+
+		]]>
+	</mx:Script>
+	<mx:Script source="WareHouseControlWin_.as"/>
+	<mx:DataGrid id="fieldDG" textAlign="center"  dataProvider="{this.storeDataArr}" enabled="false" resizableColumns="false" rowHeight="28" verticalAlign="middle" left="0" right="0" verticalScrollPolicy="off" top="68" height="133">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.resource')}" dataField="imgSource" width="80">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" height="28" horizontalAlign="center" verticalAlign="middle">
+							<mx:Script>
+								<![CDATA[
+									import roma.util.ImageHandle;
+								]]>
+							</mx:Script>
+							<mx:Image source="{data.imgSource}" updateComplete="ImageHandle.onLoadComplete(event)"/>						
+						</mx:HBox>	
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.amount')}" dataField="amounts" width="110"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('label.resource.maxCap')}" dataField="resLimt" width="120"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('wareHouse.assignRate')}" dataField="storePercent" width="140"/>
+		</mx:columns>
+	</mx:DataGrid>
+
+	<mx:Canvas height="50" left="0" right="0" styleName="subContentBG" bottom="25">
+		<mx:Button label="{MultiLang.msg('public.label.sure')}"  id="modifyBtn"  styleName="subTitleButton" click="modifySubmit(event)" width="110" right="66" verticalCenter="0"/>
+		<mx:HBox horizontalGap="15" left="45" verticalCenter="0">
+			<mx:HBox>
+				<mx:Label text="{MultiLang.msg('wareHouse.wareHouseNumber')+':'}" textAlign="center"  styleName="titleBordLabel"/>
+				<mx:Label text="{this.wareHouseCount}" />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="{MultiLang.msg('wareHouse.storageNumber')+':'}" textAlign="center"  styleName="titleBordLabel"/>
+				<mx:Label text="{capability}"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:Canvas>
+	<mx:VBox verticalGap="5" top="90" right="50">
+		<mx:HBox horizontalGap="0" verticalAlign="middle">
+			<mx:NumericStepper id="nsFood" value="{this.foodStoreObj.storePercent}" change="eventChangeHandle(event)" textAlign="center" styleName="normal" maximum="100" width="108"/>
+			<mx:Label text="%"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="0" verticalAlign="middle">
+			<mx:NumericStepper id="nsWood" value="{this.woodStoreObj.storePercent}" change="eventChangeHandle(event)" textAlign="center" styleName="normal" maximum="100" width="108"/>
+			<mx:Label text="%"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="0" verticalAlign="middle">
+			<mx:NumericStepper id="nsStone" value="{this.stoneStoreObj.storePercent}" change="eventChangeHandle(event)" textAlign="center" styleName="normal" maximum="100" width="108"/>
+			<mx:Label text="%"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="0" verticalAlign="middle">
+			<mx:NumericStepper id="nsIron" value="{this.ironStoreObj.storePercent}" change="eventChangeHandle(event)" textAlign="center" styleName="normal" maximum="100" width="108"/>
+			<mx:Label text="%"/>
+		</mx:HBox>	
+	</mx:VBox>
+	<mx:Canvas left="0" right="0" styleName="subContentBG" top="0" height="66">
+		<mx:Button label="{MultiLang.msg('wareHouse.autoChang')}" styleName="subTitleButton" width="110" right="65" verticalCenter="0" click="autoChange()"/>
+		<mx:TextArea left="20" top="12" width="556" text="{MultiLang.msg('wareHouse.autoChang.disc')}" editable="false" bottom="12" verticalScrollPolicy="off" horizontalScrollPolicy="off"/>
+	</mx:Canvas>
+	
+</mx:Canvas>
+

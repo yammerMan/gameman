@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.BattleConstants;
+			import roma.common.constants.TroopForConstants;
+			import mx.utils.ObjectProxy;
+			import views.windows.functionWins.mail.bean.BattleTroopType;
+			import views.windows.functionWins.mail.bean.BattleReportType;
+			import views.windows.functionWins.mail.ReportUi.battleResult.PlayRound;
+			import mx.collections.ArrayCollection;
+			import views.windows.functionWins.mail.bean.ReplayType;
+			import views.windows.functionWins.mail.bean.RoundType;
+			import roma.util.MultiLang;
+			import mx.controls.Label;
+			import roma.util.CompCache;
+			import roma.logic.object.castle.TFHelper;
+			
+			private var battleReplayList:ArrayCollection = new ArrayCollection();
+			private var battleReportType:BattleReportType;
+			
+			private var playRoundCache:CompCache = new CompCache(100);
+			
+			public function refresh():void{
+				this.battleReportType = ReportManager.instance.battleReportType;
+				this.battleReplayList = ReportManager.instance.getReplayList();
+				showPlayProcess();
+			}
+			
+			private function showPlayProcess():void{
+				if(this.initialized){
+					beginDataLabel.text = "";
+					beginForLabel.text = "";
+					/** 开始的军队反映 */
+					beginDataLabel.text += "攻击方战场：\n";
+					for each(var att:BattleTroopType in battleReportType.battle.attackerTroop){
+						beginDataLabel.text += att.heroName+ "     ";
+						for each(var t:ObjectProxy in att.troops){
+							if(t.typeId>0)
+							beginDataLabel.text += TFHelper.instance.getTfName(t.typeId)+" "+(int(t.count)+int(t.lose))+"个, ";
+						}
+						beginDataLabel.text += "\n";
+					}
+					beginDataLabel.text += "防守方战场：\n";
+					for each(var def:BattleTroopType in battleReportType.battle.defenderTroop){
+						beginDataLabel.text += def.heroName+ "     ";
+						for each(var t1:ObjectProxy in def.troops){
+							if(t1.typeId >0)
+							beginDataLabel.text += TFHelper.instance.getTfName(t1.typeId)+" "+(int(t1.count)+int(t1.lose))+"个, ";
+						}
+						beginDataLabel.text += "\n";
+					}
+					/** 开始城防反映  */
+					beginForLabel.text += "城防：\n";
+					var wall:ObjectProxy = battleReportType.battle.wall;
+					if(wall == null){
+						beginForLabel.text += "当前没有城墙" ;
+					}else{
+						beginForLabel.text += wall.totalLife +",  ";
+						if(wall.arrowTower != null){
+							beginForLabel.text += TFHelper.instance.getTfName(TroopForConstants.F_ARROWTOWER)+" "+(int(wall.arrowTower.count)+int(wall.arrowTower.lose))+",   ";
+						}
+						if(wall.trap != null){
+							beginForLabel.text += TFHelper.instance.getTfName(TroopForConstants.F_TRAP)+" "+(int(wall.trap.count)+int(wall.trap.lose))+",   ";
+						}
+						if(wall.rockFall != null){
+							beginForLabel.text += TFHelper.instance.getTfName(TroopForConstants.F_ROCKFALL)+" "+(int(wall.rockFall.count)+int(wall.rockFall.lose))+",   ";
+						}
+					}
+					/** 回合显示 */
+
+					if(battleReplayList.length <=0){
+						roundDesc.text = "没有发生战争";
+					}
+					for(var i:int=0;i<battleReplayList.length;i++){
+						roundDesc.text += "\n\n";
+						roundDesc.text += "begin the battle round \n";
+						roundDesc.text += "回合之前的初始状态，尚未显示  \n";
+						roundDesc.text += "------------------------------------ 回合"+i+"----------------------------------- \n";
+						for each(var r:RoundType in ReplayType(battleReplayList[i]).round){
+							if(r.ack != null){
+									//此时进攻方攻击
+								if(battleReportType.battle.getAttackerTroop(r.ack.k1)!=null){
+									if(r.ack.k2 > 0){
+										//对防守方的军队进行攻击
+										roundDesc.text += battleReportType.battle.getAttackerTroop(r.ack.k1).heroName+"进入位置"+r.ack.p1+", 对在"+r.ack.p2+"的英雄"+battleReportType.battle.getDefenderTroop(r.ack.k2).heroName+"攻击，造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+									}else{
+										// 可以对城墙或者箭塔进行攻击
+										if(r.ack.k2 == BattleConstants.KEY_ARROW_TOWER){
+											roundDesc.text += battleReportType.battle.getAttackerTroop(r.ack.k1).heroName+"进入位置"+r.ack.p1+", 对在"+r.ack.p2+"的箭塔"+"攻击，造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+										}
+										else if(r.ack.k2 == BattleConstants.KEY_WALL){
+											roundDesc.text += battleReportType.battle.getAttackerTroop(r.ack.k1).heroName+"进入位置"+r.ack.p1+", 对城墙攻击，造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+										}
+									}
+								}else{
+									// 此时防守方攻击 
+									if(r.ack.k1 > 0){
+										roundDesc.text += battleReportType.battle.getDefenderTroop(r.ack.k1).heroName+"进入位置"+r.ack.p1+", 对在"+r.ack.p2+"的英雄"+battleReportType.battle.getAttackerTroop(r.ack.k2).heroName+"造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+									}
+									else if(r.ack.k1 == BattleConstants.KEY_ARROW_TOWER){
+										roundDesc.text += "箭塔对在"+r.ack.p2+"的英雄"+battleReportType.battle.getAttackerTroop(r.ack.k2).heroName+"造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+									}
+									else if(r.ack.k1 == BattleConstants.KEY_ROCK_FALL){
+										roundDesc.text += "落石对在"+r.ack.p2+"的英雄"+battleReportType.battle.getAttackerTroop(r.ack.k2).heroName+"造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+									}
+									else if(r.ack.k1 == BattleConstants.KEY_TRAP){
+										roundDesc.text += "陷阱 对在"+r.ack.p2+"的英雄"+battleReportType.battle.getAttackerTroop(r.ack.k2).heroName+"造成"+r.ack.dmg+",  攻击方式："+getBattleMode(r.ack.mode);
+									}
+								}
+								roundDesc.text += "\n";
+							}
+							if(r.armyMove != null){
+								if(battleReportType.battle.getAttackerTroop(r.armyMove.key) != null){
+									roundDesc.text += "攻击方英雄:"+battleReportType.battle.getAttackerTroop(r.armyMove.key).heroName+"进入位置"+r.armyMove.pos;
+								}else if(battleReportType.battle.getDefenderTroop(r.armyMove.key) != null){
+									roundDesc.text += "防守方英雄:"+battleReportType.battle.getDefenderTroop(r.armyMove.key).heroName+"进入位置"+r.armyMove.pos;
+								}
+								roundDesc.text += "\n";
+							}
+							if(r.armyQuit!=null){
+								if(battleReportType.battle.getAttackerTroop(r.armyQuit.key) != null){
+									roundDesc.text += "攻击方英雄:"+battleReportType.battle.getAttackerTroop(r.armyQuit.key).heroName+"离开位置"+r.armyQuit.pos;
+								}else if(battleReportType.battle.getDefenderTroop(r.armyQuit.key) != null){
+									roundDesc.text += "防守方英雄:"+battleReportType.battle.getDefenderTroop(r.armyQuit.key).heroName+"离开位置"+r.armyQuit.pos;
+								}
+								roundDesc.text += "\n";
+							}
+							if(r.armyRetreat != null){
+								if(battleReportType.battle.getAttackerTroop(r.armyRetreat.key) != null){
+									roundDesc.text += "攻击方英雄:"+battleReportType.battle.getAttackerTroop(r.armyRetreat.key).heroName+"撤退到位置"+r.armyRetreat.pos;
+								}else if(battleReportType.battle.getDefenderTroop(r.armyRetreat.key) != null){
+									roundDesc.text += "防守方英雄:"+battleReportType.battle.getDefenderTroop(r.armyRetreat.key).heroName+"撤退到位置"+r.armyRetreat.pos;
+								}
+								roundDesc.text += "\n";
+							}
+							if(r.trapAttack != null){
+								roundDesc.text += "陷阱对在"+r.trapAttack.pos+"的英雄"+battleReportType.battle.getAttackerTroop(r.trapAttack.key).heroName+"进行攻击,攻击数量"+r.trapAttack.count;
+								roundDesc.text += "\n";
+							}
+							if(r.unitWait != null){
+								if(battleReportType.battle.getAttackerTroop(r.unitWait.key) != null){
+									roundDesc.text += "攻击方英雄:"+battleReportType.battle.getAttackerTroop(r.unitWait.key).heroName+"正在位置"+r.unitWait.pos+"等待";
+								}else if(battleReportType.battle.getDefenderTroop(r.unitWait.key) != null){
+									roundDesc.text += "防守方英雄:"+battleReportType.battle.getDefenderTroop(r.unitWait.key).heroName+"正在位置"+r.unitWait.pos+"等待";
+								}
+								roundDesc.text += "\n";
+							}
+							if(r.trapWork != null){
+								roundDesc.text += "陷阱消耗"+r.trapWork.trapCount+",命中"+r.trapWork.hitCount;
+								roundDesc.text += "\n";
+							}
+							/* if(r.rockfallConsume != null){
+								roundDesc.text += "滚石消耗"+r.rockfallConsume.count;
+								roundDesc.text += "\n";
+							} */
+							if(r.rockfallMiss != null){
+								roundDesc.text += "滚石攻击在"+r.rockfallMiss.pos+"的英雄"+battleReportType.battle.getAttackerTroop(r.rockfallMiss.key).heroName+",不中";
+								roundDesc.text += "\n";
+							}
+						}
+					}
+					
+					battleResult.text = "======================= 战斗结束 ========================== \n";
+					
+					battleReportType.battle.isAttackSuccess?(battleResult.text+="进攻方胜利"):(battleResult.text+="防守方胜利");
+//					roundContainer.removeAllChildren();
+					/* for(var i:int=0;i<battleReplayList.length;i++){
+						var ri:PlayRound = playRoundCache.getUI(PlayRound) as PlayRound;
+						ri.roundId = i; 
+						ri.battleSituation = battleReplayList[i] as ReplayType;
+						roundContainer.addChild(ri);
+					} */
+				}
+			}
+			
+			private function getBattleMode(mode:int):String{
+				var modeStr:String = "";
+				switch(mode){
+					case BattleConstants.MELEE_TROOP_ATTACK_MODE_AGGRESSIVE:
+					modeStr = MultiLang.msg('troop.attack.aggressiv');
+					break;	
+					case BattleConstants.MELEE_TROOP_ATTACK_MODE_NORMAL:
+					modeStr = MultiLang.msg('troop.attack.normal');
+					break;	
+					case BattleConstants.MELEE_TROOP_ATTACK_MODE_DEFENSE:
+					modeStr = MultiLang.msg('troop.attack.defense');
+					break;	
+					case BattleConstants.MODE_CAVALRY_OVER_ATTACK:
+					modeStr = MultiLang.msg('troop.attack.cavalryOver');
+					break;	
+					case BattleConstants.MODE_CAVALRY_CROSS_ATTACK:
+					modeStr = MultiLang.msg('troop.attack.cavalryCross');
+					break;	
+					case BattleConstants.MODE_MELEE:
+					modeStr = MultiLang.msg('troop.attack.melee');
+					break;	
+					case BattleConstants.MODE_RANGE:
+					modeStr = MultiLang.msg('troop.attack.range');
+					break;	
+					case BattleConstants.MODE_RANGE_AREA_ATTACK:
+					modeStr = MultiLang.msg('troop.attack.rangeArea');
+					break;	
+					case BattleConstants.MODE_ROCK:
+					modeStr = MultiLang.msg('troop.attack.rock');
+					break;	
+					case BattleConstants.MODE_TRAP:
+					modeStr = MultiLang.msg('troop.attack.trap');
+					break;	
+					case BattleConstants.MODE_SIDE:
+					modeStr = MultiLang.msg('troop.attack.side');
+					break;
+				}
+				return modeStr;
+			}
+			
+			private function init():void{
+				if(battleReportType != null){
+					showPlayProcess();
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%">
+		<mx:Canvas label="初始战争数据" top="0" width="100%">
+			<mx:VBox width="100%" horizontalAlign="center">
+				<mx:Label text="begin battle"/>	
+				<mx:HRule width="100%" />
+				<mx:Text id="beginDataLabel" width="100%"/>
+				<mx:Text id="beginForLabel" width="100%"/>
+			</mx:VBox>
+		</mx:Canvas>
+		<mx:HRule width="100%" />
+		<mx:Canvas label="回合数据" width="100%">
+			<mx:Text id="roundDesc" width="100%"/>
+			<!--mx:VBox id="roundContainer" width="100%"/-->
+		</mx:Canvas>
+		<mx:Canvas width="100%">
+			<mx:Text id="battleResult" width="100%" textAlign="center"/>
+		</mx:Canvas>
+	</mx:VBox>
+</mx:Canvas>

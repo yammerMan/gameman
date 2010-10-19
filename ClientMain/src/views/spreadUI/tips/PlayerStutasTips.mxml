@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" xmlns:spreadUI="views.spreadUI.*" kerning="true">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.common.valueObject.BufferBean;
+			import roma.util.MultiLang;
+			import roma.common.constants.BuffConstants;
+			import roma.logic.object.player.PlayerObj;
+			
+			private var playerObj:PlayerObj;
+			[Bindable]
+			private var isBuffPeace:Boolean;
+			[Bindable]
+			private var isBuffCoolDown:Boolean;
+			[Bindable]
+			private var textStatus:String = "";
+			[Bindable]
+			private var leftTime:Number = 0;
+			
+			public function setObj(obj:PlayerObj):void{
+				this.playerObj = obj;
+				isBuffPeace = playerObj.buffManager.hasBuff(BuffConstants.PLAYER_PEACE);
+				isBuffCoolDown = playerObj.buffManager.hasBuff(BuffConstants.PLAYER_PEACE_COOLDOWN);
+				if(isBuffPeace){
+					textStatus = MultiLang.msg('playInfo.buffPeaceStatus');
+					leftTime=playerObj.buffManager.getBuffById(BuffConstants.PLAYER_PEACE).buffBean.endTime;
+				}else if(isBuffCoolDown){
+					textStatus =MultiLang.msg('playInfo.buffPeaceCoolStatus');
+					leftTime=playerObj.buffManager.getBuffById(BuffConstants.PLAYER_PEACE_COOLDOWN).buffBean.endTime;
+				}else{
+					textStatus = "";
+					leftTime=0;
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" bottom="10" right="10">
+		<mx:Label id="tipsName" text="{isBuffPeace?MultiLang.msg('playInfo.buffPeaceStatus'):(isBuffCoolDown?MultiLang.msg('playInfo.buffPeaceStatus'):MultiLang.msg('playInfo.buffNormalStatus'))}" styleName="titleBordLabel" />
+		
+		<mx:Text id="tipsDesc" width="100%" text="{isBuffPeace?MultiLang.msg('buff.PlayerPeaceBuff.desc'):(isBuffCoolDown?MultiLang.msg('buff.PlayerPeaceCooldownBuff.desc'):MultiLang.msg('playInfo.peaseStatus.tip'))}"/>
+		<mx:HBox bottom="20" height="18" >
+			<mx:Label id="status" text="{textStatus}"/>
+			<spreadUI:LeftTimeLabel id="time" leftTime="{leftTime}" visible="{!isBuffPeace || !isBuffCoolDown}"/>
+		</mx:HBox>
+	</mx:VBox>
+</BaseTip>

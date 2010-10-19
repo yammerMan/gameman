@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.items.*" xmlns:battleResult1="views.windows.functionWins.mail.ReportUi.battleResult.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.ScoutConstants;
+			import roma.logic.object.field.FieldHelper;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.constants.FieldConstant;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import views.windows.functionWins.mail.bean.ScoutType;
+			import mx.utils.ObjectProxy;
+			
+			[Bindable]
+			private var scoutType:ScoutType;
+			[Bindable]
+			private var timeStr:String = "";
+			[Bindable]
+			private var reportTitle:String = "";
+			[Bindable]
+			private var reportDesc:String = "";
+			[Bindable]
+			private var reportResult:String = "";
+			
+			public function set scout(s:ScoutType):void{
+				scoutType = s;
+				if(scoutType.targetType == FieldConstant.TYPE_CITY){
+					this.reportDesc = MultiLang.msg('scout.result.desc{0}{1}',scoutType.scoutNum,scoutType.target+GameContext.getFieldPostionString(scoutType.targetFieldId));
+				}else{
+					this.reportDesc = MultiLang.msg('scout.result.desc{0}{1}',scoutType.scoutNum,FieldHelper.getFieldName(scoutType.targetType,scoutType.targetLev)+GameContext.getFieldPostionString(scoutType.targetFieldId));
+				}
+				timeStr = GameContext.toLocalTimeStr(ReportManager.instance.receiveTime);
+				reportTitle = ReportManager.instance.reportTitle;
+				
+				reportResult = getResult(scoutType.result);
+			}
+			
+			private function getResult(t:int):String{
+				switch(t){
+					case ScoutConstants.SUCCESS_UNDER_COVER:
+						return MultiLang.msg('report.success.underCover.desc');
+					case ScoutConstants.SUCCESS_SOMEONE_SURVIVE:
+						return MultiLang.msg('report.success.fight.desc',scoutType.scoutNum-scoutType.remainScout,scoutType.remainScout);
+					case ScoutConstants.FAIL_TARGET_CHANGED:
+						return MultiLang.msg('report.failTargetChange.desc');
+					case ScoutConstants.FAIL_ALL_DEAD:
+						return MultiLang.msg('report.failAddDead.desc');
+					default :
+						return "";
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	  
+	<mx:Canvas styleName="mainWindowContentBG"  width="100%" height="25">
+		<mx:Label text="{timeStr+', '+reportTitle}" left="12" width="100%" textAlign="left" top="0" />
+	</mx:Canvas>
+	
+	<mx:Canvas styleName="alphaBlackBG" left="0" right="0" top="27" bottom="31" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Canvas left="10" right="10" top="10" bottom="10" horizontalScrollPolicy="off">
+			<mx:VBox label="侦查的主要内容" horizontalAlign="center" width="100%" verticalGap="5">
+				<mx:Text text="{reportDesc}" width="98%"/>
+				<mx:HRule width="98%"/>
+				<mx:HBox width="98%">
+					<mx:Label text="{MultiLang.msg('report.scout.label')}: " styleName="taskSubLabel" textAlign="left" />
+					<mx:Label text="{reportResult}" />
+				</mx:HBox>
+				<battleResult1:CastleInfoUi id="castleInfoUi" castleType="{scoutType.castleType}" visible="{scoutType.castleType != null}" 
+					includeInLayout="{scoutType.castleType != null}" width="98%"/>
+				<mx:HRule width="98%" visible="{scoutType.castleType != null}" includeInLayout="{scoutType.castleType != null}"/>
+				
+				<mx:Label width="98%" styleName="taskSubLabel" text="{scoutType.targetType == FieldConstant.TYPE_CITY?MultiLang.msg('report.scout.castle.tech'):MultiLang.msg('report.scout.field.tech')}: " visible="{scoutType.techsList.length>0}" includeInLayout="{scoutType.techsList.length>0}"/>
+				<mx:TileList dataProvider="{scoutType.techsList}" visible="{scoutType.techsList.length>0}" includeInLayout="{scoutType.techsList.length>0}" verticalScrollPolicy="off"
+				 width="98%" columnCount="5" height="{Math.ceil(scoutType.techsList.length/5)*65+10}" backgroundAlpha="0" borderStyle="none" enabled="false">
+					<mx:itemRenderer>
+						<mx:Component>
+							<battleResult:TechItem2 tech="{data}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+				<mx:HRule width="98%" visible="{scoutType.techsList.length>0}" includeInLayout="{scoutType.techsList.length>0}"/>
+				
+				<mx:Label width="98%" styleName="taskSubLabel" text="{scoutType.targetType == FieldConstant.TYPE_CITY?MultiLang.msg('report.scout.castle.hero'):MultiLang.msg('report.scout.field.hero')}: " visible="{scoutType.herosList.length>0}" includeInLayout="{scoutType.herosList.length>0}"/>
+				<mx:TileList dataProvider="{scoutType.herosList}" width="98%" columnCount="5" backgroundAlpha="0" borderStyle="none" enabled="false" verticalScrollPolicy="off"
+					visible="{scoutType.herosList.length>0}" includeInLayout="{scoutType.herosList.length>0}" height="{Math.ceil(scoutType.herosList.length/5)*60+10}">
+					<mx:itemRenderer>
+						<mx:Component>
+							<battleResult:HeroItem2 hero="{data}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+				<mx:HRule width="98%" visible="{scoutType.herosList.length>0}" includeInLayout="{scoutType.herosList.length>0}"/>
+				
+				<mx:Label width="98%" styleName="taskSubLabel" text="{scoutType.targetType == FieldConstant.TYPE_CITY?MultiLang.msg('report.scout.castle.troop'):MultiLang.msg('report.scout.field.troop')}: " 
+					visible="{scoutType.troopsList.length>0}" includeInLayout="{scoutType.troopsList.length>0}"/>
+				<mx:TileList dataProvider="{scoutType.troopsList}" width="98%" backgroundAlpha="0" borderStyle="none" enabled="false" height="68" verticalScrollPolicy="off"
+					visible="{scoutType.troopsList.length>0}" includeInLayout="{scoutType.troopsList.length>0}">
+					<mx:itemRenderer>
+						<mx:Component>
+							<battleResult:TroopsItem2 troopUnit="{data}" width="60"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+				
+				<mx:Text text="{MultiLang.msg('report.scout.troopAmoutDesc')}" width="98%"/>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+</mx:Canvas>

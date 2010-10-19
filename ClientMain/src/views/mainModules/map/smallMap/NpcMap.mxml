@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="550" height="550" 
+	creationComplete="init()" mouseMove="onMouseMove(event)"  mouseOver="onMouseOver(event)" mouseDown="onMouseDown(event)" mouseOut="onMouseOut(event)" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.effects.effectClasses.MoveInstance;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.FieldInfoToolTip;
+			import mx.core.Container;
+			import mx.collections.ArrayCollection;
+			import roma.message.events.MsgEvent;
+			import roma.message.events.PublicEvent;
+			import roma.message.EvtDispacther;
+			import roma.logic.object.castle.CastleObj;
+			import roma.logic.GameContext;
+			import mx.controls.Label;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import views.mainModules.map.diamond2.DiamondMapTile2;
+			import roma.common.constants.FieldConstant;
+			import mx.core.UIComponent;
+			import roma.resource.ImgManager;
+			import flash.display.MovieClip;
+			
+			private var lb:Label;
+			private var signMap:Bitmap;
+			private var myCastleMc:MovieClip;
+			private var container:Canvas = new Canvas();
+			
+			private var fieldInfoTooltip:FieldInfoToolTip = ToolTipContainer.instance.fieldInfoTooltip;
+			
+			private function init():void{
+//				this.addChild(comp);
+			}
+			 private function npcRefreshNotice(event:MsgEvent):void{
+			 	this.refresh();
+			 }
+			private function addSignMap():void{
+				 [Embed(source="selected.png")] 
+				  var signClazz:Class;
+				  this.signMap =new signClazz as Bitmap; 
+				  var comp:UIComponent = new UIComponent();
+				  comp.addChild(this.signMap);
+				  this.addChild(comp);
+				  this.signMap.visible = false;
+			}
+
+			private function addMyCastleMc():void{
+				var idField:int = GameContext.instance.getPlayerObj().getCurCastleObj().idField;
+				var cl:Class = ImgManager.clazz("myCastleDot");
+				this.myCastleMc = new cl as MovieClip;
+				this.myCastleMc.x = int(idField/10000-myCastleMc.width/2)+25;
+				this.myCastleMc.y = int(idField%10000-myCastleMc.height/2)+25;
+				var comp:UIComponent = new UIComponent();
+				comp.addChild(this.myCastleMc);
+				this.addChild(comp);
+			}
+
+			private function addLabel():void{
+				this.lb = new Label();
+				this.lb.visible = false;
+				this.lb.width =100;
+				this.lb.styleName = "darkCommonStyle";
+				this.addChild(this.lb);
+			}
+						
+			public function refresh():void{
+				if(!this.initialized)return;
+				
+				this.signMap.visible = false;
+				container.removeAllChildren();
+				//自己城	
+				var castleAry:Array = GameContext.instance.getPlayerObj().castelArray;
+				var curCastle:CastleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+				for(var i:int = 0;i<castleAry.length;i++){
+					var obj:CastleObj = castleAry[i] as CastleObj;
+					var fx:int = obj.idField/10000;
+					var fy:int= obj.idField%10000;
+					if(obj.cityId != curCastle.cityId){
+						var dot:CastleDot = new CastleDot();
+						dot.setDocMyCastle(fx,fy);
+						dot.refresh(CastleDot.CASTLE_TYPE,obj.idField);
+						container.addChild(dot);
+					}
+				}
+				
+				//npc城
+				var npcAry:ArrayCollection = GameContext.instance.trainNpcCastleAry;
+				if(npcAry !=null){
+					for(var n:int =0;n<npcAry.length;n++){
+						var fd:int = npcAry.getItemAt(n) as int;
+						var xx:int = fd/10000;
+						var yy:int = fd%10000;
+						var dot1:CastleDot = new CastleDot();
+						dot1.setDotXY(xx,yy);
+						dot1.refresh(CastleDot.NPC_TYPE,fd,dotCallBack);
+						container.addChild(dot1);
+					}
+				}
+				//叛军城
+				var npcAryRatter:ArrayCollection = GameContext.instance.ratterNpcCastleAry;
+				if(npcAryRatter !=null){
+					for(var nr:int =0;nr<npcAryRatter.length;nr++){
+						var fdr:int = npcAryRatter.getItemAt(nr) as int;
+						var xxr:int = fdr/10000;
+						var yyr:int = fdr%10000;
+						var dot1r:CastleDot = new CastleDot();
+						dot1r.setDotXY(xxr,yyr);
+						dot1r.refresh(CastleDot.NPC_RATTER_TYPE,fdr,dotCallBack);
+						container.addChild(dot1r);
+					}
+				}
+			}
+			
+			public function refresh1(event:MsgEvent):void{
+				var idField:int = GameContext.instance.getPlayerObj().getCurCastleObj().idField;
+				this.myCastleMc.x = int(idField/10000) -int(myCastleMc.width/2)+25;
+				this.myCastleMc.y = int(idField%10000)-int(myCastleMc.height/2)+25;
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				if(this.contentMouseX>=25 && this.contentMouseY>=25 && this.contentMouseX<=524 && this.contentMouseY<=524){
+					var xx:int = this.contentMouseX-25;
+					var yy:int = this.contentMouseY-25;
+					this.lb.text ="["+xx+","+yy+"]";
+					this.lb.visible = true;
+					this.lb.x =this.contentMouseX+10;
+					this.lb.y = this.contentMouseY+10;
+					
+					if ((this.lb.x + this.lb.width) > FieldConstant.MAP_SIZE+50) {
+						this.lb.x = FieldConstant.MAP_SIZE+25 - this.lb.width;
+					} 
+					
+					if ((this.lb.y + this.lb.height) > FieldConstant.MAP_SIZE+50) {
+						this.lb.y = FieldConstant.MAP_SIZE+25 - this.lb.height;
+					} 
+				}else{
+					this.lb.visible = false;
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void{
+				onMouseMove(event);
+			}
+
+			private function onMouseDown(event:MouseEvent):void{
+				if(this.contentMouseX>=25 && this.contentMouseY>=25 && this.contentMouseX<=524 && this.contentMouseY<=524){
+					var x1:int = this.contentMouseX-25;
+					var y1:int = this.contentMouseY-25;
+					DiamondWorldMap2.instance.goPoint(x1,y1);
+					this.signMap.visible = true;
+					this.signMap.x = this.contentMouseX-this.signMap.width/2+1;
+					this.signMap.y = this.contentMouseY-this.signMap.height/2+1;
+				}
+			}
+			
+			private function onMouseOut(event:MouseEvent):void{
+				this.lb.visible = false;
+			}			
+			
+			private function dotCallBack(eStr:String,mEvent:MouseEvent,fid:int):void{
+				if(eStr == CastleDot.DOT_MOUSEOUT){
+					if(fieldInfoTooltip.getVisible())this.fieldInfoTooltip.onMouseOut();
+				}else if(eStr == CastleDot.DOT_MOUSEOVER){
+					var fx:int = fid/10000;
+					var fy:int = fid%10000;
+					var t:DiamondMapTile2 = MapDataByteArray.instance.getTileObj(fx,fy);
+					
+					this.fieldInfoTooltip.setMapTile(t);
+					this.fieldInfoTooltip.onMouseOver(mEvent);
+					this.fieldInfoTooltip.onMouseMove(mEvent);
+				}
+			}
+			
+			private function onShowMap():void{
+				this.addLabel();
+				this.addSignMap();
+				
+				this.container.x =25;
+				this.container.y =25;
+				this.container.width =500;
+				this.container.height =500;
+				this.addChild(container);	
+				
+				this.addMyCastleMc();
+
+				refresh();
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT,refresh1);
+				EvtDispacther.instance.addEventListener(EvtDispacther.NPC_ADD_CHANGE,npcRefreshNotice);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Image source="{ImgManager.clazz('map.mapOutLine.img')}" id="map" updateComplete="onShowMap()"/>
+</mx:Canvas>

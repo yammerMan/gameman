@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="64" height="44" styleName="BuildingAlphaWindow"
+	mouseOut="onMouseOut()"
+	mouseOver="onMouseOver(event)"
+	mouseChildren="false"
+	xmlns:troopCountLabel="views.spreadUI.troop.*" 
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import views.spreadUI.tips.FortificationTooltip;
+			import roma.util.FiltersUtil;
+			import roma.message.EvtDispacther;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.PairValueBean;
+			import roma.logic.object.castle.TFHelper;
+			import views.spreadUI.tips.BaseTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.FieldTooltip;
+			import roma.resource.ImgManager;
+			
+			private var type_id:int;			
+
+			[Bindable]
+			private var iconClass:String; 
+			
+			[Bindable]
+			private var valueBean:PairValueBean;
+
+			private function init():void {
+				var onCurCastleChange:Function = function(event:Event):void {
+					setValue();
+				}
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT, onCurCastleChange);
+			}
+			
+			private function setValue():void {
+				this.valueBean = GameContext.instance.getPlayerObj().getCurCastleObj().troopManager.getFortificationByTypeId(this.type_id);				
+			}
+
+			private function onMouseOver(event:MouseEvent):void {
+				ToolTipContainer.instance.fortificationToolTip.setFortType(this.type_id);
+				ToolTipContainer.instance.fortificationToolTip.onMouseOver(event,1);
+			}
+
+			private function onMouseOut():void {
+				ToolTipContainer.instance.fortificationToolTip.onMouseOut();
+			}
+			
+			public function set fortType(type_id:int):void {
+				this.type_id = type_id;
+				this.iconClass = TFHelper.instance.getTfIcon(this.type_id);
+				this.setValue();
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas left="0" top="0" bottom="0" right="0" 
+			verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Canvas  styleName="smallLogoBG" left="4" top="4" right="4" bottom="12">
+			<mx:Image source="{this.iconClass}"  id="imageField" top="3" left="3" bottom="3" right="3" scaleY="{22/46}" scaleX="{50/102}" horizontalAlign="center" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<troopCountLabel:TroopCountLabel text="{this.valueBean.value}" 
+			bottom="-2"  right="3" textAlign="right"/>
+	</mx:Canvas>
+</mx:Canvas>

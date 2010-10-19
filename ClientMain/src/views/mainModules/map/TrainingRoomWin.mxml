@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow2 
+	width="650" height="400" 
+	title="{this.npcBean.fieldName}" 
+	creationComplete="init()" 
+	mouseEnabled="true"
+	xmlns:functionWins="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*"
+	xmlns:myArmy="views.windows.functionWins.diplomacy.*"  
+	xmlns:army="views.spreadUI.army.*"
+	xmlns:ns2="views.windows.functionWins.friendly.*" 
+	xmlns:troop="views.spreadUI.troop.*" 
+	xmlns:diamond2="views.mainModules.map.diamond2.*"
+	xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.items.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.BattleConstants;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+		]]>
+	</mx:Script>
+	<mx:Script source="TrainingRoomWin_.as" />
+	<mx:Canvas width="285" top="49" left="11" bottom="35" id="infoCavas" horizontalScrollPolicy="off" styleName="alphaBlackBG" verticalScrollPolicy="off">
+		<mx:VBox left="11" top="11" id="infoVB" styleName="whiteBGwithBorder" verticalGap="0" right="11" horizontalAlign="center">
+			<mx:Canvas height="99" top="4" left="4" right="4"  verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%">
+				<mx:Canvas width="99" height="97" verticalCenter="0" left="1">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" width="99" height="97" x="0" y="0"/>
+					<mx:Image source="{this.logoSource}" updateComplete="ImageHandle.onLoadComplete(event);" id="playerLogo" width="79" height="77" x="10" y="10"/>
+				</mx:Canvas>
+				<mx:HBox horizontalGap="0" top="0" bottom="0" right="0" left="101">
+					<mx:VRule height="100%" />
+					<mx:VBox height="100%" width="100%" verticalGap="0" horizontalAlign="center">
+						<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Text styleName="titleBigBordLabel" text="{this.npcBean.fieldName}" width="100%" height="100%" textAlign="center"/>
+							<mx:HBox  width="100%" horizontalAlign="center" horizontalGap="0">
+								<mx:Label text="{this.positionStr}" styleName="addLinkLabel" click="showMenu(event)"/>
+								<mx:Button styleName="secondaryBtn" label="{MultiLang.msg('market.favoritesCoor')}"  toolTip="{MultiLang.msg('public.label.favorites')}" click="addFavorite()" height="18"/>
+							</mx:HBox>	 
+						</mx:VBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<mx:Label text="{MultiLang.msg('chatType.zone')}:" width="60" textAlign="right"/>
+							<mx:VRule height="22"/>
+							<mx:Label styleName="darkCommonStyle" text="{this.zoneName}"/>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:HRule width="100%" />
+			<mx:Canvas width="100%" height="100%" label="城堡的信息" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:HBox horizontalGap="0" width="100%" height="100%">
+					<mx:VBox verticalGap="1" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Label text="{MultiLang.msg('trainingRoomWin.tilteNeed')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+						<mx:HRule width="100%"/>
+						<mx:Label text="{MultiLang.msg('trainingRoomWin.heroPhysical')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+					</mx:VBox>
+					<mx:VRule height="100%" />
+					<mx:VBox verticalGap="1" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+						<mx:Label text="{this.npcBean.currNpc.currentIndex>this.npcBean.total?'':this.titleName}" width="100%" id="titleLabel" styleName="{titleStyeleName}"/>
+						<mx:HRule width="100%"/>
+						<mx:Label text="{this.npcBean.currNpc.currentIndex>this.npcBean.total?'':-this.heroPhysicalRequest}"  styleName="darkCommonStyle" width="100%"/>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+		</mx:VBox>
+		<mx:VBox top="170" verticalGap="0" horizontalAlign="center" left="11" right="11" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:HBox width="100%" horizontalAlign="center">
+				<mx:Button  height="34" width="94" label="{MultiLang.msg('trainingRoomWin.addWar')}" click="this.addNpcWar()" id="addWarBtn" mouseOut="this.onMouseOut(event)" mouseOver="this.onMouseOver(event)" mouseMove="this.onMouseMove(event)" mouseEnabled="{this.npcBean.currNpc.currentIndex>this.npcBean.total?false:true}" enabled="{this.npcBean.currNpc.currentIndex>this.npcBean.total?false:true}"/>	
+				<mx:Button  height="34" width="94" label="{MultiLang.msg('trainingRoomWin.joinWar')}" click="this.goinBattle()" id="joinWarBtn" mouseOut="this.onMouseOut(event)" mouseOver="this.onMouseOver(event)" mouseMove="this.onMouseMove(event)" mouseEnabled="{this.npcBean.currNpc.currentIndex>this.npcBean.total?false:true}" enabled="{this.npcBean.currNpc.currentIndex>this.npcBean.total?false:true}"/>
+			</mx:HBox>
+			<mx:Spacer height="8"/>	
+			<mx:HRule width="90%"/>
+			<mx:Spacer height="8"/>	
+			<mx:Text width="90%" htmlText="{this.trainingRoomWarTip}"/>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas right="11" top="49" width="341" bottom="35">
+		<mx:Canvas width="100%" height="120" verticalScrollPolicy="off" horizontalScrollPolicy="off" styleName="buildingInfoContentBG">
+			<mx:HBox left="0" horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0" height="25">
+				<mx:Spacer width="5"/>
+				<mx:Label text="{MultiLang.msg('trainingRoomWin.synopsisTitle')}" styleName="titleNameLabel"/>
+			</mx:HBox>
+			<mx:TextArea height="95" top="25" left="5" right="5" htmlText="{this.mainContentTitle}" styleName="discritionTextArea" editable="false"/>
+		</mx:Canvas>
+		<mx:Canvas top="119" left="0" right="0" bottom="0" styleName="buildingInfoContentBG">
+			<mx:HBox left="0" horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0" height="25">
+				<mx:Spacer width="5"/>
+				<mx:Label text="{MultiLang.msg('trainingRoomWin.castleInfo')}" styleName="titleNameLabel"/>
+			</mx:HBox>
+			<!--mx:TileList dataProvider="{armyArr}" width="130" backgroundAlpha="0" borderStyle="none" enabled="false" height="120" verticalScrollPolicy="off"
+				visible="{armyArr.length>0}" includeInLayout="{armyArr.length>0}" left="5" top="30">
+				<mx:itemRenderer>
+					<mx:Component>
+						<battleResult:TroopsItem2 troopUnit="{data}" width="60"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:TileList-->
+			<mx:Tile id="troop_container" top="47" left="15"/>
+			<mx:Canvas styleName="whiteBGwithBorder" left="140" right="10" top="47" height="60" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:VBox left="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{this.warTitle}:" styleName="buildingInfoDisText"/>
+					<mx:Label htmlText="{MultiLang.msg('trainingRoomWin.manoeuvreSituation',this.npcBean.currNpc.currentIndex>this.npcBean.total?this.npcBean.total:this.npcBean.currNpc.currentIndex,this.npcBean.total)}" fontSize="16"/>
+				</mx:VBox>
+				<mx:VBox right="10" verticalScrollPolicy="off" horizontalScrollPolicy="off" top="0">
+					<mx:Label text="{MultiLang.msg('trainingRoomWin.lable.refresh')}:" styleName="buildingInfoDisText"/>
+					<ns1:LeftTimeLabel id="leftTimeLabel" leftTime="{remainTimeRefresh}"/>
+				</mx:VBox>
+			</mx:Canvas>
+			<mx:Canvas horizontalScrollPolicy="off" verticalScrollPolicy="off" top="119" left="140" right="10" styleName="whiteBGwithBorder">
+				<mx:HBox horizontalGap="0" width="100%" height="100%">
+					<mx:VBox verticalGap="1" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Label text="{MultiLang.msg('trainingRoomWin.heroLevel')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+						<mx:HRule width="100%"/>
+						<mx:Label textAlign="right" width="100%" styleName="commonMarginLabel" text="{this.heroName}"/>
+						<mx:HRule width="100%"/>
+						<mx:Label text="{MultiLang.msg('trainingRoomWin.TecLevel')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+					</mx:VBox>
+					<mx:VRule height="100%" />
+					<mx:VBox verticalGap="1" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+						<mx:Label text="{this.npcBean.currNpc.currentIndex>this.npcBean.total?'':this.heroLevel}" styleName="darkCommonStyle" width="100%"/>
+						<mx:HRule width="100%"/>
+						<mx:Label text="{this.npcBean.currNpc.currentIndex>this.npcBean.total?'':MultiLang.msg('trainingRoomWin.heroNumber',this.npcBean.currNpc.heroMansArray.length)}"  styleName="darkCommonStyle" width="100%"/>
+						<mx:HRule width="100%"/>
+						<mx:Label styleName="darkCommonStyle" width="100%" text="{this.npcBean.currNpc.currentIndex>this.npcBean.total?'':this.npcBean.currNpc.techLevel}"/>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+		</mx:Canvas>
+		<!--mx:Tile top="25" right="0" left="0" bottom="0" id="tooopContainer"/-->
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow2>
+

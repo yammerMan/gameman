@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*" title="{MultiLang.msg('shop.buy.winTitle')}"  setPopUp="false"
+	width="365" height="268">
+		<mx:Script>
+		<![CDATA[
+			import views.spreadUI.tips.EquipDescTooptip;
+			import roma.common.valueObject.EquipBean;
+			import roma.logic.CaesaryConfig;
+			import views.spreadUI.SecondSubmitWin;
+			import views.spreadUI.speedUp.ItemWin;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.util.JavaScriptHelper;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemOrigintip;
+			import roma.util.ImageHandle;
+			import roma.util.FiltersUtil;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.util.PopupWinManager;
+			import roma.logic.rule.ItemRule;
+			[Bindable]
+  			private var rule:EquipBean;
+  			
+			private var itemDescTooptip:EquipDescTooptip = ToolTipContainer.instance.equipDescTooptip;
+  			
+  			//先判断是否允许点击就 购买
+ 			 private function judgeToUse():void{
+ 			 	if(CaesaryConfig.instance.isClickToBuy){
+ 			 		submitHandler();
+ 			 	}else{
+ 			 		SecondSubmitWin.show(MultiLang.msg("shop.clickToUseTip",num.text,rule.name),SecondSubmitWin.IS_FROM_MYITEM,judgeReturn);
+ 			 	}
+ 			 	
+ 			 	function judgeReturn(done:Boolean):void{
+ 			 		if(done){
+ 			 			submitHandler();
+ 			 		}
+ 			 	}
+ 			 }
+  			
+  			
+  			/*处理确定提交事件
+  			*/
+  			private function submitHandler():void{
+ 				var amounts:int = int(this.num.text);
+  				if (amounts>0){
+					var totalPrice:int = amounts * this.rule.price;
+					var curCoin:int = GameContext.instance.getPlayerObj().getPlayerInfo().coin;  					
+  					
+  					if (totalPrice > curCoin) {
+	  					MyAlert.show(MultiLang.msg("shop.msg.noEnoughCoin"),recharge,MultiLang.msg('systemMsg.getGold'));
+	  				} else {
+	  					ControllerFactory.getInstance().getEquipController().buyEquip(this.rule.type,amounts,shopBuyResponse);
+						//ControllerFactory.getInstance().getShopController().buyItem(this.rule.itemId, amounts , shopBuyResponse);
+	  				}	
+  				} else {
+  					MyAlert.show(MultiLang.msg("shop.msg.mustInputAmount"),null);
+  				}	
+  			}
+  			
+  			private function recharge(ok:Boolean):void{
+				if (ok){
+					ClientMain.recharge();
+				}
+			}
+  			//购买物品返回结果
+			
+			private function shopBuyResponse(event:CommonResponse):void{
+				if( !event.isSuccess() ){
+					MyAlert.showError(event);
+				} else {
+					EvtDispacther.instance.dispatchEvent(new Event(EvtDispacther.AFTER_BUY_ITEM_AT_SHOP));
+					/* if(rule is ItemRule){
+						JavaScriptHelper.instance.addItemLog(0,rule);	
+					} */
+					this.onCloseBtnClick();
+				}
+			}
+
+  			public function show(rule:EquipBean):void {
+  				
+  				this.rule = rule
+  				this.num.text="1";
+  				this.num.setSelection(0,this.num.text.length);
+  				this.num.setFocus();
+  				ShopHelper.instance.readLocal();
+  				this.isClickToBuyCheckBox.selected=CaesaryConfig.instance.isClickToBuy;
+  			}
+  			
+  			private function showItemOrigin(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event);
+			}
+			
+			//把是否允许点击就 转轮盘写入cookie
+			private function isClickToBuyHandle():void{
+				CaesaryConfig.instance.isClickToBuy=this.isClickToBuyCheckBox.selected;
+				ShopHelper.instance.writeLocal();
+			}
+		]]>
+	</mx:Script>
+		<mx:CheckBox id="isClickToBuyCheckBox" bottom="17" click="isClickToBuyHandle()" label="{MultiLang.msg('public.label.simpleMode')}" left="15"/>
+		<mx:Canvas left="15" top="35" bottom="42" right="15" styleName="alphaBlackBG">
+			<!-- 物品描述-->
+			<mx:Canvas width="183" height="101" top="10" left="3">
+				<mx:Canvas  styleName="bigBuildingLogo"  left="12" top="3" width="160" height="77" mouseOver="showItemOrigin(event)" 
+					mouseOut="this.itemDescTooptip.onMouseOut()" 
+					mouseMove="this.itemDescTooptip.onMouseMove(event)">
+					<mx:Image source="{this.rule.iconUrl}"  id="imageField" updateComplete="ImageHandle.onLoadComplete(event)" 
+						scaleY="{67/67}" scaleX="{150/150}" left="5" top="5" right="5" bottom="5"/>
+				</mx:Canvas>
+				<mx:Canvas bottom="25" height="21" left="17" right="17" styleName="alphaBlackcolorBG">
+					<mx:HBox textAlign="right" right="5" verticalCenter="0">
+						<mx:Label text="{this.rule.price}" styleName="normalBoldLabel" filters="{[FiltersUtil.glowFilter]}"/>
+						<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					</mx:HBox>
+				</mx:Canvas> 
+			</mx:Canvas>
+			<mx:TextArea text="{this.rule.funcDesc}"
+				 left="12" right="12" top="100" textAlign="left" editable="false" styleName="discritionWithBorderTextArea" bottom="12"/>
+			<!-- 输入框 -->			 
+			
+			<!-- 确认购买 -->			 
+			<mx:VBox right="12" top="10" verticalGap="3" horizontalAlign="right" width="150">
+				<mx:Text text="{this.rule.name}"
+					width="100%" textAlign="center" styleName="specialNoticeLabel"/>
+			</mx:VBox>
+			<mx:VBox top="38" left="185" verticalGap="3">
+				<mx:Label text="{MultiLang.msg('shop.buy.amount')}" textAlign="center" />
+				<mx:Label text="{MultiLang.msg('shop.buy.totalPrice')}" textAlign="center" />
+			</mx:VBox>
+			<mx:VBox verticalGap="3" right="20" top="38" horizontalAlign="right">
+				<mx:TextInput id="num" text="1" restrict="0-9" textAlign="center" styleName="textInput" width="40" maxChars="3"/>
+				<mx:HBox textAlign="right" width="50%" horizontalAlign="center">
+					<mx:Label text="{int(num.text) * this.rule.price}" styleName="normalBoldLabel" filters="{[FiltersUtil.glowFilter]}"/>
+					<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				</mx:HBox>
+			</mx:VBox>
+			
+		</mx:Canvas>
+		<mx:Button label="{MultiLang.msg('public.label.sure')}"
+			click="judgeToUse()" 
+			bottom="17" width="110" right="15" enabled="{this.rule.canBuy}"/>
+</functionWins:BasePopUpWindow>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="44" height="44" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.resource.LogoData;
+			[Bindable]
+			public var sex:int;
+			[Bindable]
+			public var isSelect:Boolean=false;
+			private var logoData:LogoData;
+			[Bindable]
+			private var logoSource:*;
+			
+			public function setLogoData(logoData:LogoData):void{
+				this.logoData=logoData;
+				this.logoSource=this.logoData.source;
+			}
+			public function getLogoData():LogoData{
+				return this.logoData;
+			}
+			
+			private function init():void{
+				var ui:UIComponent=new UIComponent();
+				var sp:Sprite=new Sprite();
+				ui.x=2;
+				ui.y=2;
+				ui.width=40;
+				ui.height=40;
+				sp.graphics.beginFill(0x000000,1);
+				sp.graphics.drawRect(0,0,40,40);
+				sp.graphics.endFill();
+				ui.addChild(sp);
+				this.addChild(ui);
+				logoContent.mask=ui;
+			}
+		]]>
+	</mx:Script>
+	<mx:Image id="logoBg" left="0" top="0" bottom="0" right="0" source="{ImgManager.clazz('background.playerSmallLogoBg')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Image id="logoContent" source="{this.logoSource}" updateComplete="ImageHandle.onLoadComplete(event)" verticalCenter="0" horizontalCenter="0" scaleX="{65/149}" scaleY="{65/149}"/>
+	<mx:Image x="0" y="0" id="logoSelected" left="2" top="2" right="2" bottom="2" source="{ImgManager.clazz('background.playerSmallLogoSelectedBg')}" visible="{isSelect}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+</mx:Canvas>

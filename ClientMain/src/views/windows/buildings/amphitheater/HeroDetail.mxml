@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="425" height="310" styleName="popUpWinBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.rule.ItemRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.object.player.ItemResManager;
+			import roma.util.ImageHandle;
+			import roma.common.constants.HeroManConstants;
+			import animation.animationData.worldMap.Castle1Ani;
+			import roma.resource.ImgManager;
+			import roma.logic.object.building.impl.HerosMansion;
+			import roma.logic.object.castle.HeroManager;
+			import roma.common.constants.BuildingConstant;
+			import roma.common.valueObject.HeroInfoBean;
+			import views.MainContainer;
+			import mx.collections.ArrayCollection;
+			import views.spreadUI.MyAlert;
+			import mx.controls.Alert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.util.PopupWinManager;
+			import roma.util.MultiLang;
+			import roma.common.valueObject.HeroManBean;
+			
+			[Bindable]
+			private var heroMes:HeroInfoBean;
+			private var cityId:int = 0;
+			[Bindable]
+			private var dataP:ArrayCollection = new ArrayCollection();
+			private var remainSpace:int = 0;
+			public static const HERO_HIRE:String = "heroHire";
+			private var hireFunction:Function;
+			
+			public var heroIndex:int = 0;
+			
+			[Bindable]
+			private var isCanHire:Boolean = false;
+			[Bindable]
+			private var isHireCall:Boolean = false;
+			
+			public function setCurDataGridValue():void{
+				remainSpace = 100;
+				var itemRule:ItemRule = GameRuleHelper.instance.getItemRuleById(ItemResManager.getItemsByHeros(heroMes.level)); 
+				var itemStr:String = MultiLang.msg("hero.needJewel");
+				var needNum:int = 0;
+				var curNum:int = 0;
+				if(heroMes.level > 50){
+					itemStr = itemRule.name;
+					needNum = Math.ceil((heroMes.level-50)/10);
+					curNum = GameContext.instance.getPlayerObj().itemManager.getItemCount(itemRule.itemId);
+					/* if(heroMes.level>130){
+						itemStr = itemRule.name;
+						needNum = Math.ceil(heroMes.level-130/10);
+						curNum = GameContext.instance.getPlayerObj().itemManager.getItemCount(itemRule.itemId);
+					}else{
+						itemStr = itemRule.name;
+						needNum = 1;
+						curNum = GameContext.instance.getPlayerObj().itemManager.getItemCount(itemRule.itemId);
+					} */
+				}
+				dataP = new ArrayCollection([
+					{needCondition:MultiLang.msg("hero.needGold"),needAmount:heroMes.level*HeroManConstants.GOLD_NEED_HIER_HERO_PER_LEVEL,curAmount:int(GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.golds.curAmount)},
+					{needCondition:itemStr,needAmount:needNum,curAmount:curNum}]);
+				isCanHire = (heroMes.level*HeroManConstants.GOLD_NEED_HIER_HERO_PER_LEVEL<=int(GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.golds.curAmount) && needNum <= curNum);
+			}
+			
+			public static var instance:HeroDetail;
+			public static function show(param:Object = null,func:Function = null,isHire:Boolean = true):void{
+				if (instance==null) {
+					instance = new HeroDetail();
+				}
+				instance.isHireCall = isHire;
+				PopupWinManager.instance.addPopup(instance);
+				instance.cityId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				instance.heroMes = HeroInfoBean(param);
+				instance.setCurDataGridValue();
+				instance.hireFunction = func;
+			}
+			
+			/**
+			 * 招募英雄返回
+			 */ 
+			private function onHireHeroResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					if(this.hireFunction != null){
+						hireFunction.call(this,String(heroIndex));}
+						PopupWinManager.instance.removePopup(this);
+				}
+				else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			private function innHero(event:MouseEvent):void{
+				if(remainSpace > GameContext.instance.getPlayerObj().getCurCastleObj().heroManager.heroArray.length){
+					if(isHireCall)
+						ControllerFactory.getInstance().getHeroController().innHero(cityId,heroIndex,onHireHeroResponse);
+					else{
+					// 此时为劝降英雄，直接返回
+						hireFunction.call(this,heroMes);
+						PopupWinManager.instance.removePopup(this);
+					}
+				}
+				else{
+					MyAlert.show(MultiLang.msg("hero.levelNoEnough"));
+				}
+			}
+			
+			private function onClose():void{
+				PopupWinManager.instance.removePopup(this);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:VBox top="30" horizontalGap="2" horizontalAlign="center" horizontalCenter="0" verticalGap="2">
+		<mx:Canvas styleName="alphaBlackBG" width="395" height="150" horizontalCenter="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Canvas styleName="whiteBGwithBorder" width="360" height="100" top="15" horizontalScrollPolicy="off" verticalScrollPolicy="off" horizontalCenter="0">
+				<mx:HBox width="100%" height="100%" horizontalGap="0">
+					<mx:Canvas width="135" height="100%">
+						<mx:Canvas width="112" height="56" styleName="resourceBG" left="15" verticalCenter="0">
+							<mx:Image width="96" height="46" scaleContent="true" source="{ImgManager.clazz(heroMes.logoUrl)}" verticalCenter="0" horizontalCenter="0"
+								updateComplete="ImageHandle.onLoadComplete(event)"/>
+							<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" top="3" left="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+							<mx:Label text="{heroMes.level}" x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center"/>
+						</mx:Canvas>
+					</mx:Canvas>
+					<mx:VRule height="100%"/>
+					<mx:VBox width="224" verticalGap="0">
+						<mx:Label text="{heroMes.name}" width="100%" height="23" styleName="titleBigBordLabel" textAlign="center" color="{heroMes.potentiality>0?0x0082cd:0x81511c}"/>
+						<mx:HRule width="100%"/>
+						<mx:HBox height="24" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('public.label.level')}:" width="80" textAlign="right"/>
+							<mx:VRule height="100%"/>
+							<mx:Label text="{heroMes.level}" width="30" textAlign="center" id="heroLevel" />
+							<mx:VRule height="100%"/>
+							<mx:Label text="{MultiLang.msg('hero.attack')}:" width="80"  textAlign="right"/>
+							<mx:VRule height="100%"/>
+							<mx:Label text="{heroMes.powers}" width="30" textAlign="center" id="heroPower" />
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" height="24" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('hero.defence')}:" width="80" textAlign="right"/>
+							<mx:VRule height="100%"/>
+							<mx:Label text="{heroMes.stratagems}" width="30" textAlign="center" id="heroWisdom" />
+							<mx:VRule height="100%"/>
+							<mx:Label text="{MultiLang.msg('hero.politics')}:" width="80" textAlign="right" />
+							<mx:VRule height="100%"/>
+							<mx:Label text="{heroMes.manages}" width="30" textAlign="center" id="heroInterior"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" height="24" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('hero.loyaty')}:" width="80" textAlign="right" />
+							<mx:VRule height="100%"/>
+							<mx:Label text="{heroMes.loyalties}" width="30" textAlign="center" id="heroLoyalty" />
+							<mx:VRule height="100%"/>
+							<mx:Label text="{MultiLang.msg('hero.salary')}:" width="80" textAlign="right" />
+							<mx:VRule height="100%"/>
+							<mx:Label text="{heroMes.level*HeroManConstants.SALARY_EACH_LEVEL}" width="30" textAlign="center" id="heroSalary"/>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:Label htmlText="{MultiLang.msg('hero.potentiality.label')}:{MultiLang.msg('hero.potentiality.desc.label{0}',heroMes.potentiality)}" horizontalCenter="0" bottom="9" height="22" color="{heroMes.potentiality>0?0x0082cd:0x81511c}"/>
+		</mx:Canvas>
+		<mx:DataGrid width="100%" height="85" id="heroPropertyDG" dataProvider="{dataP}" styleName="DataGrid" resizableColumns="false" draggableColumns="false"  sortableColumns="false" selectable="false">
+			<mx:columns>
+				<mx:DataGridColumn headerText="{MultiLang.msg('hero.hireCondition')}" dataField="needCondition" width="130"/>
+				<mx:DataGridColumn headerText="{MultiLang.msg('hero.needAmount')}" dataField="needAmount"/>
+				<mx:DataGridColumn headerText="{MultiLang.msg('public.label.amount')}" dataField="curAmount"/>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:Button label="{isHireCall?MultiLang.msg('hero.hire'):MultiLang.msg('hero.persuade')}" height="25" width="80" click="innHero(event)" enabled="{isCanHire}" styleName="subTitleButton" bottom="15" horizontalCenter="0"/>
+	</mx:VBox>
+	<mx:Button click="onClose()" styleName="closeBtn" right="22" top="6"/>
+</mx:Canvas>

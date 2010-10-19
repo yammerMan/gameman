@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()" width="100%" height="22">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.ReportUi.ReportManager;
+			import views.windows.functionWins.mail.bean.BattleResultType;
+			import views.windows.functionWins.mail.bean.RoundType;
+			[Bindable]
+			private var bean:RoundType;
+			private var battleReport:BattleResultType;
+			
+			public function set roundBean(b:RoundType):void{
+				bean = b;
+				battleReport = ReportManager.instance.battleReportType.battle;
+			}
+			
+			private function showRound():void{
+				if(this.initialized){
+					ackLable.text = "";
+					armyMoveLable.text = "";
+					armyQuitLable.text = "";
+					armyRetreatLable.text = "";
+					trapAttackLable.text = "";
+					unitWaitLable.text = "";
+					trapWorkLable.text = "";
+					rockfallMissLable.text = "";
+					if(bean.ack!= null){
+						if(bean.ack.mode >0){
+							// 此时攻击者是英雄，不过防守者可能是箭塔
+							if(battleReport.getAttackerTroop(bean.ack.k1) != null){
+								if(battleReport.getDefenderTroop(bean.ack.k2) == null){
+									//攻击方对箭塔进行了 攻击
+									ackLable.text = battleReport.getAttackerTroop(bean.ack.k1).heroName+"进入位置"+bean.ack.p1+", 对在"+bean.ack.p2+"的箭塔"+"造成"+bean.ack.dmg+",  攻击方式："+bean.ack.mode;
+								}else{
+									ackLable.text = battleReport.getAttackerTroop(bean.ack.k1).heroName+"进入位置"+bean.ack.p1+", 对在"+bean.ack.p2+"的英雄"+battleReport.getDefenderTroop(bean.ack.k2).heroName+"造成"+bean.ack.dmg+",  攻击方式："+bean.ack.mode;
+								}
+							}else if(battleReport.getDefenderTroop(bean.ack.k1) != null){
+								ackLable.text = battleReport.getDefenderTroop(bean.ack.k1).heroName+"进入位置"+bean.ack.p1+", 对在"+bean.ack.p2+"的英雄"+battleReport.getAttackerTroop(bean.ack.k2).heroName+"造成"+bean.ack.dmg+",  攻击方式："+bean.ack.mode;
+							}
+						}else{
+							ackLable.text = "在"+bean.ack.p1+"的箭塔,对在"+bean.ack.p2+"的英雄"+battleReport.getAttackerTroop(bean.ack.k2).heroName+"造成"+bean.ack.dmg+",  攻击方式："+bean.ack.mode;
+						}
+					}
+					if(bean.armyMove != null){
+						if(battleReport.getAttackerTroop(bean.armyMove.key) != null){
+							armyMoveLable.text = "攻击方英雄:"+battleReport.getAttackerTroop(bean.armyMove.key)+"进入位置"+bean.armyMove.pos;
+						}else if(battleReport.getAttackerTroop(bean.armyMove.key) != null){
+							armyMoveLable.text = "防守方英雄:"+battleReport.getDefenderTroop(bean.armyMove.key)+"进入位置"+bean.armyMove.pos;
+						}
+					}
+					if(bean.armyQuit != null){
+						if(battleReport.getAttackerTroop(bean.armyQuit.key) != null){
+							armyQuitLable.text = "攻击方英雄:"+battleReport.getAttackerTroop(bean.armyQuit.key)+"离开位置"+bean.armyQuit.pos;
+						}else if(battleReport.getAttackerTroop(bean.armyQuit.key) != null){
+							armyQuitLable.text = "防守方英雄:"+battleReport.getDefenderTroop(bean.armyQuit.key)+"离开位置"+bean.armyQuit.pos;
+						}
+					}
+					if(bean.armyRetreat != null){
+						if(battleReport.getAttackerTroop(bean.armyRetreat.key) != null){
+							armyRetreatLable.text = "攻击方英雄:"+battleReport.getAttackerTroop(bean.armyRetreat.key)+"撤退到位置"+bean.armyRetreat.pos;
+						}else if(battleReport.getAttackerTroop(bean.armyRetreat.key) != null){
+							armyRetreatLable.text = "防守方英雄:"+battleReport.getDefenderTroop(bean.armyRetreat.key)+"撤退到位置"+bean.armyRetreat.pos;
+						}
+					}
+					if(bean.trapAttack != null){
+						trapAttackLable.text = "陷阱对在"+bean.trapAttack.pos+"的英雄"+battleReport.getAttackerTroop(bean.trapAttack.key).heroName+"进行攻击,攻击数量"+bean.trapAttack.count;
+					}
+					if(bean.unitWait != null){
+						if(battleReport.getAttackerTroop(bean.unitWait.key) != null){
+							unitWaitLable.text = "攻击方英雄:"+battleReport.getAttackerTroop(bean.unitWait.key)+"正在位置"+bean.unitWait.pos+"等待";
+						}else if(battleReport.getAttackerTroop(bean.unitWait.key) != null){
+							unitWaitLable.text = "防守方英雄:"+battleReport.getDefenderTroop(bean.unitWait.key)+"正在位置"+bean.unitWait.pos+"等待";
+						}
+					}
+					if(bean.trapWork != null){
+						trapWorkLable.text = "陷阱消耗"+bean.trapWork.trapCount+",命中"+bean.trapWork.hitCount;
+					}
+					if(bean.rockfallMiss != null){
+						rockfallMissLable.text = "滚石攻击在"+bean.rockfallMiss.pos+"的英雄"+battleReport.getAttackerTroop(bean.rockfallMiss.key)+",不中";
+					}
+				}
+			}
+			
+			private function init():void{
+				showRound();
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" height="100%">
+		<mx:Label id="ackLable" includeInLayout="{bean.ack != null}" visible="{bean.ack != null}"/>
+		<mx:Label id="armyMoveLable" includeInLayout="{bean.armyMove != null}" visible="{bean.armyMove!= null}"/>
+		<mx:Label id="armyQuitLable" includeInLayout="{bean.armyQuit != null}" visible="{bean.armyQuit != null}"/>
+		<mx:Label id="armyRetreatLable" includeInLayout="{bean.armyRetreat != null}" visible="{bean.armyRetreat != null}"/>
+		<mx:Label id="trapAttackLable" includeInLayout="{bean.trapAttack != null}" visible="{bean.trapAttack != null}"/>
+		<mx:Label id="unitWaitLable" includeInLayout="{bean.unitWait != null}" visible="{bean.unitWait != null}"/>
+		<mx:Label id="trapWorkLable" includeInLayout="{bean.trapWork != null}" visible="{bean.trapWork != null}"/>
+		<mx:Label id="rockfallMissLable" includeInLayout="{bean.rockfallMiss != null}" visible="{bean.rockfallMiss != null}"/>
+	</mx:VBox>
+</mx:Canvas>

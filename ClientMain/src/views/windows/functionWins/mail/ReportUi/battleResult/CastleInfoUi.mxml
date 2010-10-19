@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.items.*"
+	xmlns:battleResult1="views.windows.functionWins.mail.ReportUi.battleResult.*">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.bean.ScoutType;
+			import roma.util.MultiLang;
+			import roma.common.constants.TroopForConstants;
+			import roma.common.constants.TroopConstant;
+			import mx.utils.ObjectProxy;
+			import mx.collections.ArrayCollection;
+			import views.windows.functionWins.mail.bean.CastleType;
+			[Bindable]
+			private var castleObj:CastleType
+			[Bindable]
+			private var buildingList:ArrayCollection = new ArrayCollection();
+
+			public function set castleType(c:CastleType):void{
+				castleObj = c;
+				buildingList = setBuildingList(castleObj.buildingsList);
+			}
+			
+			private function setBuildingList(o:Object):ArrayCollection{
+				var arr:ArrayCollection = new ArrayCollection();
+				if(o is ObjectProxy){
+					arr.addItem(o);
+				}else if(o is ArrayCollection){
+					for each(var b2:ObjectProxy in o){
+						arr.addItem(b2);
+					}
+				}
+				return arr;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox horizontalAlign="center" width="100%">
+		<mx:Text text="{MultiLang.msg('report.scout.castleInfo.label')}: " width="98%" textAlign="left" styleName="taskSubLabel"/>
+		<mx:HBox width="98%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('battle.result.caslte.desc{0}{1}',castleObj.support,castleObj.complaint)}"
+				textAlign="left" visible="{castleObj.support >-1}"/>
+			<mx:Label text="{MultiLang.msg('battle.result.castle.populations',castleObj.population)}" visible="{castleObj.population> -1}"/>
+		</mx:HBox>
+		<mx:HBox label="城防信息" verticalAlign="middle" width="98%" includeInLayout="{(castleObj.trapAmount+castleObj.arrowTowerAmount+castleObj.rockFall)>-3}">
+			<battleResult:DefenseItem2 defenderType="{TroopForConstants.F_TRAPS}" visible="{castleObj.trapAmount != -1}" count="{castleObj.trapAmount}"/>
+			<battleResult:DefenseItem2 defenderType="{TroopForConstants.F_TOWER}" visible="{castleObj.arrowTowerAmount != -1}" count="{castleObj.arrowTowerAmount}"/>
+			<battleResult:DefenseItem2 defenderType="{TroopForConstants.F_FALLROCK}" visible="{castleObj.rockFall != -1}" count="{castleObj.rockFall}"/>
+		</mx:HBox>
+		<mx:Canvas width="98%">
+			<battleResult1:CommonResourceUi resourceObj="{castleObj.resourceType}" />
+		</mx:Canvas>
+		<mx:HRule width="98%"/>
+		<mx:Text width="98%" text="{MultiLang.msg('report.scout.building.label')}: " textAlign="left" styleName="taskSubLabel"/>
+		<battleResult1:CastleOutline buildings="{buildingList}" />
+	</mx:VBox>	
+</mx:Canvas>

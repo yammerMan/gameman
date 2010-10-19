@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="76" xmlns:ui="views.spreadUI.specialContainer.*" styleName="BuildingAlphaWindow">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.BuffConstants;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.GameContext;
+			import roma.util.ClientUtil;
+			import roma.util.MultiLang;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.common.valueObject.ArchitectureBean;
+
+			[Bindable]
+			private var buildingName:String;
+			[Bindable]
+			private var bulidingStatus:String;
+			[Bindable]
+			private var reqTime:String;
+			
+			[Bindable]
+			private var buildingObj:BaseBuilding;
+			[Bindable]
+			private var IbuildingQueue:Boolean=false;
+			private var globalBuildingQueue:Boolean=false;
+			
+			private var hasBuilding:Boolean;
+			
+			public function setBuildingObj(obj:BaseBuilding=null):void {
+				this.buildingObj = obj;
+				if(this.buildingObj!=null){
+					hasBuilding = true;
+					remainingTime(); 
+					buildingName=buildingObj.getName();
+					bulidingStatus=BuildingHelper.instance.getBuildingStatus(buildingObj.status);	
+				}else{
+					hasBuilding = false;
+				}
+				judgeIbuildingQueue();				
+			}
+
+			public function remainingTime():void {
+				if(buildingObj!=null){
+					reqTime = MultiLang.timeFormatToString(buildingObj.getRemainTimeSec());
+				}
+      		}
+      		
+      		public function get buildingObject():BaseBuilding{
+      			return buildingObj;
+      		}
+      		
+      		public function set buildingQueue(ok:Boolean):void {
+      			globalBuildingQueue=ok;
+				judgeIbuildingQueue();
+			}
+			private function judgeIbuildingQueue():void{
+				IbuildingQueue=(globalBuildingQueue || hasBuilding);
+			}
+      		
+		]]>
+	</mx:Script>
+	<mx:ViewStack width="100%" height="100%" selectedIndex="{this.IbuildingQueue?0:1}">
+		<mx:Canvas id="activation" width="100%" height="100%">
+			<mx:ViewStack width="100%" height="100%" selectedIndex="{this.buildingObj==null?1:0}">
+				<mx:Canvas id="buildingSituation" width="100%" height="100%">
+					<mx:Canvas  styleName="bigBuildingLogo" width="112" height="56" left="11" verticalCenter="0">
+						<ui:BigBuildingLogo verticalCenter="0" imgSource="{this.buildingObj.typeId}" top="5" left="5" bottom="5" right="5" />
+					</mx:Canvas> 
+					
+					<mx:Label text="{MultiLang.msg('public.label.remainTime')}: {this.reqTime}" styleName="discritionLabel" top="19" right="30"/>
+					<mx:HBox horizontalGap="8" right="30" bottom="10" verticalAlign="middle">
+						<mx:Button styleName="buildingNowSpeedUpBtn" click="this.buildingObj.speedUp();" label="{MultiLang.msg('public.label.speed')}" height="18"/>
+						<mx:Button styleName="dakCancleBtn" click="this.buildingObj.cancelBuilding();"/>
+					</mx:HBox>
+					<mx:VBox left="167" top="18">
+						<mx:HBox>
+							<mx:Label text="{this.buildingName}"/>
+							<mx:Label text="{MultiLang.msg('public.label.level')+' '+this.buildingObj.level}" styleName="discritionLabel" id="myBuilding" left="143" top="10"/>
+						</mx:HBox>
+						<mx:Label text="{this.bulidingStatus}" styleName="goodNoticeLabel" id="situation"/>
+					</mx:VBox>
+				</mx:Canvas>
+				<mx:Canvas width="100%" height="100%">
+					<mx:Label text="{MultiLang.msg('townHall.buildingQueue.activation')}" verticalCenter="0" horizontalCenter="0"/>
+				</mx:Canvas>
+			</mx:ViewStack>
+		</mx:Canvas>
+		<mx:Canvas id="unActivation" width="100%" height="100%">
+			<mx:Label text="{MultiLang.msg('townHall.buildingQueue.unActivation')}" verticalCenter="0" horizontalCenter="0"/>
+		</mx:Canvas>
+	</mx:ViewStack>	
+</mx:Canvas>

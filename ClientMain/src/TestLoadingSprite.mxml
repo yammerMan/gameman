@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	preloader="reLoader.MyProgressBar"
+	width="1000" height="600"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import reLoader.ui.LoadingSkin;
+		
+			private var ps:LoadingSkin = new LoadingSkin();
+		
+			private function init():void {
+				this.uc.addChild(this.ps);
+				
+				//this.ps.setActionName("Style");
+				
+				
+				var e:ProgressEvent = new ProgressEvent("a");
+				e.bytesLoaded = 100;
+				e.bytesTotal = 1000;
+				this.ps.setProgressEvent(e);
+			}
+		]]>
+	</mx:Script>
+	<mx:UIComponent id="uc"/>
+</mx:Application>

@@ -1,0 +1,111 @@
+<functionWins:BaseFunctionWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="392" height="305" 
+	title="{MultiLang.msg('public.label.playerInfo')}" creationComplete="init()" xmlns:ns1="views.windows.functionWins.playInfo.*" verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	xmlns:ns2="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="KingInfoWin_as.as"/>
+	<mx:Canvas left="11" top="30" bottom="11" styleName="mainWindowContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off" right="11">
+		<mx:VBox left="4" top="4" bottom="4" styleName="whiteBGwithBorder" verticalGap="0" right="4" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Canvas height="105" top="4" left="4" right="4" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%">
+				<mx:Canvas width="99" height="97" x="3" y="3" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" width="99" height="97" x="0" y="0"/>
+					<mx:Image source="{this.logoSource}" updateComplete="ImageHandle.onLoadComplete(event);" id="PlayerLogo" width="79" height="77" x="10" y="10"/>
+				</mx:Canvas>
+				<mx:HBox horizontalGap="0" top="0" bottom="0" right="0" left="105" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:VRule height="100%" />
+					<mx:VBox height="100%" width="100%" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:HBox width="100%" verticalAlign="middle" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<!--mx:TextInput id="playerNameText" text="{this.info.playerName}" alpha="0"  width="100%" editable="false" textAlign="center" styleName="titleBordLabel" change="textChange(event)"/-->
+							<ns2:ModifyTextInput textString="{this.info.playerName}" id="playerNameText" width="100%" textInputChangeHandle="textInputChange"/>
+							<mx:Button id="modifyNameBtn" click="onModifyName(event)" styleName="collectionModifyBtn" width="13" height="15" toolTip="{MultiLang.msg('favorite.modify.click')}"/>
+							<mx:Spacer width="2"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:Canvas width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Canvas left="3" top="2" bottom="2" right="3" styleName="BuildingAlphaWindow" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+								<mx:TextArea id="playerSign" top="14" left="14" bottom="14" right="14" styleName="discritionTextArea" change="onSignTextChage(event)" editable="false" verticalScrollPolicy="off" text="{this.info.signature}"/>
+								<mx:Button id="changeMyInfoBtn"  styleName="collectionModifyBtn" width="13" height="15" right="14" bottom="14" click="onModifyPlayerIdiograph(event)" toolTip="{MultiLang.msg('favorite.modify.click')}"/>
+							</mx:Canvas>
+						</mx:Canvas>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:HRule width="100%" />
+			<mx:HBox horizontalGap="0" width="362" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:VBox height="100%" verticalGap="2" width="111" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="111" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('public.label.ranking')}:" textAlign="right" width="111" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('info.player.title')}:" textAlign="right" width="111" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('label.cities')}:" textAlign="right" width="111" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('label.population.current')}:" textAlign="right" width="111" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('KingInfoWin.label.renascence')}:" textAlign="right" width="90" styleName="commonMarginLabel" visible="false"/>
+				</mx:VBox>
+				<mx:VRule height="100%" />
+				<mx:VBox height="100%" verticalGap="2" width="80" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{this.info.leagueName}" styleName="darkCommonStyle" width="80" paddingLeft="5"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{info.rank}"  styleName="darkCommonStyle" width="80" paddingLeft="5"/>
+					<mx:HRule width="100%" />
+					<mx:Label text="{MultiLang.msg('player.title.'+info.title)}" styleName="darkCommonStyle" width="80" paddingLeft="5"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{info.cityCount}" styleName="darkCommonStyle" width="80" paddingLeft="5"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{info.population}" styleName="darkCommonStyle" width="80" paddingLeft="5"/>
+					<mx:HRule width="100%"/>
+					<mx:HBox width="100%" verticalAlign="middle" horizontalGap="3" visible="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Label text="" styleName="darkCommonStyle" width="70" paddingLeft="5"/>
+						<mx:Button  id="renascenceBtn"  styleName="collectionModifyBtn" width="13" height="15" click="renascenceHandle()" mouseOver="this.implementBtnOnMouseOver(event)" mouseOut="this.implementBtnOnMouseOut()" mouseMove="this.implementBtnOnMouseMove(event)"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VRule height="100%" />
+				<mx:VBox height="100%" verticalGap="2" width="80" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{MultiLang.msg('hero.heroes')}:" textAlign="right" width="80" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('public.label.prestige')}:" textAlign="right" width="80" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('label.horne')}:" textAlign="right" width="80" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('alliance.status')}:" textAlign="right" width="80" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('public.flag')}:" textAlign="right" width="80" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text=""  styleName="darkCommonStyle" width="80" paddingLeft="5"/>
+				</mx:VBox>
+				<mx:VRule height="100%" />
+				<mx:VBox height="100%" verticalGap="2" width="91" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{herosCount}" styleName="darkCommonStyle" width="91" paddingLeft="5"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{info.prestiges}"  styleName="darkCommonStyle" width="91" paddingLeft="5"/>
+					<mx:HRule width="100%" />
+					<mx:Label text="{info.honor}" styleName="darkCommonStyle" width="91" paddingLeft="5"/>
+					<mx:HRule width="100%"/>
+					<mx:HBox width="91" verticalAlign="middle" horizontalGap="3" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Label text="{isBuffPeace?MultiLang.msg('playInfo.peaseStatus'):(isBuffCoolDown?MultiLang.msg('playInfo.peaseCoolDownStatus.lable'):MultiLang.msg('building.common.normal'))}" styleName="{(isBuffPeace || isBuffCoolDown)?'goodNoticeLabel':'commonMarginLabel'}" width="70" textAlign="left"/>
+						<mx:Button enabled="{!isBuffCoolDown}" id="changeStatusBtn" mouseOver="statusBtnOver(event)" mouseOut="statusBtnOut(event)" click="onSetPeace()" styleName="collectionModifyBtn" width="13" height="15"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+					
+					<mx:HRule width="100%"/>
+					<mx:HBox width="91" verticalAlign="middle" horizontalGap="3" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<ns2:ModifyTextInput textString="{this.info.flag}" id="flagText" width="70" textInputChangeHandle="flagTextChange"/>
+						<mx:Button  id="changeFlagBtn"  styleName="collectionModifyBtn" width="13" height="15" click="onModifyFlag(event)" toolTip="{MultiLang.msg('favorite.modify.click')}"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+					<mx:HRule width="100%"/>
+					<mx:Label text=""  styleName="darkCommonStyle" width="100%" paddingLeft="5"/>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow>

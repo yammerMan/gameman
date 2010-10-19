@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="250" height="100" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import views.mainModules.map.smallMap.NpcFieldConstant;
+			import roma.common.action.ControllerFactory;
+			import roma.common.controller.army.ScoutNpcFieldResponse;
+			import roma.common.constants.FieldConstant;
+			import roma.logic.GameContext;
+			import roma.logic.object.field.FieldHelper;
+			import roma.util.MultiLang;
+			import views.mainModules.map.diamond2.DiamondMapTile2;
+			
+			[Bindable]
+			private var _distance:int;
+			[Bindable]
+			private var _fieldName:String;
+			[Bindable]
+			private var _fieldPostion:String;
+			[Bindable]
+			private var _itemDesc:String;
+			[Bindable]
+			private var _isFlat:Boolean;
+			
+			private var fieldType:int;
+			
+			private var idField:int=-1;
+			
+			public function setMapTile(tile:DiamondMapTile2):void{
+				if(tile !=null){
+					fieldType=tile.getFieldType();
+					_fieldPostion = "["+tile.getFieldX()+","+tile.getFieldY()+"]";
+					_distance =  GameContext.instance.getPlayerObj().getCurCastleObj().getDistanceToField(tile.getFieldX(),tile.getFieldY());
+					if(tile.getFieldType()!=FieldConstant.TYPE_NPC_FIELD&&tile.getFieldType()!=NpcFieldConstant.TYPE_RATTER_NPC_FIELD){
+						_fieldName = FieldHelper.getFieldName(tile.getFieldType(),tile.getFieldLevel())+" "+MultiLang.msg("public.label.level")+" "+tile.getFieldLevel();
+					}
+					_itemDesc = getItemDesc(tile.getFieldLevel(),tile.getFieldType());
+					_isFlat = false;
+					if((tile.getFieldType()==FieldConstant.TYPE_NPC_FIELD||tile.getFieldType()==NpcFieldConstant.TYPE_RATTER_NPC_FIELD)&&idField!=tile.idField){
+						ControllerFactory.getInstance().getArmyController().scoutNpcField(GameContext.getFieldId(tile.getFieldX(),tile.getFieldY()),onMapResponse,false);
+					}
+					idField=tile.idField;
+				}
+			}
+			
+			private function getItemDesc(fieldLv:int,fieldType:int):String{
+				var desc:String="";
+				if(fieldType==FieldConstant.TYPE_NPC_FIELD){
+					desc=MultiLang.msg("field.trainingRoom.desc");
+				}else if(fieldType==NpcFieldConstant.TYPE_RATTER_NPC_FIELD){
+					desc=MultiLang.msg("field.ratterNpc.desc");
+				}else{
+					desc=FieldHelper.getFieldLuxItemDesc(fieldLv);
+				}
+				return desc;
+			}
+			
+			private function onMapResponse(event:ScoutNpcFieldResponse):void {
+				if(event.isSuccess()&&(fieldType==FieldConstant.TYPE_NPC_FIELD||fieldType==14)){	
+					_fieldName=event.bean.fieldName;
+				}
+			}
+			
+			public function setTile(fx:int,fy:int):void{
+				idField=-1;
+				fieldType=FieldConstant.FLAT_TYPE;
+				_fieldPostion ="["+fx+ ","+fy+"]";
+				_fieldName = FieldHelper.getFieldName(FieldConstant.FLAT_TYPE);
+				_distance = GameContext.instance.getPlayerObj().getCurCastleObj().getDistanceToField(fx,fy);
+				_isFlat = true;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:HBox width="230" horizontalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label  styleName="playerTipAdd" text="{_fieldPostion}" width="85"/>
+			<mx:Spacer width="5"/>
+			<mx:Label  text="{MultiLang.msg('world.castle.distance',_distance.toFixed(0))}" styleName="playerTipDistence" width="110"/>
+		</mx:HBox>
+		<mx:Label  
+			styleName="playerTipCityName" text="{_fieldName}" width="230"/>
+		<mx:TextArea  htmlText="{_itemDesc}" visible="{!_isFlat}" includeInLayout="{!_isFlat}" styleName="playerTipCityName" fontSize="12" width="230" height="36"/>	
+	</mx:VBox>
+</BaseTip>

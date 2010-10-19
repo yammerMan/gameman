@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="280" creationComplete="init()" xmlns:spreadUI="views.spreadUI.*" xmlns:troop="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import animation.animationData.building.FountainAni;
+			import mx.managers.FocusManager;
+			import roma.data.BuildingData;
+			import views.BeginnerGuide;
+			import roma.message.events.MsgEvent;
+			import roma.common.constants.WorkerConstant;
+			import roma.resource.ImgManager;
+			import roma.data.ProduceResourceData;
+			import roma.logic.rule.BuildingRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.WorkerRule;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.object.castle.ResourceObj;
+			import roma.logic.rule.ruleCheck.ResourceCheck;
+			import roma.common.constants.GeneralConstants;
+			import roma.common.events.WorkerTrainningUpdate;
+			import views.PopupWindows;
+			import roma.common.valueObject.WorkerTrainningBean;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.rule.ItemRule;
+			import roma.message.EvtDispacther;
+			import roma.message.events.PublicEvent;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.common.valueObject.CastlePopulationBean;
+			import roma.logic.GameContext;
+			import roma.logic.object.building.BuildingHelper;
+			import views.spreadUI.tech.WorkerHelper;
+			import roma.common.constants.BuildingConstant;
+			import roma.util.CompCache;
+			import roma.util.MultiLang;
+			import roma.logic.object.building.BaseBuilding;
+			
+			public static const WORKER_SPEEDUP:String = "worker.speedup";
+			public static const WORKER_CANCEL:String = "worker.cancel";
+
+			public static var RESTYP_CLICK:String = "restyp.click"; 
+
+			public var buildingObj:BaseBuilding;		
+			
+			public var eventData:BuildingData;
+			
+			[Bindable]
+			private var maxNum:int;
+			[Bindable]
+			private var trainningType:String;
+			[Bindable]
+			private var workerName:String;
+			[Bindable]
+			private var worker:ResourceObj;
+			[Bindable]
+			private var result:RuleCheckResult;
+			[Bindable]
+			private var maxTrainningNum:int;
+			[Bindable]
+			private var demobCost:String;
+			[Bindable]
+			private var btnEnabled:Boolean;
+			
+			private var typeUI:ResType;
+			private var curWorkerType:int;
+			private var workerRule:WorkerRule;
+			private var workerTrainningBean:WorkerTrainningBean;
+			
+			private var cache:CompCache = new CompCache(4);
+			private var produceResourceData:ProduceResourceData = new ProduceResourceData();
+			//worker type
+			private var typeArr:Array =[WorkerConstant.FARMER_WORKER_TYPE,WorkerConstant.STONEMASON_WORKER_TYPE,WorkerConstant.WOODCUTTER_WORKER_TYPE,WorkerConstant.MINER_WORKER_TYPE];
+			//res type
+			private var resTypeAry:Array =[BuildingConstant.TYPE_FARM,BuildingConstant.TYPE_QUARRY,BuildingConstant.TYPE_SAWMILL,BuildingConstant.TYPE_MINE_IRON];
+			
+			//当前建筑一次可以训练的人数
+			[Bindable]
+			private var trainNumber:int;
+			[Bindable]
+			private var currnetUI:ResType;
+			
+			private function init():void{
+				for(var i:int =0;i<typeArr.length;i++){
+					var ui:ResType =this.cache.getUI(ResType) as ResType;
+					ui.fun = updateWorkerNum;
+					ui.type = typeArr[i];
+					ui.resType = resTypeAry[i];
+					ui.buttonMode = true;
+					ui.useHandCursor = true;
+					ui.addEventListener(RESTYP_CLICK,clickHandler);
+					this.UIContainer.addChild(ui);
+				}
+				
+				this.tarinningBtn.selected = true;
+
+//				MsgDispacther.instance.addEventListener(WORKER_SPEEDUP,openSpeedUpPanel);
+				EvtDispacther.instance.addEventListener(WORKER_CANCEL,cancelWorkerTrainning);
+				EvtDispacther.instance.addEventListener(EvtDispacther.WORKER_TRAINNING_UPDATE,onWorkerTrainningUpdate);	
+				EvtDispacther.instance.addEventListener(BeginnerGuide.CREAT_FARMER_POST,onCreateFarmer);
+			}
+			
+			public function refresh():void{
+				for each(var ui:ResType in this.UIContainer.getChildren()){
+					ui.refresh();
+					
+					if(this.buildingObj.typeId == ui.resType){
+						this.changeBuilding(this.buildingObj,ui.type);
+						this.currnetUI = ui;
+						ui.setSelectedStyle();
+					}else{
+						ui.setNomalStyle();
+					}
+					ui.updateWorker();
+				}
+				
+				var bean:WorkerTrainningBean =  GameContext.instance.getPlayerObj().getCurCastleObj().workerTrainningManager.workerTrainningBean;
+				this.trainningQueueUpdate(bean);
+
+				if(this.initialized){
+					if(this.numStepper1!=null)
+						this.numStepper1.refresh();
+	
+ 					if(this.numStepper !=null)
+						this.numStepper.refresh();
+					
+					//新手指导禁止输入训练工人数量
+					if(eventData.data !=null && String(eventData.data) == BeginnerGuide.BEGINNER_GUIDE){
+						this.numStepper.valueTextInput.enabled = false;
+					}else{
+						this.numStepper.valueTextInput.enabled = true;
+					}
+				}
+			}
+			
+			private function clickHandler(event:MsgEvent):void{
+				var obj:BaseBuilding = this.buildingObj.castle.buildingManager.getUniqueBuildingByType(int(event.data));
+				if(obj!=null && this.currnetUI.resType != int(event.data))
+					PopupWindows.openBuildingInfoWin(ResUnityWin.WINDOW_SHOW ,obj);
+			}
+			
+			private function changeBuilding(obj:BaseBuilding,workerType:int):void{
+				this.curWorkerType = workerType;
+				this.workerName = WorkerHelper.instance.getWorkerUnitName(workerType);
+				this.updateWorkerNum(workerType);
+			}
+			
+			private function trainningQueueUpdate(bean:WorkerTrainningBean):void{
+				this.workerTrainningBean = bean;
+				for each(var ui:ResType in this.UIContainer.getChildren()){
+					ui.bean = null;
+					if(bean !=null){
+						this.btnEnabled = false;
+						if(ui.type == bean.type){
+							ui.bean = bean;
+							this.typeUI = ui;
+						}
+					}else{
+						this.btnEnabled = true;
+					}
+				}
+			}
+			
+			/* 实时更新 */
+			private var _count:int=0;
+			public function update():void{
+				this.updateWorkerNum(curWorkerType);
+				var rule1:BuildingRule = GameRuleHelper.instance.getBuildingRule(this.buildingObj.typeId,this.buildingObj.level);
+				this.workerRule = GameRuleHelper.instance.getWorkerRule(this.curWorkerType);
+				
+				if(this.workerRule !=null)
+					this.result = this.workerRule.check(this.buildingObj);
+					
+				if(this.result !=null){
+					produceResourceData.ruleResult =this.result;
+					this.maxTrainningNum = produceResourceData.calcMaxWorkerTrainning(this.workerRule,rule1);
+					
+					if(_count==0)
+						this.numStepper.intValue =this.maxTrainningNum;
+						
+					if(this.viewShow.selectedChild == this.tarinningCon)
+						this.countConsResource(this.numStepper.effectValue);
+				}
+
+				this.trainNumber=Math.min(rule1.buff1,maxTrainningNum);
+
+				if(this.typeUI !=null)
+					this.typeUI.realTimeUpdate();
+
+				if(this.viewShow.selectedChild == this.dibandCon)
+					if(this.dibandBtn.initialized){
+						this.resReBack(this.numStepper1.effectValue);
+					}
+					
+				_count++;		
+			}
+			
+			/* 更新工人数量 */
+			private function updateWorkerNum(type:int):ResourceObj{
+				var resManager:CastleResourceManager= this.buildingObj.castle.resourceManager;
+				switch(type){
+					case WorkerConstant.FARMER_WORKER_TYPE:
+						this.worker = resManager.food;
+						break;
+					case WorkerConstant.MINER_WORKER_TYPE:
+						this.worker = resManager.iron;
+						break;
+					case  WorkerConstant.WOODCUTTER_WORKER_TYPE:
+						this.worker= resManager.wood;
+						break;
+					case WorkerConstant.STONEMASON_WORKER_TYPE:
+						this.worker= resManager.stone;
+						break;
+				}
+				
+				return this.worker;
+			}
+			
+			/* 训练更新 */
+			private function onWorkerTrainningUpdate(event:MsgEvent):void{
+				var e:WorkerTrainningUpdate = event.data as WorkerTrainningUpdate; 
+				if(e.cityId == this.buildingObj.castle.cityId){
+	 				this.trainningQueueUpdate(e.bean);
+				}
+			}
+			
+			private function onMouseDown(event:MouseEvent):void{
+				this.setBtnUpState();
+				
+				Button(event.target).selected = true;
+				with(Button(event.target)){
+					if(id == "tarinningBtn"){
+						this.viewShow.selectedChild = this.tarinningCon;
+					}else{
+						this.viewShow.selectedChild = this.dibandCon;
+						if(this.numStepper1!=null){
+							this.numStepper1.refresh();
+						}
+						resReBack(1);
+					}
+				}
+			}
+			
+			/*需要消耗资源*/
+			private function countConsResource(num:int):void{
+ 				if(num ==0) num =1;
+ 				if(result!=null){
+					this.result.food.dispReq   = String(num*int(this.result.food.dispReq));
+					this.result.wood.dispReq   = String(num*int(this.result.wood.dispReq));
+					this.result.iron.dispReq   = String(num*int(this.result.iron.dispReq));
+					this.result.stone.dispReq  = String(num*int(this.result.stone.dispReq));
+					this.result.needTime       *= num;
+ 				}
+			}
+			
+			/* 解雇农夫返回的资源是训练农夫的30% */
+			private function resReBack(num:int):void{
+				if(num ==0)num =1;
+				if(result!=null){
+					this.result.food.dispReq   = String(30*num*int(this.result.food.dispReq)/100);
+					this.result.wood.dispReq   = String(30*num*int(this.result.wood.dispReq)/100);
+					this.result.iron.dispReq   = String(30*num*int(this.result.iron.dispReq)/100);
+					this.result.stone.dispReq  = String(30*num*int(this.result.stone.dispReq)/100);
+				}
+			}
+			
+			private function setBtnUpState():void{
+				this.tarinningBtn.selected = false;
+				this.dibandBtn.selected = false;
+			}
+
+			private function onCreateFarmer(evt:Event):void{
+				this.trainningWorker();
+			}
+		
+			/* 开始工人训练 */
+			private function trainningWorker():void{
+				//是否至少输入一个
+				if(this.numStepper.effectValue<=0){
+					MyAlert.show(MultiLang.msg('worker.creatSeat.input.one',this.workerName));
+					return;
+				}
+				
+				//但前城是否有工人训练
+				for each(var ui:ResType in this.UIContainer.getChildren()){
+					if(ui.bean !=null){
+						MyAlert.show(MultiLang.msg('worker.trainning.limit'));
+						return;
+					}
+				}
+				
+				trace(this.curWorkerType+"/t"+this.numStepper.effectValue);
+				this.buildingObj.trainningWorker(this.curWorkerType,this.numStepper.effectValue);
+			}
+			
+			/* 遣散工人 */
+			private function severanceWorker():void{
+				//是否至少输入一个
+				if(this.numStepper1.effectValue<=0){
+					MyAlert.show(MultiLang.msg('public.least.input.one',this.workerName));
+					return;
+				}
+				
+				MyAlert.show(MultiLang.msg('worker.disband.isSure',this.numStepper1.effectValue,this.workerName),isSureSeveranceWorker);
+				
+			 	function isSureSeveranceWorker(_true:Boolean):void{
+					if(_true){
+						buildingObj.severanceWorker(curWorkerType,numStepper1.effectValue);
+					}
+				}
+			}
+			
+			/* 打开加速面板 */
+			private function openSpeedUpPanel(event:PublicEvent):void{
+				ItemSelectSpeedUpWin.instance.buildingObj = this.buildingObj;
+				ItemSelectSpeedUpWin.instance.bean = this.workerTrainningBean;
+				ItemSelectSpeedUpWin.instance.speedUpType = ItemSelectSpeedUpWin.COIN_FORWORKERTRAINNING_SPEEDUP;
+				ItemSelectSpeedUpWin.show(ItemResManager.speedWorkerItemArrayCollection,speedUpTrainning);
+			}
+
+			/* 加速工人训练*/
+			private function speedUpTrainning(rule:ItemRule):void{
+				this.buildingObj.speedUpTrainning(rule);
+			}
+			
+			/* 取消 工人训练*/
+			private function cancelWorkerTrainning(event:PublicEvent):void{
+				this.buildingObj.cancelWorkerTrainning();
+			}
+			
+			private function initCan():void{
+				this.numStepper1.refresh();
+			}
+			
+			public function destroy():void{
+				_count =0;
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas left="0" top="0" width="290" height="250" styleName="subContentBG" label="四种工人">
+		<mx:Tile width="100%" height="100%" id="UIContainer" horizontalGap="1" verticalGap="1" paddingLeft="12" paddingTop="10"/>
+	</mx:Canvas>
+	<mx:Canvas left="291" right="0" top="0" styleName="buildingInfoContentBG" height="250">
+		<mx:HBox left="0" horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0">
+			<mx:Spacer width="5"/>
+			<mx:Button id="tarinningBtn" height="25" mouseDown ="onMouseDown(event)" label="{MultiLang.msg('worker.trainning')}" styleName="tabBtn"/>
+			<mx:Button id="dibandBtn" height="25" mouseDown="onMouseDown(event)" label="{MultiLang.msg('public.disband')}" styleName="tabBtn"/>
+		</mx:HBox>
+	
+		<mx:ViewStack top="25" left="0" id="viewShow" right="0" bottom="0">
+			<mx:Canvas id="tarinningCon"  width="100%" height="100%" label="训练">
+				<mx:Label text="{MultiLang.msg('worker.type.trainning',this.workerName)}"  left="24" top="5" styleName="titleNameLabel"/>
+				<spreadUI:VerticalConditionFrom left="24" result="{this.result}" costTime="{this.result.needTime}" top="24" labelWidth="107"/>
+				<mx:Label text="{MultiLang.msg('worker.max.amount',this.trainNumber)}" textAlign="left" top="175" left="10" toolTip="{MultiLang.msg('worker.max.amount.tip',currnetUI._resTypeName)}"/>
+				<mx:HBox bottom="7" left="10" verticalAlign="middle">
+					<mx:Label text="{MultiLang.msg('public.requestAmount')}" textAlign="right"/>
+					<spreadUI:MyNumericStepper id="numStepper" maxValue="{this.maxTrainningNum}" onInputDataChange="countConsResource"/>
+				</mx:HBox>
+				<mx:Button id="trainingBtn" label="{MultiLang.msg('worker.trainning')}" styleName="titleNameLabel" width="119" height="22" click="{this.trainningWorker()}" enabled="{this.btnEnabled}" y="192" x="240"/>
+				<mx:TextArea styleName="discritionTextArea" editable="false" left="185" top="24" right="16" bottom="47" text="{MultiLang.msg('worker.creatJob.disc')}"/>
+			</mx:Canvas>
+			<mx:Canvas id="dibandCon" width="100%" height="100%" label="解散" initialize="initCan()">
+				<mx:Label text="{MultiLang.msg('worker.dismiss.resource.return',this.workerName)}" styleName="titleNameLabel" left="128" top="30"/>
+				<spreadUI:ConditionForm left="128" result="{this.result}" top="60" allShow="{false}"/>
+				<mx:Label text="{MultiLang.msg('public.amount')}" textAlign="right" top="135" right="290"/>
+				<mx:Label text="{MultiLang.msg('worker.max.amount',this.worker.worker)}" textAlign="left" top="135" left="290"/>
+				<mx:VBox horizontalAlign="center" horizontalCenter="0" top="135">
+					<spreadUI:MyNumericStepper x="203" y="152" id="numStepper1" maxValue="{this.worker.worker}" intValue="{this.worker.worker}" onInputDataChange="resReBack"/>
+					<mx:Button label="{MultiLang.msg('worker.dismiss')}" top="160" styleName="titleNameLabel" width="119" height="22" left="207" click="severanceWorker()"/>
+				</mx:VBox>
+			</mx:Canvas>	
+		</mx:ViewStack>
+	</mx:Canvas>
+</mx:Canvas>

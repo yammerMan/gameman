@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" height="24" horizontalScrollPolicy="off" 
+	mouseOver="onMouseOver(event)" 
+	mouseMove="onMouseOver(event)" 
+	mouseOut="onMouseOut()"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import mx.formatters.SwitchSymbolFormatter;
+		
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.TFPropTooltip;
+			import roma.util.ImageHandle;
+		
+			[Bindable]
+			private var _reqNum:String ="";			
+			[Bindable]
+			public var resIcon:Class;
+			[Bindable]
+			public var txtWidth:int = 77;
+			[Bindable]
+			public var formatAlign:String = TextFormatAlign.RIGHT;
+			
+			[Bindable]
+			public var propType:int=0;
+			
+			[Bindable]
+			private var _typeStr:String =null;
+			
+			private var propTooltip:TFPropTooltip;
+			
+			private function init():void{
+				propTooltip = ToolTipContainer.instance.tfproptooltip;
+			}
+			
+			public function set reqNum(num:String):void{
+				this._reqNum = num;
+				if(num == "0" || num == "0~0"){
+					this._reqNum = "--";
+					this.numLabel.styleName="taskCommonLabel";
+				}			
+			}
+			
+			public function set isMatch(match:Boolean):void {
+				if (match) {
+					this.numLabel.styleName="updataValueLabel";
+				} else {
+					if(_reqNum == "--"){
+						this.numLabel.styleName="taskCommonLabel";
+					}else{
+						this.numLabel.styleName="NoticeLabel";
+					}
+				}
+			}
+			
+			public function set conType(t:String):void{
+				switch(t){
+					case ConditionConstant.FOOD:
+						_typeStr = MultiLang.msg('label.food');
+						break;
+					case ConditionConstant.GOLD:
+						_typeStr = MultiLang.msg('label.gold');
+						break;
+					case ConditionConstant.IRON:
+						_typeStr = MultiLang.msg('label.iron');
+						break;
+					case ConditionConstant.POPULATION:
+						_typeStr = MultiLang.msg('label.populationRequest');
+						break;
+					case ConditionConstant.STONE:
+						_typeStr = MultiLang.msg('label.stone');
+						break;
+					case ConditionConstant.TIME:
+						_typeStr = MultiLang.msg('public.label.requiredTime');
+						break;
+					case ConditionConstant.WOOD:
+						_typeStr = MultiLang.msg('label.wood');
+						break;
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void{
+				if(propType>0){
+					this.propTooltip.prop = propType;
+					this.propTooltip.onMouseOver(event);
+				}
+			}
+
+			private function onMouseMove(event:MouseEvent):void{
+				if(propType>0){
+					this.propTooltip.onMouseMove(event);			
+				}
+			}
+
+			private function onMouseOut():void{
+				this.propTooltip.onMouseOut();			
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Image height="20" width="20" source="{this.resIcon}" 
+			updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{_typeStr}"  left="0" verticalCenter="0"/>
+	<mx:Label id="numLabel" width="{this.txtWidth}" text="{this._reqNum}" textAlign="{formatAlign}" styleName="updataValueLabel" left="25" verticalCenter="0"/>
+</mx:Canvas>

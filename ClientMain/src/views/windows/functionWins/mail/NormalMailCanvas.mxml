@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mail:BaseMailCanvas 
+	xmlns:ui="views.spreadUI.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:mail="views.windows.functionWins.mail.*">
+	<mx:Script source="NormalMailCanvas_.as"/>
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:ViewStack selectedIndex="{this.viewSelectedIndex}"
+		top="27" bottom="11" width="100%">
+		<mx:Canvas width="100%" height="100%" label="邮件列表">
+			<mx:DataGrid bottom="31" width="100%" dataProvider="{dataArr}" rowHeight="28" top="0" editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" verticalScrollPolicy="off" horizontalScrollPolicy="off"> 
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.select')}" dataField="mailid" width="60">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox width="100%" height="28" horizontalAlign="center" verticalAlign="middle">
+									<mx:CheckBox selected="{data.selected}" click="data.selected = !data.selected"/>							
+								</mx:HBox>	
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.subject')}" dataField="title">
+						<mx:itemRenderer>
+							<mx:Component>
+								<ui:ColorStyle mailTitle="{data}" myLabelStyle="{data.isRead}"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{this.titleStr}" dataField="sender" width="130">
+						<mx:itemRenderer>
+							<mx:Component>
+								<ui:ColorStyle text="{data.sender==''?parentDocument.underwrite:data.sender}" myLabelStyle="{data.isRead}" textAlign="center"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('mail.label.receivedTime')}" dataField="receiveTime" width="120">
+						<mx:itemRenderer>
+							<mx:Component>
+								<ui:TransLabel serverTime="{data.receiveTime}" lableFontWeight="{data.isRead}"/>
+							</mx:Component>							
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="mailid" width="60">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox paddingTop="0" width="100%" height="28" horizontalAlign="center" verticalAlign="middle">
+									<ui:ButtonRender btnLable="{parentDocument.lookUpStr}" click="parentDocument.onSeeAbout(data)"/>
+								</mx:HBox>			
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+			<mx:HBox verticalAlign="middle" horizontalAlign="right" 
+				bottom="0" right="0" horizontalGap="3" height="30" width="500">
+				
+				<mx:HBox horizontalAlign="right" verticalAlign="middle" right="5" bottom="13" visible="{this.total_page>0}" includeInLayout="{this.total_page>0}" horizontalGap="2">
+					<mx:Label text="{MultiLang.msg('public.label.page')}" styleName="darkCommonStyle" visible="{total_page>2}" includeInLayout="{total_page>2}"/>
+					<mx:TextInput width="50" restrict="0-9" id="targetPageInput" visible="{total_page>2}" includeInLayout="{total_page>2}" textAlign="center"/>
+					<mx:Button label="{MultiLang.msg('public.page.goto')}" styleName="commomNormalBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(targetPageInput.text==''?0:int(targetPageInput.text))"/>
+					<mx:Spacer width="3" includeInLayout="{total_page>2}"/>
+					<mx:Button styleName="minBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(1)"/>
+					<mx:Button  id="toLeftBtn" styleName="previousBtn" click="this.turnPage(-1)"/>
+					<mx:Label text="{this.cur_page}/{this.total_page}"/>
+					<mx:Button id="toRightBtn" styleName="nextBtn" click="this.turnPage(1)"/>
+					<mx:Button styleName="maxBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(total_page)"/>
+				</mx:HBox>
+				
+				<mx:Button label="{MultiLang.msg('public.label.selectAll')}" click="onSelectAll()" bottom="10"/>
+				<mx:Button label="{MultiLang.msg('public.label.delectSelect')}" click="onDelectMailSelected()" bottom="10"/>
+				<mx:Spacer width="1"/>	
+			</mx:HBox>	
+		</mx:Canvas>
+		
+		<mx:Canvas width="100%" height="100%" label="邮件内容" >
+			<mx:Canvas top="0" height="85" width="100%" styleName="subContentBG" label="邮件标题" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:HBox left="10" top="10" right="10" bottom="10" horizontalGap="0" horizontalAlign="left">
+					<mx:Spacer width="84" includeInLayout="{CaesaryConfig.instance.isEnVersion}"/>
+					<mx:VBox height="100%" verticalGap="0" verticalAlign="middle">
+						<mx:Label text="{this.titleStr}:" textAlign="right" styleName="focusColor" width="100%"/>
+						<mx:Label text="{MultiLang.msg('public.label.subject')}:" textAlign="right" styleName="focusColor" width="100%"/>
+						<mx:Label text="{MultiLang.msg('public.label.time')}:" textAlign="right" styleName="focusColor" width="100%"/>
+					</mx:VBox>
+					<mx:VBox height="100%" verticalGap="0" verticalAlign="middle">
+						<mx:Label text="{curLetterBean.sender==''?underwrite:curLetterBean.sender}"/>
+						<mx:Label text="{curLetterBean.title}"/>
+						<ui:TransLabel serverTime="{curLetterBean.receiveTime}" />
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:Canvas width="100%" bottom="31" top="86" styleName="textInputBG" label="邮件正文">
+				<mx:TextArea htmlText="{this.reviseContent}" left="{CaesaryConfig.instance.isEnVersion==true?84:0}" top="5" bottom="5" styleName="discritionTextArea" editable="false" textAlign="left" right="0"/>
+			</mx:Canvas>
+			<mx:HBox verticalAlign="middle" horizontalAlign="right" 
+				bottom="0" right="0" horizontalGap="3" label="按钮区" height="30" width="500">
+				<mx:Button label="{MultiLang.msg('mail.button.reply')}" click="writeReback()" bottom="30" width="100" enabled="{curLetterBean.sender==''?false:true}"/>
+				<mx:Button label="{MultiLang.msg('public.label.return')}" click="back()" width="100"/>
+				<mx:Spacer width="1"/>		
+			</mx:HBox>
+		</mx:Canvas>
+	</mx:ViewStack>
+</mail:BaseMailCanvas>

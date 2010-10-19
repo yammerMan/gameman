@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tips:BaseTip
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:tips="views.spreadUI.tips.*" 
+	height="32" width="255">
+<mx:Script>
+	<![CDATA[
+		import roma.common.constants.BuildingConstant;
+		import roma.logic.object.building.BuildingHelper;
+		import roma.logic.object.building.BaseBuilding;
+		
+		public function setBuildingObj(obj:BaseBuilding):void {
+			this.nameLabel.text = obj.getName();
+			this.levelLabel.text =String(obj.level);
+			this.statusLabel.text =BuildingHelper.instance.getBuildingStatus(obj.status,obj.level);
+			if(obj.status == BuildingConstant.STATUS_ORDINARY){
+				this.width = 110;
+				this.statusLabel.visible=false;
+				this.statusLabel.includeInLayout = false;
+			}else{
+				this.width = 225;
+				this.statusLabel.visible=true;
+				this.statusLabel.includeInLayout = true;
+			}
+		}
+	]]>
+</mx:Script>
+	<mx:HBox left="5" top="5" right="5" bottom="5" horizontalGap="0">
+		<mx:Label  id="nameLabel" width="80" textAlign="center"/>
+		<mx:Label  id="levelLabel" width="20" textAlign="center"/>
+		<mx:Label  id="statusLabel" width="140" textAlign="center"/>
+	</mx:HBox>
+</tips:BaseTip>

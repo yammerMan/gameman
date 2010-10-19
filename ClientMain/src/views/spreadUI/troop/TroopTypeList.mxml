@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="280" 
+	xmlns:ns1="views.spreadUI.troop.*"  xmlns:ns2="views.spreadUI.*" creationComplete="init()" horizontalScrollPolicy="off" xmlns:tech="views.spreadUI.tech.*" xmlns:tips="views.spreadUI.tips.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.ManufactureQueue;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.tech.BaseTechObj;
+			import roma.common.constants.TroopConstant;
+			import mx.controls.Alert;
+			import roma.logic.rule.ruleCheck.ConditionCheck;
+			import roma.logic.object.building.BuildingHelper;
+			import mx.rpc.events.ResultEvent;
+			import roma.logic.rule.ruleCheck.TechCheck;
+			import roma.message.events.PublicEvent;
+			import roma.message.events.ProduceEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.ResponseEvtDispatcher;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.common.action.ControllerFactory;
+			import roma.data.ProduceResourceData;
+			import roma.util.MultiLang;
+			import roma.logic.object.castle.TFHelper;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.resource.ImgManager;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.rule.TroopRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.GameContext;
+			import roma.util.CompCache;
+			import mx.collections.ArrayCollection;
+			
+			public static var EVENT_PRODUCE_CANCEL:String = "cancel.troop.produce";
+			public static var EVENT_PRODUCE_SPEED:String = "speed.troop.produce";
+			public static var EVENT_DISBAND:String = "disband.troop";
+			
+			private static var log:ILogger = Log.getLogger("views.spreadUI.troop.TroopTypeList");
+			
+			[Bindable]	
+            private var dataAry:ArrayCollection = new ArrayCollection(
+                [ {label:MultiLang.msg('troop.share.none'), data:TroopConstant.PRODUCE_METHOD_NORMAL}, 
+				  {label:MultiLang.msg('troop.share.amount'), data:TroopConstant.PRODUCE_METHOD_AVERAGE_BY_AMOUNT},                	
+                  {label:MultiLang.msg('troop.share.time'), data:TroopConstant.PRODUCE_METHOD_AVERAGE_BY_ENDTIME}]);
+
+			private var cacheUi:CompCache = new CompCache(4);
+			private var cacheUi1:CompCache = new CompCache(20);
+
+			private var _queueAry:ArrayCollection;
+			
+			private var _produceResourceData:ProduceResourceData = new ProduceResourceData();
+			
+			[Bindable]
+			public var buildingObj:BaseBuilding;
+
+			[Bindable]
+			private var _curTypeId:int;
+			[Bindable]
+			private var _result:RuleCheckResult;
+			[Bindable]
+			private var _rule:TroopRule;
+			[Bindable]
+			private var _funDesc:String;
+			[Bindable]
+			private var _produceMaxNum:int;
+			[Bindable]
+			private var _troopName:String;
+			[Bindable]
+			private var _historyDesc:String;
+			
+			[Bindable]
+			private var _dependConditionTxt:String;
+			[Bindable]
+			private var _totalProduceTime:Number;
+			[Bindable]
+			private var _waitingQueue:int;
+			[Bindable]
+			private var _allowProduceQueue:int; 
+			[Bindable]
+			private var _btnEnabeld:Boolean = false;
+			[Bindable]
+			private var _needPopulation:int;
+		
+			[Bindable]
+			private var _produceQueueAry:ArrayCollection;
+			
+			[Bindable]
+			private var shareEnabled:Boolean=false;
+			
+			private var _share:int;
+
+			private function init():void{
+				EvtDispacther.instance.addEventListener(EVENT_PRODUCE_CANCEL,cancelHandler);
+				EvtDispacther.instance.addEventListener(EVENT_PRODUCE_SPEED,speedUpHandler);
+				EvtDispacther.instance.addEventListener(EVENT_DISBAND,disbandHandler);
+				EvtDispacther.instance.addEventListener(EvtDispacther.PRODUCE_UPDATE,onQueueUpdateResponse);
+				
+				this.addEventListener(Event.ENTER_FRAME,frameHandler);
+				
+				this.buildBtn.selected = true;	
+				this.numStepper.reSize(130);				
+			}
+			
+ 			public function refresh():void{
+				this.addListener();
+				this.numStepper.refresh();
+				
+				if(this.buildingObj !=null){
+					this.setProduceQueueAry(this.buildingObj.castle.produceQueueManager.getProducesAry(this.buildingObj.position));
+					
+					var ary:Array =GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getMultipleBuildingArrayByType(this.buildingObj.typeId);
+					if(ary !=null){
+						this.shareEnabled=ary.length>1?true:false;
+					}else{
+						this.shareEnabled = false;
+					}
+				}
+			}	
+						
+			/*获取兵种类型数组并初始化*/			
+			public function setTroopAry(arr:ArrayCollection):void{
+				this.typeUiContainer.removeAllChildren();
+				
+				if(arr.length>0){
+					cacheUi.reset();
+					
+					for(var t:int=0;t<arr.length;t++){
+						var ui:TypeUI =TypeUI(cacheUi.getUI(TypeUI));
+						ui.typeId = arr.getItemAt(t) as int;
+						ui.buttonMode = true;
+						ui.useHandCursor = true;
+						ui.setNormalStyle();
+						ui.addEventListener(MouseEvent.MOUSE_DOWN,selectHandler)
+								
+						typeUiContainer.addChild(ui);					
+					}
+				}
+
+				ruleCheck(int(arr.getItemAt(0)));
+				typeUiContainer.getChildren()[0].setSelectedStyle();
+
+				_share = TroopConstant.PRODUCE_METHOD_NORMAL;
+				shareBox.selectedIndex = 0;
+			
+				frameHandler();
+			}
+			
+			private var count:int=0;
+			private function frameHandler(event:Event =null):void{
+				count++;
+				if(count<20) return;
+				count =0;
+
+				this.ruleCheck(this._curTypeId);
+				if(this.buildingObj.level>0){
+					_allowProduceQueue =GameRuleHelper.instance.getBuildingRule(this.buildingObj.typeId , this.buildingObj.level).buff2;
+				}
+				if(DestructPanel.instance !=null){
+					DestructPanel.instance.updateCurResource();
+				}
+			}
+
+			/*选择兵种类型*/
+			private function selectHandler(event:MouseEvent):void{
+				var id:int = TypeUI(event.currentTarget).typeId;
+				for each(var ui:TypeUI in this.typeUiContainer.getChildren()) {
+					if(ui.typeId == id){
+						ui.setSelectedStyle();
+					}else{
+						ui.setNormalStyle();
+					}
+				}				
+				if(_curTypeId!=id){
+					this.ruleCheck(id);
+				}
+			}
+			
+			/*获取军队规则 */
+			private function ruleCheck(id:int):void{
+				_curTypeId = id;
+				_funDesc = TFHelper.instance.getTfSkillDesc(id);
+				_historyDesc = TFHelper.instance.getTfHistoryDsc(id);
+				_rule = GameRuleHelper.instance.getTroopRule(id);
+				_troopName = TFHelper.instance.getTfName(_rule.troop);
+				_result = _rule.check(this.buildingObj);
+				_produceResourceData.ruleResult =_result;
+				//最大数量
+				_produceMaxNum = _produceResourceData.calcTroopMaxProduce(_rule);
+				//需要时间与资源的计算
+				this.countDeplResource(this.numStepper.effectValue);
+				//建筑等级与科技依赖
+				_dependConditionTxt = ConditionCheck.instance.checkBuildingLevel(this.buildingObj,_rule);
+				_dependConditionTxt+= ConditionCheck.instance.checkTechLevel(_result);
+				_btnEnabeld = this.checkProcuceConditon();
+			}
+
+			/*当条件不满足的时候禁掉生产按钮*/
+			private function checkProcuceConditon():Boolean{
+				var ary:ArrayCollection = this._result.techDepenAry;
+				var b:Boolean;
+				if(ary.length>0){
+					for each(var c:TechCheck in ary){
+						if(c.isMatch == false){
+							b = false;
+							break;
+						}else{
+							b = true;
+						}
+					}
+				}else{
+					b= true;
+				}
+				return (this.buildingObj.level>=this._rule.buildingLevelRequest && b == true);
+			}
+			
+			/*需要消耗资源*/
+			private function countDeplResource(num:int):void{
+ 				if(num ==0) num =1;
+				_result.food.dispReq   = String(num*int(_result.food.dispReq));
+				_result.wood.dispReq   = String(num*int(_result.wood.dispReq));
+				_result.iron.dispReq   = String(num*int(_result.iron.dispReq));
+				_result.stone.dispReq  = String(num*int(_result.stone.dispReq));
+				_result.golds.dispReq   = String(num*int(_result.golds.dispReq));
+				_result.needTime       *= num;
+				_needPopulation = num * _rule.population;
+			}
+		
+			/**生产*/
+			private function produceHandler():void{
+				//判断建造队列
+				if(_produceQueueAry.length-_allowProduceQueue>0){
+					MyAlert.show(MultiLang.msg('public.produceQueue.full'));
+					return;	
+				}
+				//判断条件限制
+				if(!_result.isMatch || this.buildingObj.level< _rule.buildingLevelRequest){
+					MyAlert.show(MultiLang.msg('public.condition.lack'));
+					return;
+				}
+				//是否至少输入一个
+				if(this.numStepper.effectValue<=0){
+					MyAlert.show(MultiLang.msg('public.least.input.one',_troopName));
+					return;
+				}
+				log.debug("(troop:)"+_curTypeId+"(troop amounts:)"+this.numStepper.effectValue+"(share:)"+_share);
+				this.buildingObj.produceMoreTroop(_curTypeId,this.numStepper.effectValue,_share);
+			}
+				
+			/*取消生产*/
+			private function cancelHandler(event:ProduceEvent):void{
+				log.debug("troop produce cancel  "+"(queue:)"+event.bean.id);
+				this.buildingObj.cancelProduce(event.bean.id);
+			}
+
+			/*加速生产*/
+			private function speedUpHandler(event:ProduceEvent):void{
+				log.debug("troop speedUp  "+"(queue:)"+event.bean.id+"(itemId:)"+event.rule.itemId);
+				this.buildingObj.speedTroopProduce(event.bean.id,event.rule.itemId);
+			}
+			
+			/*解散*/
+			private function disbandHandler(event:ProduceEvent):void{
+				log.debug("troop disband  "+"(troop:)"+event.id+"(troop amounts:)"+event.num);
+				this.buildingObj.disbandTroopss(event.id,event.num,DestructPanel.instance.removePopup);
+			}
+			
+			private function onQueueUpdateResponse(event:PublicEvent):void{
+				var queue:ManufactureQueue = ManufactureQueue(event.evtData);
+				if(queue.positionId == this.buildingObj.position){
+					this.setProduceQueueAry(queue.producesArray);
+				}
+			}
+			
+        	/*选择兵营生产分配方式*/
+            private function closeHandler(event:Event):void {
+               _share = ComboBox(event.target).selectedItem.data;
+            }
+                 
+			/* 更新生产队列 */
+			private function setProduceQueueAry(queueAry:ArrayCollection):void{
+				_produceQueueAry = queueAry;
+				_waitingQueue = 0;
+				_totalProduceTime =0;
+				if (queueAry.length>0) {
+					//当前在生产的
+					this.curProduceUI.produceBean = queueAry[0];
+					this.curProduceUI.visible = true;
+					_waitingQueue = 1;
+					_totalProduceTime = queueAry[0].endTime;
+				} else {
+					this.curProduceUI.visible = false;
+				}
+
+				queueContain.removeAllChildren();
+				cacheUi1.reset();
+				if (queueAry.length>1) {
+					//处理队列中的
+					_waitingQueue = queueAry.length ;
+		   			for(var i:int = 1; i<queueAry.length; i++){
+						var ui:ProduceUI = cacheUi1.getUI(ProduceUI) as ProduceUI;
+						ui.produceBean = queueAry[i];
+						_totalProduceTime += queueAry[i].costTime*1000;
+						queueContain.addChild(ui);
+					}
+				}
+			}
+			
+			private function onMouseDown(event:MouseEvent):void{
+				this.setBtnUpState();
+				Button(event.target).selected = true;
+				with(Button(event.target)){
+					if(id == "buildBtn"){
+						this.viewShow.selectedChild = this.buildCon;
+					}else if(id == "datumBtn"){
+						this.viewShow.selectedChild = this.datumCon;
+					}else{
+						this.viewShow.selectedChild = this.dibandCon;
+					}
+				}
+			}
+
+			private function setBtnUpState():void{
+				this.buildBtn.selected = false;
+				this.datumBtn.selected = false;
+				this.dibandBtn.selected = false;
+			}
+			
+			private function openDestructPanel():void{
+				DestructPanel.show(this._result,this._rule);
+			}
+			
+			public function removeListener():void{
+				this.timeLabel.closeTimer(); 
+				this.curProduceUI.destroy(); 
+				this.removeEventListener(Event.ENTER_FRAME,frameHandler);
+			}
+			
+			public function addListener():void{
+				if(!this.hasEventListener(Event.ENTER_FRAME))
+					this.addEventListener(Event.ENTER_FRAME,frameHandler);
+			}	
+		]]>
+	</mx:Script>
+	<mx:Canvas width="193" height="253" left="0" top="0" styleName="subContentBG">
+		<mx:HBox verticalScrollPolicy="off" horizontalScrollPolicy="off" top="7" left="8" right="8" horizontalGap="2">
+			<mx:Label text="{MultiLang.msg('public.total.time')}:" styleName="titleBordLabel"/>
+			<ns2:LeftTimeLabel id="timeLabel" leftTime="{_produceQueueAry.length>0?_totalProduceTime:0}"/>
+		</mx:HBox>
+		<mx:HRule width="88%" top="25" horizontalCenter="0" styleName="bufferBarVRule"/>
+		<mx:Label width="90%" top="28" text="{MultiLang.msg('public.production')}" horizontalCenter="0"/>
+		<ns1:ProducingUI id = "curProduceUI" left="6" top="48"/>
+		<mx:HRule width="88%" top="100" horizontalCenter="0" styleName="bufferBarVRule"/>
+		<mx:Label top="103" width="90%" horizontalCenter="0" text="{MultiLang.msg('public.waiting',_waitingQueue,_allowProduceQueue)}"/>
+		<mx:VBox id="queueContain" width="190" height="120" left="1" top="123" paddingTop="6" paddingLeft="6" horizontalScrollPolicy="off"/>
+	</mx:Canvas>
+	
+	<mx:VBox id="typeUiContainer" height="253" left="193" top="0" 
+		styleName="mainWindowContentBG" verticalGap="1"  paddingTop="1" paddingLeft="1" width="94">
+	</mx:VBox>
+	<mx:Canvas right="0" top="0" height="253" styleName="buildingInfoContentBG" left="288">
+		<mx:HBox horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0" left="0">
+			<mx:Spacer width="5"/>
+			<mx:Label text="{_troopName}"
+				paddingLeft="2" width="100%" selectable="false" styleName="titleBordLabel"/>
+			<mx:Button id="buildBtn" height="25" mouseDown="onMouseDown(event)" label="{this.buildingObj.typeId==BuildingConstant.TYPE_WORKSHOPS?MultiLang.msg('public.manufacture'):MultiLang.msg('public.manufacture.barrack')}" styleName="tabBtn"/>
+			<mx:Button id="datumBtn" height="25" mouseDown="onMouseDown(event)" label="{MultiLang.msg('public.datum')}" styleName="tabBtn"/>
+			<mx:Button id="dibandBtn" height="25" mouseDown="onMouseDown(event)" label="{MultiLang.msg('public.disband')}" styleName="tabBtn"/>
+			<mx:Spacer width="5"/>
+		</mx:HBox>
+		
+		<mx:ViewStack top="25" left="0" id="viewShow"  right="0" bottom="0">
+			<mx:Canvas height="100%" width="100%" id="buildCon" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:VBox left="20" verticalCenter="-20">
+					<mx:Label text="{this.buildingObj.typeId==BuildingConstant.TYPE_WORKSHOPS?MultiLang.msg('public.produce.conditionOfStable'):MultiLang.msg('public.produce.conditionOfBarrack')}" styleName="titleBordLabel"/>
+					<ns1:TroopConditonForm top="130" left="50" result="{_result}" dependStr="{_dependConditionTxt}" costTime="{_result.needTime}" needPopulation="{_needPopulation}"/>
+				</mx:VBox>
+				<mx:VBox verticalCenter="-20" horizontalGap="5" verticalGap="0" left="265">
+					<mx:HBox  horizontalGap="0">
+						<mx:Label text="{MultiLang.msg('public.max.amount')}:" textAlign="right"/>
+						<mx:Label text="{_produceMaxNum}" width="100" bottom="50" textAlign="left"/>
+					</mx:HBox>
+					<mx:HBox  horizontalGap="0">
+						<mx:VBox verticalGap="0" width="60" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Spacer height="1"/>
+							<mx:Label text="{MultiLang.msg('public.amount')}" textAlign="right" width="60" />
+							<mx:Spacer height="9"/>
+							<mx:Label text="{MultiLang.msg('troop.produce.share')}" textAlign="right" width="60" toolTip="{MultiLang.msg('troop.produce.share.tip')}"/>
+						</mx:VBox>
+						<mx:VBox verticalAlign="middle" verticalGap="5">
+							<ns2:MyNumericStepper id="numStepper" maxValue="{_produceMaxNum}" intValue="{0}" onInputDataChange="countDeplResource"/>
+							<mx:ComboBox id="shareBox" width="130" dataProvider="{this.dataAry}" close="closeHandler(event)" enabled="{this.shareEnabled}"/>
+							<mx:Button width="130" label="{MultiLang.msg('public.produce')}" click="produceHandler()" enabled="{_btnEnabeld}"/>
+						</mx:VBox>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:Canvas>
+			<mx:Canvas id="datumCon"  width="100%" height="100%">
+				<mx:VBox verticalGap="0" paddingLeft="10">
+					<mx:Label styleName="titleBordLabel" text="{MultiLang.msg('public.property')}"/>
+					<ns1:TroopPropForm troopRule="{_rule}"/>
+					<mx:Label text="{MultiLang.msg('public.skill')}" styleName="titleBordLabel" left="10"/>
+					<ns1:TroopSkillPanel height="50%" typeID="{_curTypeId}" left="10" right="10"/>
+					<mx:Label text="{MultiLang.msg('public.history')}:" top="95" styleName="titleBordLabel" left="10"/>
+					<mx:Text  width="100%"  text="{_historyDesc}" top="115" bottom="0"/>
+				</mx:VBox>
+			</mx:Canvas>	
+			<mx:Canvas id="dibandCon" width="100%" height="100%">
+				<mx:Label horizontalCenter="0" top="80" text="{MultiLang.msg('public.destruct.desc',MultiLang.msg('public.disband.lowercase'),MultiLang.msg('hero.troops.plurality'))}"/>
+				<mx:Button label="{MultiLang.msg('public.disband')}" width="150" click="openDestructPanel()" horizontalCenter="0" verticalCenter="0"/>
+			</mx:Canvas>	
+		</mx:ViewStack>
+	</mx:Canvas>
+</mx:Canvas>

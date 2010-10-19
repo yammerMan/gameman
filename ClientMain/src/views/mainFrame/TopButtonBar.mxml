@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	cacheAsBitmap="true"
+	width="1000" height="45" 
+	xmlns:myButton="views.spreadUI.myButton.*" 
+	creationComplete="init()" styleName="topButtonBarWin" xmlns:mainFrame="views.mainFrame.*">
+    <mx:Script>
+		<![CDATA[
+			import views.spreadUI.tips.BugBtnTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.util.ScreenCaptuerUploader;
+			import roma.common.action.ControllerFactory;
+			import roma.common.controller.common.RollTextResponse;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import mx.core.BitmapAsset;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.formatters.DateFormatter;
+			import roma.logic.GameContext;
+			import roma.message.events.BuffBarEvent;
+			import roma.util.FiltersUtil;
+			import roma.logic.CaesaryConfig;
+			import roma.util.MultiLang;
+			import views.windows.functionWins.ranking.RankingWin;
+			import views.windows.functionWins.friendly.FriendlyWin;
+			import roma.message.EvtDispacther;
+			
+			private static var log:ILogger = Log.getLogger("views.StatusBar");
+
+			private var dataFormatter:DateFormatter = new DateFormatter();
+			private var my_timer:Timer = new Timer(1000);
+
+			[Bindable]
+			private var nowaday:String;
+			[Bindable]
+			private var serverName:String = GameContext.instance.serverInfo.serverName; 
+			
+			private var rect:Rectangle;
+			private var count:int =0;
+			private var textLines:int =0;
+			
+			private var bugBtnTip:BugBtnTip=ToolTipContainer.instance.bugBtnTip;
+
+			private function onFriendlyClick():void{
+				EvtDispacther.instance.eventDispatch(FriendlyWin.WINDOW_SHOW);
+			}
+			
+			private function onRankingClick():void{
+				EvtDispacther.instance.eventDispatch(RankingWin.WINDOW_SHOW);
+			}
+
+			private function onHelpClick():void{
+				//navigateToURL(new URLRequest(CaesaryConfig.instance.helpUrl),"_blank");
+			}
+
+			private function onForumClick():void{
+				navigateToURL(new URLRequest(CaesaryConfig.instance.forumUrl),"_blank");
+			}
+
+			private function showAllBuff(event:MouseEvent):void{
+				event.currentTarget.selected=!event.currentTarget.selected;
+				if(CaesaryConfig.instance.showBuffStatus==true||CaesaryConfig.instance.showBuildingStatus==true||CaesaryConfig.instance.showArmyAction==true){
+					CaesaryConfig.instance.showBuffStatus = false; 
+					CaesaryConfig.instance.showBuildingStatus = false;
+					CaesaryConfig.instance.showArmyAction = false;
+				}else{
+					CaesaryConfig.instance.showBuffStatus = true; 
+					CaesaryConfig.instance.showBuildingStatus = true;
+					CaesaryConfig.instance.showArmyAction = true;
+				}
+			}
+			
+			private function init():void{
+				if(!my_timer.running){
+				 	my_timer.addEventListener("timer", timerHandler);
+				 }
+                 my_timer.start();
+                 
+                 this.dataFormatter.formatString = "JJ:NN"
+			}
+			
+			/**计算需要时间*/
+			private function timerHandler(evt:TimerEvent):void {
+				var now:Number=new Date().valueOf();
+				var d:Date = new Date(now - GameContext.instance.serverTimeDiff);
+				nowaday = dataFormatter.format(d); 
+	        }
+			
+			private function onLoadComplete(event:Event):void{
+				if(event.currentTarget.content != null){
+					BitmapAsset(event.currentTarget.content).smoothing = true;
+				}
+			}
+			
+			private function onBugReportClick():void{
+				ScreenCaptuerUploader.instance.uploadScreen();
+			}
+		]]>
+	</mx:Script>
+	<mainFrame:StatusBar id="statusBar" top="12" left="2"/>
+	<mx:HBox verticalGap="0" horizontalGap="0" verticalAlign="bottom" top="12" left="250">
+		<mx:Label text="{serverName}" styleName="titleBigBordLabel" fontSize="14" fontWeight="bold" />
+		<mx:Label text="{nowaday}" styleName="titleBordLabel" width="50"/>
+		<mx:Label text="{CaesaryConfig.instance.clientVer}" styleName="titleBordLabel" />
+	</mx:HBox>
+	
+	<!--mx:Button click="onBugReportClick()"
+		label="{Lang.msg('topButtonBar.bugBtn.label')}" styleName="bugBtn" verticalCenter="0" right="328" icon="{ImgManager.clazz('bug.item')}" mouseOver="this.bugBtnTip.onMouseOver(event);" mouseOut="this.bugBtnTip.onMouseOut();" mouseMove="this.bugBtnTip.onMouseMove(event);"/-->
+	<mx:Button click="onBugReportClick()"
+		label="{MultiLang.msg('topButtonBar.bugBtn.label')}" styleName="bugSubmit" verticalCenter="0" alpha="0" right="350" mouseOver="this.bugBtnTip.onMouseOver(event);" mouseOut="this.bugBtnTip.onMouseOut();" mouseMove="this.bugBtnTip.onMouseMove(event);"
+		visible="{CaesaryConfig.instance.bugBtnShow}" includeInLayout="{CaesaryConfig.instance.bugBtnShow}"/>
+</mx:Canvas>

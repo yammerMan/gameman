@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="566" height="79" label="城堡中部队"
+	styleName="subContentBG" 
+	xmlns:military="views.windows.functionWins.military.*">
+
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.common.constants.TroopForConstants;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			
+			[Bindable]
+			private var castle:CastleObj;
+		
+			private var helper:AssignHelper = AssignHelper.instance;
+			
+			public function set curSelectedCastle(castle:CastleObj):void{
+				this.castle=castle;	
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas x="12" y="19" width="96" height="47" styleName="bigBuildingLogo" label="城堡logo" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Image source="{ImgManager.clazz('building.wall2.icon')}" right="5" bottom="5" scaleX="{86/150}" scaleY="{37/67}" updateComplete="ImageHandle.onLoadComplete(event)" top="5" left="5"/>
+		<mx:Label text="{this.castle.name}" styleName="titleLevelLabel" left="5" top="3" filters="{[FiltersUtil.glowFilter]}"/>
+	</mx:Canvas>
+</mx:Canvas>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="394" height="230" title="{MultiLang.msg('alliance.addAlliance')}" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.GameContext;
+			import roma.message.events.ChatCallEvent;
+			import roma.message.events.AllianceHandleEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.constants.AllianceConstant;
+			import roma.util.MyDateFormatter;
+			import views.MainContainer;
+			import roma.util.PopupWinManager;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var cbDataArray:ArrayCollection = new ArrayCollection();
+			
+			public static var instance:AddAlliance = new AddAlliance();
+			public function show():void{
+				PopupWinManager.instance.addPopup(instance);
+				AllianceHelper.instance.reFreshRelation();
+			}
+			private function init():void{
+				instance=this;
+				this.cbDataArray.addItem({label:MultiLang.msg('alliance.relationship.friend'),data:AllianceConstant.ALLIANCE_RELATION_FRIENDLY});
+				this.cbDataArray.addItem({label:MultiLang.msg('alliance.relationship.enemy'),data:AllianceConstant.ALLIANCE_RELATION_HOSTILE});
+			}
+			
+
+			//修改联盟关系
+  			private function onAddAlliance():void{
+  				if(leagueName.text!=""){
+  					if(AllianceHelper.instance.haveRelation(stateCB.selectedItem.data,leagueName.text)){
+  						return;
+  					}
+  					ControllerFactory.getInstance().getAllianceManagementController().setAllianceRelation(leagueName.text,stateCB.selectedItem.data,callback);
+  				}else{
+  					MyAlert.show(MultiLang.msg("alliance.noTargetLeague"));
+  				}
+  				
+  				function callback(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						var str:String="";
+  						if(stateCB.selectedItem.data==AllianceConstant.ALLIANCE_RELATION_FRIENDLY){
+  							var friendStr:String=MultiLang.msg("alliance.relationship.friend")
+  							str=MultiLang.msg("alliance.event.setRelationEvent",GameContext.instance.getPlayerObj().getPlayerInfo().playerName,leagueName.text,friendStr);
+  						}else{
+  							var enemyStr:String=MultiLang.msg("alliance.relationship.enemy")
+  							str=MultiLang.msg("alliance.event.setRelationEvent",GameContext.instance.getPlayerObj().getPlayerInfo().playerName,leagueName.text,enemyStr);
+  						}
+  						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,str));
+  						EvtDispacther.instance.dispatchEvent(new AllianceHandleEvent(AllianceHandleEvent.EVENT_NAME_RELATIONCHANGE));
+  						PopupWinManager.instance.removePopup(instance);
+  						AllianceHelper.instance.reFreshRelation();
+  					}else{
+						MyAlert.showError(event);
+					}
+  				}
+  			}
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="subContentBG" left="15" right="15" top="30" bottom="65">
+		<mx:VBox horizontalAlign="center" left="15" top="15" bottom="10" right="15" verticalAlign="middle">
+			<mx:HBox width="100%" horizontalGap="3" horizontalAlign="center">
+				<mx:VBox height="100%">
+					<mx:Label text="{MultiLang.msg('alliance.inputAlliance')}:"  textAlign="right"/>
+					<mx:Label text="{MultiLang.msg('alliance.state')}:" textAlign="right"/>
+				</mx:VBox>
+				<mx:VBox height="100%">
+					<mx:TextInput id="leagueName" text="" width="100%"/>
+					<mx:ComboBox id="stateCB" dataProvider="{cbDataArray}" labelField="label" width="100%"/>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:Spacer height="20"/>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Button label="{MultiLang.msg('public.label.sure')}" click="onAddAlliance()" width="120" horizontalCenter="0" bottom="25"/>
+</functionWins:BasePopUpWindow>

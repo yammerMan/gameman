@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ns1="views.windows.functionWins.hero.*" creationComplete="init()" horizontalGap="0">
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var _hero:HeroObj;
+			private var troopInHero:Array = new Array();
+			public function set hero(hero:HeroObj):void{
+				this._hero=hero;
+			}
+			
+			private function addTroop(type:int):void {
+				var ui:HeroTroopSmallLogo = new HeroTroopSmallLogo();
+				ui.troop = type;
+				this.troopInHero.push(ui);
+			}
+			
+			private function init():void{
+				this.addTroop(TroopForConstants.T_TRIARII);
+				this.addTroop(TroopForConstants.T_CAVALRY);
+				this.addTroop(TroopForConstants.T_URBAN_COHORT);
+				this.addTroop(TroopForConstants.T_ARCHERS);
+				this.addTroop(TroopForConstants.T_BALLISTAS);
+				this.addTroop(TroopForConstants.T_ONAGERS);
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

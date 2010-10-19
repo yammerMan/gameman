@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Label xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.LetterConstant;
+			import roma.util.MultiLang;
+			import roma.util.ClientUtil;
+			import roma.logic.GameContext;
+	
+			public function set timeData(timeData:Number):void {
+				if (isNaN(timeData) || timeData==0) {
+					this.text = "";
+				} else {
+					this.text = getDateString(timeData);
+				}
+			}
+			
+			public function set lableFontWeight(type:int):void{
+				if(type == LetterConstant.HAS_READ){
+					this.setStyle("fontWeight","normal");		
+				}
+				else if(type == LetterConstant.HASNT_READ){
+					this.setStyle("fontWeight","bold");
+				}
+			}
+			
+			public function set serverTime(t:Number):void{
+				this.text = GameContext.toLocalTimeByValueStr(t);
+			}
+			
+			public static function getDateString(timeData:Number):String {
+				var d:Date = new Date(timeData + GameContext.instance.getTimeDis());
+				var date:Number = d.date;
+				var m:Number = d.month;
+				var h:Number = d.hours;
+				var min:Number = d.minutes;
+				var sec:Number = d.seconds
+				var str:String = new String();
+				
+				if (m + 1 < 10){
+					str += "0";
+				}
+				str += m+ 1;
+				str += "/";
+				if (date < 10) {
+					str += "0";
+				}
+				str += date;
+				
+				str += " ";
+				if (h < 10){
+					str += "0";
+				}
+				str += h;
+				str += ":";
+				if (min < 10){
+					str += "0";
+				}
+				str += min;
+				str += ":";
+				if (sec < 10){
+					str += "0";
+				}
+				str += sec;
+				return str;
+			}
+			
+			public function set remainTime(timeData:Number):void{
+				if (isNaN(timeData) || timeData==0) {
+					this.text = "";
+				} else {
+					this.text = MultiLang.timeFormatToString(timeData);
+				}
+			}
+		]]>
+	</mx:Script>	
+</mx:Label>

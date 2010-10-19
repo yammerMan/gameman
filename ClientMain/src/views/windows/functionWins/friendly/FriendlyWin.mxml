@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" 
+	title="{MultiLang.msg('friendly.label.friendly')}"  
+	xmlns:ns1="views.spreadUI.*" creationComplete="init()" xmlns:ns2="views.windows.functionWins.friendly.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="FriendlyWinAs.as"/>
+	<mx:VBox horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="30" left="12" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="tbClick(event);" >
+		  	 <mx:dataProvider>
+		           <mx:Array>
+		               <mx:String>{MultiLang.msg('friends.friendsList')}</mx:String>
+		               <mx:String>{MultiLang.msg('friends.blockList')}</mx:String>
+		           </mx:Array>
+		       </mx:dataProvider>
+		</mx:ToggleButtonBar>
+	</mx:VBox>
+	<mx:HBox horizontalGap="0" visible="{cur_page==0?false:true}" includeInLayout="{cur_page==0?false:true}" right="12" top="30">
+				<mx:Button id="previousBtn" styleName="previousBtn" click="turnPage(-1)"/>
+				<mx:Label width="50" text="{cur_page}/{total_page}" textAlign="center"/>
+				<mx:Button id="nextBtn" styleName="nextBtn" click="turnPage(1)"/>
+	</mx:HBox>
+	<ns1:MulHRule top="53" left="12" right="12">
+		</ns1:MulHRule>   
+	<mx:HBox right="12" bottom="10" horizontalGap="10">
+		<mx:HBox verticalAlign="middle">
+			<mx:HBox horizontalGap="2">
+				<mx:Button label="{this.curShowIndex==0?MultiLang.msg('friendly.button.addFriends'):MultiLang.msg('friendly.button.addBlock')}" 
+					click="showAddPeopleWin()"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:HBox>
+	<mx:ViewStack id="memberViewstack" left="12" right="12" bottom="35" top="55">
+		<mx:Canvas x="0" y="0" width="100%" height="100%" id="friendView">
+			<mx:DataGrid left="0" top="0" right="0" bottom="0" dataProvider="{this.curMemberArr}"  rowHeight="27"
+			 itemRollOut="itemRollOutHandle()" itemRollOver="showPlayerInfoTip(event)" 
+			 focusOut="itemRollOutHandle()"
+			 resizableColumns="false" draggableColumns="false"  sortableColumns="false">
+				<mx:columns>
+					<mx:DataGridColumn headerText="" dataField="logo" width="20">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox width="20" height="27" horizontalGap="2" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+									<mx:Script>
+										<![CDATA[
+											import mx.resources.ResourceManager;
+											import roma.util.ImageHandle;
+											import roma.resource.ImgManager;
+										]]>
+									</mx:Script>
+									<mx:Image source="{ImgManager.clazz(data.logo)==null?ImgManager.clazz('logo.unKnown.a1'):ImgManager.clazz(data.logo)}" scaleX="{20/149}" scaleY="{20/149}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('ranking.label.player')}" dataField="playerName" width="150"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.alliance')}" dataField="leagueName"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.options')}" dataField="leagueName" width="90">
+						<mx:itemRenderer>
+						<mx:Component>
+							<mx:HBox height="27" horizontalGap="2" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+								<mx:Script>
+									<![CDATA[
+										import roma.common.valueObject.PlayerInfoDataBean;
+										import roma.common.constants.AllianceConstant;
+										import views.windows.functionWins.friendly.PlayerInfoView;
+										import roma.util.MultiLang;
+									]]>
+								</mx:Script>
+								<mx:Button label="{MultiLang.msg('public.label.menu')}" click="parentDocument.showMenu(event,data)" height="18" styleName="secondaryBtn"/>
+							</mx:HBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas x="0" y="0" width="100%" height="100%" id="bolckView">
+			<mx:DataGrid left="0" top="0" right="0" bottom="0" dataProvider="{this.curMemberArr}"  rowHeight="27"
+				itemRollOut="itemRollOutHandle()" itemRollOver="showPlayerInfoTip(event)" itemClick="showPlayerInfoTip(event)"
+			    focusOut="itemRollOutHandle()"
+				resizableColumns="false" draggableColumns="false"  sortableColumns="false">
+				<mx:columns>
+					<mx:DataGridColumn headerText="" dataField="logo" width="20">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox width="20" height="27" horizontalGap="2" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+									<mx:Script>
+										<![CDATA[
+											import mx.resources.ResourceManager;
+											import roma.util.ImageHandle;
+											import roma.resource.ImgManager;
+										]]>
+									</mx:Script>
+									<mx:Image source="{ImgManager.clazz(data.logo)==null?ImgManager.clazz('logo.unKnown.a1'):ImgManager.clazz(data.logo)}" scaleX="{20/149}" scaleY="{20/149}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('ranking.label.player')}" dataField="playerName" width="150"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.alliance')}" dataField="leagueName"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.options')}" dataField="leagueName" width="90">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox height="27" horizontalGap="2" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+									<mx:Script>
+										<![CDATA[
+											import roma.common.valueObject.PlayerInfoDataBean;
+											import roma.common.constants.AllianceConstant;
+											import views.windows.functionWins.friendly.PlayerInfoView;
+											import roma.util.MultiLang;
+										]]>
+									</mx:Script>
+									<mx:Button label="{MultiLang.msg('public.label.menu')}" click="parentDocument.showMenu(event,data)" height="18" styleName="secondaryBtn"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+	</mx:ViewStack>
+	<ns2:AddPeopleWin verticalCenter="0" horizontalCenter="0" id="addPeopleWin" visible="false" addPeople="addHandle">
+	</ns2:AddPeopleWin>
+</functionWins:BaseFunctionWindow>
+

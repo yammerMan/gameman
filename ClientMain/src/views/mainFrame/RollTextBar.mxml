@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="425" height="40" creationComplete="init()" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import views.spreadUI.castleStatus.MyScoutTimeCacheBean;
+			import mx.controls.List;
+			import mx.collections.ArrayCollection;
+			import roma.resource.ImgManager;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import views.windows.buildings.trainningField.StratagemDeployWin;
+			import roma.common.action.ControllerFactory;
+			import roma.common.controller.common.RollTextResponse;
+			
+			public static var ROLLTEXT_SHOW:String = "rollTextShow";
+			public static var ROOLTEXT_HIDE:String = "rollTextHide";
+			
+			public static var CALL_TO_HIDE:String = "callToHide";
+			public static var CALL_TO_SHOW:String = "callToShow";
+			
+			private static var log:ILogger = Log.getLogger("views.RollTextBar"); 
+			
+			private static const LOAD_INTERVAL:int = 600000;   			//设定10分钟加载一次
+			private static const ROLL_INTERVAL:int = 5000;              //滚动间隔 3秒                 
+			
+			private var loadTimer:Timer = new Timer(LOAD_INTERVAL);
+			private var rollTimer:Timer = new Timer(ROLL_INTERVAL);
+			private var enterFrameTimer:Timer = new Timer(100);
+			
+			[Bindable]
+			private var rollTxt:String;
+			private var count:int=0;
+			private var textLines:int = 0;
+			private var textLineHeight:int =16;
+			private var textMaskSprite:UIComponent = new UIComponent();
+			
+			public var callFun:Function; 
+			
+			private function init():void{
+				 this.loadTimer.addEventListener(TimerEvent.TIMER,loadTxtHandler);
+				 this.rollTimer.addEventListener(TimerEvent.TIMER,rollAnewHandler);
+				 this.enterFrameTimer.addEventListener(TimerEvent.TIMER,enterFrameRoll);
+				 
+				 textMaskSprite.y = rollTextBg.y+3;
+				 textMaskSprite.graphics.beginFill(0x0,1);
+				 textMaskSprite.graphics.drawRect(0,5,416,textLineHeight);
+				 textMaskSprite.graphics.endFill();
+				 myRollTxt.mask = textMaskSprite;
+				 this.addChild(textMaskSprite);
+				 
+				 this.loadRollText();
+				 this.loadTimer.start();
+				 rollTimer.start();
+			}
+			
+			private function loadRollText():void {
+				ControllerFactory.getInstance().getCommonController().rollText(onLoadRollTextResponse,false);
+			}
+
+			private function onLoadRollTextResponse(event:RollTextResponse):void {
+				this.rollTxt = event.rollText;
+				log.debug(event.rollText);
+			}
+			
+			/**开始加载*/
+			private function loadTxtHandler(e:TimerEvent):void{
+				this.loadRollText();
+				System.gc();
+			}
+
+			/**每行、循环滚动*/
+			private function enterFrameRoll(event:Event):void{
+				myRollTxt.y -= 2;
+				if(this.myRollTxt.y> -count*textLineHeight+5){
+				}else{
+					myRollTxt.y = -count*textLineHeight+5;
+					enterFrameTimer.stop();
+					rollTimer.start();
+				}
+			}
+			
+			/**每行开始滚动*/
+			private function rollAnewHandler(event:Event):void{
+				this.count++;
+				this.rollTimer.stop();
+				if(this.count>=textLines){
+					myRollTxt.y = 5 ;
+					count = 0 ;
+				}
+				enterFrameTimer.start();
+			}
+				
+			/**获取文本行数*/
+			private function updateText():void{
+				var lm:TextLineMetrics = this.myRollTxt.getLineMetrics(0);
+				this.textLines = Math.round((this.myRollTxt.textHeight+lm.leading)/lm.height); 
+				myRollTxt.height = myRollTxt.textHeight +lm.height+lm.height;
+				textLineHeight = lm.height;
+				//log.debug("text textLines:"+textLines +"\tlineHeight: "+lm.height+"\tlm.leading: "+lm.leading); 
+			}
+			
+			[Bindable]
+			private var isShow:Boolean = true;
+			private function onShowOrHide(e:MouseEvent):void{
+				if(e.target == showRollTextBtn){
+					isShow = true;
+					if(this.callFun != null)callFun.call(this,CALL_TO_SHOW);
+				}else if(e.target == hideRollTextBtn){
+					isShow = false;
+					if(this.callFun != null)callFun.call(this,CALL_TO_HIDE);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Button id="showRollTextBtn" visible="{!isShow}" styleName="rollTextShow" click="onShowOrHide(event)" right="5" top="0"/>
+	<mx:Button id="hideRollTextBtn" visible="{isShow}" styleName="rollTextHide" click="onShowOrHide(event)" right="5" y="{rollTextBg.y-6}"/>
+	<mx:Canvas styleName="rollTextBg" width="100%" bottom="0" height="26" id="rollTextBg">
+		<mx:Text id="myRollTxt" htmlText ="{this.rollTxt}" textAlign="left" width="100%" updateComplete="updateText()" y="5" left="70" leading="2"/>
+	</mx:Canvas>
+	<mx:Image source="{ImgManager.clazz('rollText.women.icon')}" top="0" left="20" visible="{isShow}"/>
+</mx:Canvas>

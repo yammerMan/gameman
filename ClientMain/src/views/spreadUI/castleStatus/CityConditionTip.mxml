@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="baseTooltip" kerning="true" mouseOut="this.isGetFocus=false" mouseOver="this.isGetFocus=true">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HeroHelper;
+			import views.MainContainer;
+			import mx.collections.ArrayCollection;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.rule.ItemRule;
+			import roma.common.controller.CommonResponse;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.HeroManConstants;
+			import views.spreadUI.castleIcon.CastleIconPanel;
+			import roma.common.action.ControllerFactory;
+			import views.windows.functionWins.hero.HerosMansionWin;
+			import roma.logic.object.hero.HeroObj;
+			import roma.logic.CaesaryConfig;
+			import roma.logic.GameContext;
+			import views.mainFrame.ToggleButton;
+			import views.PopupWindows;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var heroName:String;
+			[Bindable]
+			private var startCity:String;
+			[Bindable]
+			private var targetCity:String;
+			[Bindable]
+			private var remainTime:Number;
+			[Bindable]
+			private var startCityFieldId:int;
+			[Bindable]
+			private var targetCityFieldId:int;
+			[Bindable]
+			private var remainTimeStr:String;
+			private var isGetFocus:Boolean=false;
+			private var my_timer:Timer = new Timer(1000);
+			private var countTime:int=0;
+			[Bindable]
+			private var myHeroObj:HeroObj;
+			private function selectPos(idField:int):void{
+				var posX:int = idField/10000;;
+				var posY:int = idField%10000;
+				if(ToggleButton.instance.isTown){
+					ToggleButton.instance.switchHandler(true);
+				}
+				DiamondWorldMap2.instance.goPoint(posX,posY);
+				this.visible = false;
+				PopupWindows.closeAll();
+			}
+			
+			public function setCityCondition(heroName:String,startCity:String,targetCity:String,remainTime:Number,startCityFieldId:int,targetCityFieldId:int):void{
+				this.countTime=0;
+				this.isGetFocus=false;
+				this.heroName=heroName;
+				this.startCity=startCity;
+				this.targetCity=targetCity;
+				this.remainTime=remainTime;
+				this.startCityFieldId=startCityFieldId;
+				this.targetCityFieldId=targetCityFieldId;
+				this.remainTimeStr = GameContext.toLocalFacilityTimeStr(this.remainTime);
+				this.myHeroObj=null;
+				this.startTheTimer();
+			}
+			
+			private function startTheTimer():void{
+				if(!my_timer.running){
+					 	my_timer.addEventListener("timer", timerHandler);
+				}
+		        my_timer.start();
+			}
+			/*计算时间*/
+			private function timerHandler(evt:TimerEvent):void {
+				if(!isGetFocus){
+					this.countTime++;
+				}else{
+					this.countTime=0;
+				}
+				if(this.countTime==2){//失去焦点3秒隐藏
+					if(my_timer.running){
+					 	my_timer.stop();
+					 	this.visible=false;
+					 	CaesaryConfig.instance.showArmyTip=false;
+					 }
+				}
+			}
+			private function troopCallBack():void{
+				if(this.myHeroObj!=null){
+					if(GameContext.instance.getPlayerObj().getCurCastleObj().cityId!=this.myHeroObj.castleObj.cityId){
+						CastleIconPanel.instance.gotoTown(this.myHeroObj.castleObj.idField);					
+					}
+					if(myHeroObj.heroInfo.status == HeroManConstants.STATUS_IN_BATTLE_FIELD){
+						battleCallBack();
+						return;
+					}
+					HeroHelper.instance.callbackHero(this.myHeroObj);
+//					ControllerFactory.getInstance().getArmyController().reCallArmy(
+//						this.myHeroObj.castle.cityId,this.myHeroObj.heroInfo.id);
+				}
+			}
+			
+			private function battleCallBack():void{
+				if(!myHeroObj.isCanCallBack()){
+					MyAlert.show(MultiLang.msg('intelligence.battle.hasSomeOneJoin'));
+					return;
+				}
+				if(myHeroObj.battleGoTime()<HeroManConstants.HERO_CALL_BACK_NEED_ITEM_MINS){
+					MyAlert.show(MultiLang.msg('intelligence.battle.noOverOneMin'),callNoOverTimeBackFun);
+				}
+				else{
+					MyAlert.show(MultiLang.msg('intelligence.battle.isOverOneMin'),callOverTimeBackFun);
+				}
+				
+				function callNoOverTimeBackFun(isTrue:Boolean):void{
+					if(isTrue)
+					HeroHelper.instance.callbackHero(myHeroObj,reCallArmyResponse);
+//					ControllerFactory.getInstance().getArmyController().reCallArmy(myHeroObj.castle.cityId, myHeroObj.heroInfo.id,reCallArmyResponse);
+				}
+				
+				function callOverTimeBackFun(isTrue:Boolean):void{
+					if(isTrue)
+					ItemSelectSpeedUpWin.show(new ArrayCollection([HeroManConstants.CALL_BACK_HERO_ITEM]),onUseResponse);
+				}
+				
+				function onUseResponse(i:ItemRule):void{
+					HeroHelper.instance.callbackHero(myHeroObj,reCallArmyResponse);
+//					ControllerFactory.getInstance().getArmyController().reCallArmy(myHeroObj.castle.cityId,myHeroObj.heroInfo.id,reCallArmyResponse);
+				}
+				
+				function reCallArmyResponse(e:CommonResponse):void{
+					if(e.isSuccess()){
+						if(myHeroObj.heroInfo.battleFieldLeader){
+							MainContainer.instance.risePlay(MultiLang.msg("intelligence.battle.launcher.callBackSuccess"));
+						}else{
+							MainContainer.instance.risePlay(MultiLang.msg("intelligence.battle.joiner.callBackSuccess"));
+						} 
+					}
+					else{
+						MyAlert.showError(e);
+					}
+				} 
+			}
+			
+			private function onHeroClick():void {
+				if(this.myHeroObj!=null){
+					if(GameContext.instance.getPlayerObj().getCurCastleObj().cityId!=this.myHeroObj.castleObj.cityId){
+						CastleIconPanel.instance.gotoTown(this.myHeroObj.castleObj.idField);				
+					}
+					this.myHeroObj.selectedInUi = true;
+					PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW , this.myHeroObj);			
+				
+				}
+			}
+			
+			public function setMyHeroObj(hero:HeroObj):void{
+				this.myHeroObj=hero;
+				if(myHeroObj.heroInfo.status == HeroManConstants.STATUS_GROWTH){
+					this.remainTimeStr = GameContext.toLocalFacilityTimeStr(myHeroObj.heroInfo.growthEndTime);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" bottom="10" right="10" verticalGap="0">
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.hero')}:" width="45"/>
+			<mx:Label text="{this.heroName}" styleName="buildingInfoDisText"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('buff.label.belong')}:"/>
+			<mx:Label text="{this.startCity}" styleName="buildingInfoDisText"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('buff.label.belong')}:" visible="false"/>
+			<mx:Label text="{GameContext.getFieldPostionX(this.startCityFieldId)},{GameContext.getFieldPostionY(this.startCityFieldId)}" click="selectPos(this.startCityFieldId)" styleName="addLinkLabel"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('military.newArmy.target')}:"/>
+			<mx:Label text="{this.targetCity}" styleName="buildingInfoDisText" visible="{this.targetCity==null?false:true}" includeInLayout="{this.targetCity==null?false:true}"/>
+			<mx:Label text="{GameContext.getFieldPostionX(this.targetCityFieldId)},{GameContext.getFieldPostionY(this.targetCityFieldId)}" 
+				click="selectPos(this.targetCityFieldId)" styleName="addLinkLabel"
+				visible="{!(myHeroObj.heroInfo.status == HeroManConstants.STATUS_GROWTH)}" includeInLayout="{!(myHeroObj.heroInfo.status == HeroManConstants.STATUS_GROWTH)}"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('public.label.time')}:"/>
+			<mx:Label text="{remainTimeStr}" styleName="buildingInfoDisText"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0" visible="{this.myHeroObj==null?false:true}" includeInLayout="{this.myHeroObj==null?false:true}">
+			<mx:Label text="{MultiLang.msg('dak.action')}:"/>
+			<mx:HBox width="100%">
+				<mx:Button label="{MultiLang.msg('public.label.checkOut')}" styleName="secondaryBtn" height="18" click="onHeroClick()"/>
+				<mx:Button label="{MultiLang.msg('hero.troops.callBack')}" styleName="secondaryBtn" height="18" click="troopCallBack()" enabled="{this.myHeroObj.isGuardStatus || myHeroObj.heroInfo.status == HeroManConstants.STATUS_IN_BATTLE_FIELD}"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:VBox>
+	
+</mx:Canvas>

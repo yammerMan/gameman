@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="60" height="32" click="clickHandle(event)" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.tips.EquipToolTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import mx.collections.ArrayCollection;
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.EquipBean;
+			import mx.controls.Image;
+			import roma.resource.ImgManager;
+			[Bindable]
+			private var itemSource:String="";
+			public var showMenu:Function;
+			[Bindable]
+			private var outfitTypeName:String;
+			[Bindable]
+			private var equipBean:EquipBean;
+			private var equipPart:int;
+			[Bindable]
+			private var isOpen:Boolean=false;
+			private var isClick:Boolean=false;
+			
+			[Bindable]
+			private var iconPath:Class;
+			
+			private var equipToolTip:EquipToolTip = ToolTipContainer.instance.equipToolTip;
+			
+			private function init():void{
+				this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+				this.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+				this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
+			}
+			
+			public function setOutfitType(type:int):void{
+				equipPart=type;
+				isOpen=EquipHelper.instance.openEquipDictionary[equipPart];
+				outfitTypeName=HeroHelper.instance.getOutFitTypeName(type);
+				iconPath=HeroHelper.instance.getOutFitTypeIcon(type);
+			}
+			
+			public function setEquipArr(arr:ArrayCollection):void{
+				var match:Boolean=false;
+				for(var i:int=0;i<arr.length;i++){
+					var bean:EquipBean=EquipHelper.instance.getEquipsBeanById(arr[i]);
+					if(bean.part==equipPart){
+						this.equipBean=bean;
+						match=true;
+					}
+				}
+				if(!match)this.equipBean=null;
+			}
+			
+			
+			
+			public function setEquipBean(bean:EquipBean):void{
+				if(bean==null){
+					this.equipBean=bean;
+					return;
+				}
+				if(bean.part==equipPart){
+					this.equipBean=bean;
+				}
+			}
+			
+			
+			private function clickHandle(event:MouseEvent):void{
+				EquipHelper.instance.curSelectEquip=equipBean;
+				isClick=true;
+				if(equipBean==null)return;
+				if(this.showMenu!=null){
+					this.showMenu.apply(this,[event]);
+				}
+			}
+			
+			public function setFilter(bean:EquipBean):void{
+				if(bean==null){
+					this.imageField.filters=null;
+					isClick=false;
+					return;
+				}
+				if(equipPart==bean.part&&isClick==true){
+					this.imageField.filters=[FiltersUtil.brightnessColorMatrixFilter];
+				}else{
+					this.imageField.filters=null;
+				}
+				isClick=false;
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				if(this.equipBean==null)return;
+				this.equipToolTip.setEquipBean(this.equipBean);
+				this.equipToolTip.onMouseOver(event); 
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				if(this.equipBean==null)return;
+				this.equipToolTip.onMouseMove(event);
+			}
+			
+			private function onMouseOut(event:MouseEvent):void{
+				this.equipToolTip.onMouseOut();
+			}
+		]]>
+	</mx:Script>
+	<!--mx:Label width="60" y="7" x="0" text="{outfitTypeName}" textAlign="center" mouseEnabled="false"/-->
+	<mx:Image source="{iconPath}" verticalCenter="0" left="3" toolTip="{outfitTypeName}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Canvas width="56" height="28" horizontalCenter="0" verticalCenter="0" styleName="smallLogoBG" visible="{equipBean!=null}" includeInLayout="{equipBean!=null}">
+		<mx:Image source="{equipBean.iconUrl}" horizontalCenter="0" verticalCenter="0" width="50" height="23" updateComplete="ImageHandle.onLoadComplete(event)" id="imageField"/>
+	</mx:Canvas>
+	<mx:Image source="{ImgManager.clazz('icon.lock')}" width="10" height="14" visible="{!isOpen}" mouseChildren="false" verticalCenter="2" right="7"/>
+</mx:Canvas>

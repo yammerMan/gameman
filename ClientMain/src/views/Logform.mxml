@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:login="views.login.*"
+	width="1000" height="600"
+	creationComplete="init()"
+	implements="roma.interfaces.IModuleInterface" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+<mx:Script>
+	<![CDATA[
+		import flash.net.navigateToURL;
+		import roma.logic.GameContext;
+		import reLoader.LoadingHandle;
+		import reLoader.ui.LoadingSubmitBtn;
+		import reLoader.ui.NoticeText;
+		import roma.resource.ImgManager;
+		import mx.core.UIComponent;
+		import roma.util.MultiLang;
+		import roma.logic.CaesaryConfig;
+			
+		[Bindable]
+		private var curWinId:int=0;
+		[Bindable]
+		private var noticeText:String;
+		
+		private var bgMc:UIComponent;
+		private var noticeUI:UIComponent;
+
+		private function init():void {
+			this.noticeText = LoadingHandle.instance.newString;
+			addNoticeUI();
+		}
+		
+		private function preInit():void{
+			
+		}
+		
+		private function onBgComplete(e:Event):void{
+			bgMc.addChild(Loader(e.target));
+		}
+		
+		private function addNoticeUI():void{
+			noticeUI=new UIComponent();
+			noticeUI.x=80;
+			noticeUI.y=110; 
+			
+			var noticeTextMc:NoticeText=new loadingNoticeText() as NoticeText;
+			var submitMc:LoadingSubmitBtn=new submit_mc() as LoadingSubmitBtn;
+			submitMc.x=60;
+			submitMc.y=275;
+			submitMc.btnText=MultiLang.msg("public.label.registration");
+			noticeTextMc.txt.htmlText=this.noticeText;
+			noticeUI.addChild(submitMc);
+			noticeUI.addChild(noticeTextMc);
+			this.addChild(noticeUI);
+			submitMc.enabled = CaesaryConfig.instance.registerUrl != "";
+			
+			submitMc.addEventListener(MouseEvent.CLICK, onRegBtnClick);
+		}
+		
+		private function onRegBtnClick(event:Event):void {
+			navigateToURL(new URLRequest(CaesaryConfig.instance.registerUrl));
+		}
+		
+		public function destroy():void {
+			this.loginBgLoader.source = null;
+		}
+		
+		public function refresh():void{
+		}
+		
+		public function update():void{
+		}
+			
+	]]>
+</mx:Script>
+	<mx:SWFLoader source="{CaesaryConfig.instance.loginBgSwfName}" top="0" left="0" id="loginBgLoader"/>
+	<mx:ViewStack top="169" id="loginViewStack" 
+		selectedIndex="{this.curWinId}" left="367" width="610" height="600">
+		<login:LoginComp width="610" height="380" label="登陆" top="165"/>
+	</mx:ViewStack>
+</mx:Canvas>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="105" height="25" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+		
+			public var inputValue:Number;
+			public var onInputDataChange:Function;
+			public var onValChange:Function;
+			public var actionType:int;
+			public var valueMin:int = 0;
+
+			private var _maxValue:int;
+			private var _isMax:Boolean;
+			
+			[Bindable]
+			public var effectValue:int;
+			
+			private function init():void{
+				this.setComponentFocus();
+			}
+			
+			public function set intValue(value:int):void{
+				this.valueTextInput.text = String(value);
+				this.effectValue = value;
+				this.setComponentFocus();
+			}
+			
+			public function set maxValue(value:int):void{
+				_isMax = true;
+				_maxValue = value;
+			}
+			
+			public function get curValue():int{
+				return this.effectValue;
+			}
+			
+			private function onChangeHandle(event:Event):void{
+				var num:int = int(this.valueTextInput.text);
+  				
+				if(num>=_maxValue){
+					this.effectValue = _maxValue ;
+					this.valueTextInput.text = String(_maxValue);
+					if(this.onInputDataChange != null){
+						if(!_isMax){
+							this.onInputDataChange.apply(this,[this.effectValue]);
+						}
+					}
+					_isMax = true;
+					return;
+				}else{
+					this.effectValue = num;
+					_isMax = false;
+					if(this.onInputDataChange != null){
+						this.onInputDataChange.apply(this,[this.effectValue]);
+					}
+				}					
+				  
+				//用于调用多个参数
+				if(this.onValChange !=null){
+					this.onValChange.call(this,this.effectValue,actionType,this.inputValue);
+				}
+			}
+			
+			public function refresh():void{
+				this.valueTextInput.text =String(this.valueMin);
+				this.effectValue = this.valueMin;
+				
+				setComponentFocus();
+				
+				if(this.onInputDataChange != null){
+					this.onInputDataChange.apply(this,[this.effectValue]);
+				}
+				if(this.onValChange !=null){
+					this.onValChange.call(this,this.effectValue,actionType,this.inputValue);
+				}
+
+			}
+			
+			private function onClickHandle(event:MouseEvent):void{
+				if(Button(event.target).id == "upBtn"){
+					this.effectValue = _maxValue;
+					this.valueTextInput.text = String(_maxValue);
+					if(this.onInputDataChange != null){
+						if(!_isMax){
+							this.onInputDataChange.apply(this,[this.effectValue]);
+						}
+					}
+					_isMax = true;
+				}else {
+					this.effectValue = this.valueMin;
+					this.valueTextInput.text = String(this.valueMin);
+				
+					if(this.onInputDataChange != null){
+						this.onInputDataChange.apply(this,[this.effectValue]);
+					}
+					
+					_isMax= false;
+				}
+				
+				//用于调用多个参数
+				if(this.onValChange !=null){
+					this.onValChange.call(this,this.effectValue,actionType,this.inputValue);
+				}  
+			}
+			
+			private function setComponentFocus():void{
+				if(this.initialized){
+					if(valueTextInput.text.length>0){
+						valueTextInput.setSelection(0,valueTextInput.text.length);
+						valueTextInput.setFocus();
+					}
+				}
+			}
+			
+			private function onFocusIn(event:Event):void{
+				var ti:TextInput = TextInput(event.currentTarget);
+				ti.setSelection(0,ti.text.length);
+			}
+			
+			public function reSize(w:int):void{
+				this.width=w;
+				this.valueTextInput.width=w-24;
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:HBox width="100%" height="100%" horizontalCenter="0" verticalCenter="0" horizontalGap="0" horizontalAlign="center" verticalAlign="middle">
+		<mx:TextInput id ="valueTextInput" width="81" height="20" restrict="0-9" maxChars="7" change="onChangeHandle(event)" fontWeight="normal" text="{this.effectValue}"  focusIn="onFocusIn(event)" paddingTop="1"/>
+		<mx:VBox height="100%" verticalGap="0" verticalAlign="middle" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Button id = "upBtn" width="20" height="10" mouseDown="onClickHandle(event)" styleName="maxValueBtn" focusEnabled="false"/>
+			<mx:Button id = "downBtn" width="20" height="10" mouseDown="onClickHandle(event)" styleName="minValueBtn" focusEnabled="false"/>
+		</mx:VBox>
+	</mx:HBox>
+</mx:Canvas>

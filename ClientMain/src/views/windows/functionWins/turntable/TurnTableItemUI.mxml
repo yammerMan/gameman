@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	 width="64" height="64"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+		]]>
+	</mx:Script>
+	
+	<mx:Script source="TurnTableItemUI_.as"/>
+	
+	<mx:HBox 
+		id="imgContainer"
+		width="50" height="50" 
+		horizontalCenter="0" 
+		verticalCenter="0" 
+		horizontalAlign="center" 
+		verticalAlign="middle" 
+		horizontalScrollPolicy="off" 
+		verticalScrollPolicy="off">
+		<mx:Canvas 
+			width="50" height="50" 
+			horizontalScrollPolicy="off" 
+			verticalScrollPolicy="off">
+			<!--根据物品图标长宽调坐标-->
+			<mx:UIComponent id="imgComponent" left="-43" top="-2"/>
+			<mx:Label 
+				id="numLabel"
+				textAlign="right" 
+				styleName="normalBoldLabel" 
+				right="1" bottom="4" fontSize="11"
+				text="{this.itemNum}" filters="{[FiltersUtil.glowFilter]}"/>
+			<mx:HBox 
+				horizontalCenter="0" 
+				verticalCenter="0" 
+				horizontalAlign="center" 
+				verticalAlign="middle" 
+				horizontalGap="0" 
+				horizontalScrollPolicy="off" 
+				verticalScrollPolicy="off">
+					<mx:Image 
+						id="img1" 
+						updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Image 
+						id="img2" 
+						updateComplete="ImageHandle.onLoadComplete(event)"/>
+			</mx:HBox>
+		</mx:Canvas>
+	</mx:HBox>
+	
+	<mx:UIComponent 
+		width="56" 
+		height="56" 
+		id="MCcontainer" 
+		horizontalCenter="0" 
+		verticalCenter="0"/>
+</mx:Canvas>

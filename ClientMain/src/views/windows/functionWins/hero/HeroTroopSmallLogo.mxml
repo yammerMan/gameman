@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="30" height="30" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.common.valueObject.PairValueBean;
+			import roma.logic.object.hero.HeroObj;
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.TFHelper;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var _hero:HeroObj;
+			
+			[Bindable]
+			private var count:int =0;
+			
+			[Bindable]
+			public var _troop:int;
+			[Bindable]
+			private var iconClass:String;
+			[Bindable]
+			private var troopName:String;
+			
+			private var uIComponent:UIComponent=new UIComponent();
+			
+			private function init():void{
+				this.uIComponent.width=10;
+				this.uIComponent.height=2;
+				this.uIComponent.x=10;
+				this.uIComponent.y=23;
+				this.addChild(this.uIComponent);
+			}
+			public function set troop(troop:int):void{
+				this._troop=troop;
+				iconClass=TFHelper.instance.getTroopSmallIconClass(this.troop);
+				troopName=TFHelper.instance.getTfName(this.troop);
+				
+			}
+			public function get troop():int{
+				return this._troop;
+			}
+			
+			public function refresh(hero:HeroObj):void {
+				this._hero=hero;
+				this.count=0;
+				this.getArmyConut();
+				this.uIComponent.graphics.clear();
+				if(this.count>0){
+					this.uIComponent.graphics.beginFill(getColor(this.count));
+					this.uIComponent.graphics.drawRoundRectComplex(0,0,10,2,0,0,0,0);
+					this.uIComponent.graphics.endFill();
+				}
+			}
+			
+			private function getArmyConut():void{
+				if(this._hero!=null){
+					for(var i:int=0;i<this._hero.armyManager.troopsArray.length;i++){
+						if(HeroTroopBean(this._hero.armyManager.troopsArray[i]).troopType==this._troop){
+							this.count+=HeroTroopBean(this._hero.armyManager.troopsArray[i]).count;
+						}
+					}
+				}
+			}
+			
+			private function getColor(value:int):uint{
+				var color:uint;
+				if(value>=100000){
+					color= 0xff00ff;
+				}else if(value>=10000){
+					color= 0x00ffff;
+				}else if(value>=1000){
+					color= 0xbcff2e;
+				}else if(value>=0){
+					color= 0xffffff;
+				}
+				return color;
+			}
+		]]>
+	</mx:Script>
+	<mx:Image left="0" top="0" right="0" bottom="0" source="{ImgManager.clazz('background.troopSmallBg')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Image source="{this.iconClass}" left="0" top="0" updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{this.troopName+' '+this.count}" visible="{this.count==0?false:true}" includeInLayout="{this.count==0?false:true}"/>
+	<!--mx:UIComponent width="10" height="2" id="numberTip" x="10" y="23"/-->
+</mx:Canvas>

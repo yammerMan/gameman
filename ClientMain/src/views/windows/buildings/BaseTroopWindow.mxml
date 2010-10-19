@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseBuildingWindow xmlns="views.windows.buildings.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="280" 
+	xmlns:troopFort="views.spreadUI.troopFort.*" xmlns:ns1="views.spreadUI.*" xmlns:ns2="views.spreadUI.*" 
+	xmlns:upgradWin="views.windows.buildings.townHall.*"
+	creationComplete="init()" xmlns:troop="views.spreadUI.troop.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.building.impl.Workshop;
+			import roma.logic.object.building.impl.Stable;
+			import roma.logic.object.building.impl.Barrack;
+			import views.spreadUI.MyAlert;
+			import roma.logic.object.building.BaseBuilding;
+			import views.PopupWindows;
+			import roma.logic.GameContext;
+			import roma.common.constants.BuildingConstant;
+			import roma.data.BuildingData;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			import mx.events.ItemClickEvent;
+			
+			public static const WINDOW_SHOW:String = "baseTroopWin.show";
+
+			private var buildingArr:Array=new Array();
+
+			[Bindable]
+			private var curBuilding:int;
+			[Bindable]
+			private var totalBuilding:int;
+			[Bindable]
+			private var tagAry:Array =[MultiLang.msg('troop.type.list'),MultiLang.msg('upgradingWin.upgradeRequest')];
+
+
+			private function init():void{
+				this.buttonBar.selectedIndex=0;
+				this.troopList.setTroopAry(this.getTroopAry());	
+			}
+			
+			/**
+			 *每次界面弹出调用，刷新数
+			 */ 
+			override public function refresh():void{
+				if(this.initialized){
+					if(this.buttonBar.selectedIndex ==this.tagAry.length-1){
+						this.buttonBar.selectedIndex = this.tagAry.length-1;
+						this.showView.selectedChild = this.buildUpConPanel;
+						this.buildUpConPanel.refresh();
+					}else{
+						this.buttonBar.selectedIndex=0;
+						this.showView.selectedChild = this.troopList;
+						this.troopList.refresh();
+					}
+				}
+				this.getSameTypeBuildingArr();
+				
+				if(this.initialized){
+					this.troopList.setTroopAry(this.getTroopAry());	
+				}
+			}
+			
+			private function getSameTypeBuildingArr():void{
+				this.buildingArr=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getMultipleBuildingArrayByType(this.buildingObj.typeId);	
+				if(this.buildingArr !=null){
+					this.totalBuilding=this.buildingArr.length;
+					for(var i:int=0;i<this.totalBuilding;i++){
+						if(BaseBuilding(this.buildingArr[i]).position==this.buildingObj.position){
+							this.curBuilding=i+1;
+						}
+					}
+				}
+			}
+			
+			override public function update():void{
+				if(this.initialized){
+					if(this.buildingObj.level<1){
+						this.buttonBar.selectedIndex = this.tagAry.length-1;
+						this.showView.selectedChild = this.buildUpConPanel;
+						this.buttonBar.enabled = false;
+					}else{
+						if(!this.buttonBar.enabled){
+							this.buttonBar.enabled = true;
+						}
+					}
+				}
+			}
+			
+			/**
+			 *获取军队数组，需要子类覆盖重写
+			 */ 
+			public function getTroopAry():ArrayCollection{
+				if(buildingObj is Barrack){
+					return Barrack(buildingObj).getTroopAry();
+				}else if(buildingObj is Stable ){
+					return Stable(buildingObj).getTroopAry();
+				}else if(buildingObj is Workshop){
+					return Workshop(buildingObj).getTroopAry();
+				}
+				return null;
+			}
+			
+			/**
+			 *窗口切换
+			 */ 
+			private function clickEvt(event:ItemClickEvent):void{
+				if(event.index == 0){
+					this.showView.selectedChild = this.troopList;
+					this.troopList.refresh();
+				}else{
+					this.showView.selectedChild = this.buildUpConPanel;
+					this.buildUpConPanel.refresh();
+				}
+			}
+
+			/**
+			 * 停止当前窗体一切相关动画
+			 */ 
+			override public function destroy():void{
+				this.troopList.removeListener();
+			}
+			
+			
+			/**
+			 * 跳到工匠作坊
+			 */ 
+			public function gotoWorkShopWin():void{
+				var buildingArr:Array=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getMultipleBuildingArrayByType(BuildingConstant.TYPE_WORKSHOPS);
+				if(buildingArr&&buildingArr.length>0){
+					PopupWindows.openBuildingInfoWin(BaseTroopWindow.WINDOW_SHOW,Workshop(buildingArr[0]));
+				}else{
+					MyAlert.show(MultiLang.msg("building.noWorkshop"));
+				}
+			}
+			
+			/**
+			 * 跳到兵营
+			 */ 
+			public function gotoBarrackWin():void{
+				var buildingArr:Array=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getMultipleBuildingArrayByType(BuildingConstant.TYPE_BARRACKS);
+				if(buildingArr&&buildingArr.length>0){
+					PopupWindows.openBuildingInfoWin(BaseTroopWindow.WINDOW_SHOW,Barrack(buildingArr[0]));
+				}else{
+					MyAlert.show(MultiLang.msg("building.noBarracks"));
+				}
+			}
+			
+			/**
+			 * 跳到马厩
+			 */ 
+			public function gotoStableWin():void{
+				var buildingArr:Array=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getMultipleBuildingArrayByType(BuildingConstant.TYPE_STABLES);
+				if(buildingArr&&buildingArr.length>0){
+					PopupWindows.openBuildingInfoWin(BaseTroopWindow.WINDOW_SHOW,Stable(buildingArr[0]));
+				}else{
+					MyAlert.show(MultiLang.msg("building.noStable"));
+				}
+			}
+			
+
+			
+			/**
+			 *显示选中的建筑
+			 */
+			private function showBuilding(number:int):void{
+				var change:int=this.curBuilding+number;
+				if(change>=1&&change<=this.totalBuilding){
+					this.curBuilding+=number;
+					var buildingObject:BaseBuilding=this.buildingArr[change-1];
+					PopupWindows.openBuildingInfoWin(BaseTroopWindow.WINDOW_SHOW,buildingObject);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="clickEvt(event)" dataProvider="{this.tagAry}"/>
+	    <ns2:MulHRule/>
+	</mx:VBox>
+	<mx:HBox horizontalGap="0" top="0" right="33">
+		<mx:Button id="previousBtn" styleName="previousBtn" click="showBuilding(-1)"/>
+		<mx:Label width="50" text="{this.curBuilding}/{this.totalBuilding}" textAlign="center"/>
+		<mx:Button id="nextBtn" styleName="nextBtn" click="showBuilding(1)"/>
+	</mx:HBox>
+	<mx:HBox left="{buttonBar.width+5}" horizontalGap="3">
+		<mx:Button label="{MultiLang.msg('building.barrack.name')}" click="gotoBarrackWin()"  width="100" visible="{this.buildingObj.typeId==BuildingConstant.TYPE_BARRACKS?false:true}" includeInLayout="{this.buildingObj.typeId==BuildingConstant.TYPE_BARRACKS?false:true}"/>
+		<mx:Button label="{MultiLang.msg('building.stable.name')}" click="gotoStableWin()"  width="100" visible="{this.buildingObj.typeId==BuildingConstant.TYPE_STABLES?false:true}" includeInLayout="{this.buildingObj.typeId==BuildingConstant.TYPE_STABLES?false:true}"/>
+		<mx:Button label="{MultiLang.msg('building.workshop.name')}" click="gotoWorkShopWin()"  width="100" visible="{this.buildingObj.typeId==BuildingConstant.TYPE_WORKSHOPS?false:true}" includeInLayout="{this.buildingObj.typeId==BuildingConstant.TYPE_WORKSHOPS?false:true}"/>
+	</mx:HBox>
+	
+	<mx:ViewStack id="showView" bottom="0" left="0" right="0" top="25">
+		<troop:TroopTypeList id="troopList" width="100%" height="280" buildingObj="{this.buildingObj}"/>
+		<upgradWin:UpgradingWin width="100%" height="100%" id="buildUpConPanel" buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</BaseBuildingWindow>

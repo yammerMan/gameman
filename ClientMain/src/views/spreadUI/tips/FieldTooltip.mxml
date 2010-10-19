@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="255" xmlns:ns1="views.mainFrame.CastleInfo.*" kerning="true" height="100">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+			import roma.logic.object.field.FieldHelper;
+			import roma.logic.object.field.BaseField;
+			import roma.resource.ImgManager;
+			[Bindable]
+			private  var fieldObj:BaseField;
+			[Bindable]
+			private var fieldDis:String;
+			
+			[Bindable]
+			private var logoClass:*;
+			public function setFieldObj(obj:BaseField):void{
+				this.fieldObj=obj;
+				this.fieldDis=FieldHelper.getFieldDesc(this.fieldObj.fieldType,this.fieldObj.fieldLevel);
+				this.logoClass=FieldHelper.getFieldMapIcon(this.fieldObj.fieldType,this.fieldObj.fieldLevel,true);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox  left="5" right="5" kerning="true" horizontalAlign="center" bottom="5" top="5" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Spacer height="5">
+			
+		</mx:Spacer>
+		<mx:HBox height="100%" kerning="true" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%" horizontalGap="3">
+			<mx:Canvas  styleName="smallLogoBG" width="96" height="48">
+					<mx:Image source="{this.logoClass}"  id="imageField" top="3" left="3" bottom="3" right="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				</mx:Canvas>
+			<mx:Canvas verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%">
+				<mx:HBox top="0" horizontalCenter="0" id="myHbox" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{this.fieldObj.fieldName+' '+'Lv '+this.fieldObj.fieldLevel+' '+this.fieldObj.fieldPos}" styleName="titleNameLabel"/>
+				</mx:HBox>
+				<mx:TextArea text="{this.fieldDis}" wordWrap="true" left="0" right="0" top="{this.myHbox.x+this.myHbox.height+3}" bottom="0">
+					
+				</mx:TextArea>
+			</mx:Canvas>
+		</mx:HBox>
+		<mx:Spacer height="5">
+			
+		</mx:Spacer>
+	</mx:VBox>
+	
+</BaseTip>

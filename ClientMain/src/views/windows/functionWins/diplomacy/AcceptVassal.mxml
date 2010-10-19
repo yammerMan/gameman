@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="362" height="203" styleName="popUpWinBG" xmlns:windows="views.windows.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.player.ConquestObj;
+			import roma.logic.CaesaryConfig;
+			import roma.common.valueObject.RankCityBean;
+			import mx.collections.ArrayCollection;
+			import roma.common.controller.rank.RankCityResponse;
+			import roma.common.constants.RankConstant;
+			import views.spreadUI.MyAlert;
+			import roma.common.valueObject.RelatedCastleTimeBean;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.action.ControllerFactory;
+			import roma.common.valueObject.CityBean;
+			import roma.common.valueObject.RelatedCastleBean;
+			import roma.util.PopupWinManager;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var castleBean:RelatedCastleBean;
+			private var castleObj:CastleObj;
+			[Bindable]
+			private var ranking:int = 0;
+			public var callBackFun:Function;
+			
+			private var applyId:int;
+			
+			public function set vassalBean(data:Object):void{
+				castleBean = ConquestObj(data).relatedCityBean.castle;
+				applyId = ConquestObj(data).selfCastleId;
+				castleObj = GameContext.instance.getPlayerObj().getCastleObjById(applyId);
+				ControllerFactory.getInstance().getRankController().getCityRank(castleBean.castleName,1,30,
+					RankConstant.CITY_TYPE_POPULATION,RankConstant.CASTLE_RANK_WITHOUT_ZONE,onGetCastleRank,false);
+			}
+			
+			private function onGetCastleRank(event:RankCityResponse):void{
+				if(event.isSuccess()){
+					var arr:ArrayCollection = event.beansArray;
+					for each(var a:RankCityBean in arr){
+						if(a.name == castleBean.castleName){
+							this.ranking = a.rank;
+						}
+					}
+				}else{MyAlert.showError(event);}
+			}
+			
+			private function onSureVassal():void{
+				ControllerFactory.getInstance().getCityController().acceptBeConquestedApply(applyId,castleBean.cityId,onAcceptBeConquested);
+				var owner:AcceptVassal = this;
+				function onAcceptBeConquested(event:CommonResponse):void{
+					if(event.isSuccess()){
+						visible = false;
+						callBackFun.call(owner,castleBean);
+					}else{MyAlert.showError(event);}
+				}
+			}
+			
+			private function onRefuse():void{
+				ControllerFactory.getInstance().getCityController().refuseBeConquestedApply(applyId,castleBean.cityId,onRefuseBeConquestApply);
+				var owner:AcceptVassal = this;
+				function onRefuseBeConquestApply(event:CommonResponse):void{
+					if(event.isSuccess()){
+						visible = false;
+						callBackFun.call(owner,castleBean);
+					}
+					else{MyAlert.showError(event);}
+				}
+			}
+			
+			private function onCloseBtnClick():void{
+				this.visible = false;
+			}
+			
+		]]>
+	</mx:Script>
+	<windows:WindowTitle onCloseFun="{onCloseBtnClick}" winTitle="{MultiLang.msg('diplomacy.vassal.apply.label')}"/>
+	<mx:Canvas styleName="mainWindowContentBG" width="335" top="32" left="12" bottom="42">
+		<mx:Canvas styleName="whiteBGwithBorder" width="99%" height="120" horizontalCenter="0" verticalCenter="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:VBox width="100%" height="100%" verticalGap="0">
+				<mx:Label text="{castleBean.castleName}" textAlign="center" width="100%" styleName="titleBigBordLabel" height="48"/>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="22">
+					<mx:Label width="25%" text="{MultiLang.msg('public.label.lord')}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{castleBean.playerName}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{MultiLang.msg('public.label.alliance')}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{castleBean.leagueName}"/>
+				</mx:HBox>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="22">
+					<mx:Label width="25%" text="{MultiLang.msg('townHall.coordinate')}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{GameContext.getFieldPostionString(castleBean.fieldId)}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{MultiLang.msg('label.population')}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{castleBean.population}"/>
+				</mx:HBox>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="22">
+					<mx:Label width="25%" text="{MultiLang.msg('public.label.level')}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{castleBean.castleLevel}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{MultiLang.msg('public.label.ranking')}"/>
+					<mx:VRule height="100%"/>
+					<mx:Label width="25%" text="{ranking}"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+	<mx:HBox bottom="17" right="13">
+		<mx:Button label="{MultiLang.msg('diplomacy.acceptVassal.label')}" click="{onSureVassal()}" width="110" height="22"/>
+		<mx:Button label="{MultiLang.msg('public.label.cancel')}" click="{onRefuse()}" width="110" height="22"/>
+	</mx:HBox>
+</mx:Canvas>

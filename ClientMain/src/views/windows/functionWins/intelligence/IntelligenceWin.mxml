@@ -1,0 +1,83 @@
+<functionWins:BaseFunctionWindow2
+	title="{MultiLang.msg('intelligence.title')}"
+	width="100%" height="100%" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*"
+	xmlns:functionWins="views.windows.functionWins.*" xmlns:intelligence="views.windows.functionWins.intelligence.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="IntelligenceWin_.as"/>
+	<mx:VBox left="11" top="33" verticalGap="0" right="11" label="导航标签">
+		<mx:ToggleButtonBar itemClick="this.clickHandler(event);" dataProvider="{titleBtnArray}" styleName="titleToggleButtonBar" id="buttonBar" >
+	    </mx:ToggleButtonBar>
+	    <ns1:MulHRule/>
+	</mx:VBox>
+	<mx:ViewStack id="viewStach" top="60" bottom="11" left="11" right="11">
+		<!-- 战局情报  -->
+		<intelligence:BattleSituationList id="battleSituation" label="战局情报" refreshQueue="refresh"/>
+		<mx:Canvas width="100%" height="100%" label="军队动态||出征作战">
+			<mx:DataGrid width="100%" height="100%"
+				dataProvider="{selfArmyArray}" rowHeight="25"
+				resizableColumns="false" draggableColumns="false" 
+				sortableColumns="false" selectable="false" >
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.task')}" dataField="curTask" width="120"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.belongCastle')}" dataField="belongCastle" width="140"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.targetCastle')}" dataField="targetStr" width="140"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.arriveTime')}" dataField="arriveTimeStr"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.remainTime')}" dataField="remainTimeStr" width="150"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" width="100">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox paddingTop="0" width="100%" height="25" horizontalAlign="center" verticalAlign="middle" horizontalGap="1">
+									<mx:Button click="{outerDocument.callBackHero(data)}" visible="{outerDocument.isCallBackBtnShow(data)}" includeInLayout="{outerDocument.isCallBackBtnShow(data)}"
+										label="{outerDocument.callBackLabel}" width="50" height="18" styleName="secondaryBtn"/>
+									<mx:Button click="{outerDocument.checkOutTroopMove(data)}" label="{outerDocument.checkOutLabel}" width="44" height="18" styleName="secondaryBtn"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%" label="盟友军队">
+			<mx:DataGrid width="100%" height="100%" 
+				dataProvider="{this.allianceArmyArray}" rowHeight="25"
+				resizableColumns="false" draggableColumns="false" 
+				sortableColumns="false" selectable="false" > 
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.belongCastle')}" dataField="belongCastle"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.action')}" dataField="curAction" width="200"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.arriveTime')}" dataField="arriveTimeStr"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.remainTime')}" dataField="remainTimeStr" width="180"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" width="80">
+						<mx:itemRenderer>
+							<mx:Component>
+							<mx:HBox paddingTop="0" width="100%" height="25" horizontalAlign="center" verticalAlign="middle">
+								<mx:Button label="{outerDocument.checkOutLabel}" click="{outerDocument.checkOutAllianceArmy(data)}" width="44" height="18" styleName="secondaryBtn"/>
+							</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%" label="侦察">
+			<mx:DataGrid width="100%" height="100%" 
+				dataProvider="{this.scoutsArray}" rowHeight="25"
+				resizableColumns="false" draggableColumns="false" 
+				sortableColumns="false" selectable="false" > 
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.task')}" dataField="missionStr"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.belongCastle')}" dataField="belongCastle"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.targetCastle')}" dataField="target"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('intelligence.arriveTime')}" dataField="arriveTimeStr"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.remainTime')}" dataField="remainTimeStr"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+	</mx:ViewStack>
+</functionWins:BaseFunctionWindow2>

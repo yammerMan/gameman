@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" creationComplete="refreshClass()" xmlns:ReportUi="views.windows.functionWins.mail.ReportUi.*" xmlns:ReportUi1="views.windows.functionWins.post.ReportUi.*">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.ReportUi.ReportManager;
+			import views.windows.functionWins.mail.ReportUi.ReportManager;
+			import roma.logic.GameContext;
+			import gs.plugins.VolumePlugin;
+			import mx.messaging.management.ObjectName;
+			import views.windows.functionWins.mail.bean.BattleReportType;
+			import mx.utils.ObjectProxy;
+			import mx.rpc.xml.SimpleXMLDecoder;
+			import mx.utils.XMLUtil;
+			
+			private var curViewIndex:int = 0;
+			
+			public function set receiveTime(t:Number):void{
+				ReportManager.instance.receiveTime = t;
+				ReportManager.instance.receiveTimeStr = GameContext.toLocalTimeByValueStr(t);
+			}
+			
+			public function set reportTitle(id:String):void{
+				ReportManager.instance.reportTitle = ReportManager.getTitle(id);
+			}
+			
+			public function set reportBean(xmlObj:Object):void {
+				if(xmlObj.hasOwnProperty('reportData')){
+					ReportManager.instance.url = xmlObj.reportData.url;
+					
+					var reports:Object = xmlObj.reportData;
+					if(reports == null)
+					throw new Error("reorts is null");
+					if(reports.hasOwnProperty('battleReport')){
+						ReportManager.instance.setBattleResultBean(reports.battleReport);
+						curViewIndex = 0;
+					}
+					else if(reports.hasOwnProperty('scoutReport')){
+						ReportManager.instance.setScout(reports.scoutReport);
+						curViewIndex = 1;
+					}
+					else{
+						ReportManager.instance.reportObj = new ObjectProxy(reports);
+						curViewIndex = 2;
+					}
+	            }
+	            refreshClass();
+			} 
+			
+			private function refreshClass():void{
+				if(this.initialized){
+					reportVS.selectedIndex = curViewIndex;
+					if(curViewIndex == 0){
+						if(ReportManager.instance.battleReportType == null)return;
+						battleReport.battleBean = ReportManager.instance.battleReportType;
+					}
+					else if(curViewIndex == 1){
+						if(ReportManager.instance.scoutType == null)return;
+						scoutReport.scout = ReportManager.instance.scoutType;
+					}
+					else if(curViewIndex ==2){
+						if(ReportManager.instance.reportObj == null)return;
+						commonReport.reportObj = ReportManager.instance.reportObj;
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:ViewStack id="reportVS" width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<ReportUi:BattleDetail label="战争结果报告" id="battleReport"/>
+		<ReportUi:ScoutReport label="侦察报告" id="scoutReport"/>
+		<ReportUi:CommonReport label="公用报告界面" id="commonReport"/>
+	</mx:ViewStack>
+</mx:Canvas>

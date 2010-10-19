@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:spreadUI="views.spreadUI.*" xmlns:tech="views.spreadUI.tech.*" >
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.rule.ruleCheck.ConditionCheck;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.util.MultiLang;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.object.tech.BaseTechObj;
+
+			[Bindable]
+			private var type_id:int;
+			[Bindable]
+			private var _result:RuleCheckResult;
+			[Bindable]
+			private var _dependStr:String;
+			[Bindable]
+			private var _costTime:Number;
+			[Bindable]
+			private var str:String = "<b><font color ='#370d00'>"+MultiLang.msg('tech.action')+"</font></b><br/>";
+			
+			[Bindable]
+			private	var _buildingName:String;
+			[Bindable]
+			private var _buildingLevel:int;
+			[Bindable]
+			private var _str:String;
+			private var _buildingObj:BaseBuilding;
+			
+			[Bindable]
+			private var mainTitle:String;
+			[Bindable]
+			private var subTitle:String;
+			[Bindable]
+			private var isUpdate:Boolean=true;
+			private var typeId:int;
+			
+			public function setRuleCheckResult(result:RuleCheckResult):void{
+				this.isUpdate=true;
+				this._result = result;
+				this._dependStr = ConditionCheck.instance.checkBuildingAndItemDepend(this._result.buildingDepenAry,this._result.itemDependAry,this._result.populationDependAry);
+				this._str = this.getBuildingEffect(this._buildingLevel);
+				if(this._buildingLevel==0){
+					this.mainTitle=MultiLang.msg('upgradingWin.build') +' '+this._buildingName+' '+MultiLang.msg('public.label.level')+" "+(this._buildingLevel+1);
+				}else{
+					this.mainTitle=MultiLang.msg('upgradingWin.updata2NextLevel') +' '+this._buildingName+' '+MultiLang.msg('public.label.level')+" "+(this._buildingLevel+1);
+					
+				}
+				this.subTitle=MultiLang.msg('building.condition');
+			}
+			
+			//设置降级的建筑规则
+			public function setDegradeRuleCheckResult(result:RuleCheckResult):void{
+				this.isUpdate=false;
+				this._result = result;
+				this._dependStr = "";
+				this._str = this.getBuildingEffect(this._buildingLevel-2);
+				if(this._buildingLevel-1!=0){
+					this.mainTitle=MultiLang.msg('upgradingWin.degrade2Level')+' '+this._buildingName+' '+MultiLang.msg('public.label.level')+" "+(this._buildingLevel-1);
+				}else{
+					this.mainTitle=MultiLang.msg('upgradingWin.degrade2Level')+' '+MultiLang.msg('upgradingWin.emptySpace');
+				}
+				
+				this.subTitle=MultiLang.msg('building.acquireResource');
+			}
+			
+			public function setBuildingObj(obj:BaseBuilding):void{
+				this._buildingName = BuildingHelper.instance.getName(obj.typeId);
+				this._buildingLevel = obj.level;
+				this._buildingObj=obj;
+				this.typeId=obj.typeId;
+				
+			}
+			
+			private function getBuildingEffect(lv:int):String{
+				var buildingLevelDec:String="";
+				if(_buildingObj!=null){
+					if(lv==0){
+						buildingLevelDec+=_buildingObj.getFuncDesc(lv+1);
+					}
+					if(lv>0&&lv<BuildingConstant.HIGHEST_LEVEL){
+						buildingLevelDec+=_buildingObj.getFuncDesc(lv+1);
+					}
+					if(lv==BuildingConstant.HIGHEST_LEVEL){
+						buildingLevelDec+=_buildingObj.getFuncDesc(lv);
+					}		
+				}else{
+					buildingLevelDec=BuildingHelper.instance.getBuildingFuncDesc(typeId,1)
+				}
+				
+				return buildingLevelDec;
+			}
+			
+			public function setTypeId(type_id:int):void{
+				_buildingName = BuildingHelper.instance.getName(type_id);
+				_buildingLevel = 0;
+				typeId=type_id;
+			}
+			override public function onMouseOut():void {
+				super.onMouseOut();
+				_buildingObj=null;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" bottom="10" right="10">
+		<mx:VBox width="100%" height="100%">
+			<mx:Label text="{this.mainTitle}" styleName="tooltipsNameLable"/>
+			<mx:Text  text ="{this._str}" styleName="tooltipsTipsLable" maxWidth="270" width="100%"/>
+		</mx:VBox>
+		<mx:Label  text ="{this.subTitle}" styleName="tooltipsContentLable" width="100%"/>
+		<mx:VBox verticalGap="0" width="100%" height="100%">
+			<tech:PublicConditionForm  result="{this._result}" dependStr ="{this._dependStr}" labelWidth="130" lineWidth="349" visible="{this.isUpdate}" includeInLayout="{this.isUpdate}"/>
+			<tech:DegradeCondition  result="{this._result}" dependStr ="{this._dependStr}" labelWidth="130" lineWidth="349" visible="{!this.isUpdate}" includeInLayout="{!this.isUpdate}"/>
+		</mx:VBox>
+	</mx:VBox>
+	
+</BaseTip>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" kerning="true" mouseChildren="false" creationComplete="init()" mouseEnabled="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			
+		]]>
+	</mx:Script>
+	<mx:Script source="TvShowWin_.as" />
+	<mx:VBox horizontalCenter="0" top="0" width="100%" horizontalAlign="center">
+		<mx:Text maxWidth="700" htmlText="{this.tvContent}" filters="{[FiltersUtil.glowFilter3Pix]}" styleName="tvShowText"/>
+	</mx:VBox>
+	
+</mx:Canvas>

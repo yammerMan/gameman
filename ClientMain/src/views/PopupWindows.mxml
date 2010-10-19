@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas width="800" height="400" 
+	creationComplete="init()" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:alliance="views.windows.functionWins.alliance.*" 
+	xmlns:domesticAffairs="views.windows.functionWins.domesticAffairs.*" 
+	xmlns:friendly="views.windows.functionWins.friendly.*" 
+	xmlns:intelligence="views.windows.functionWins.intelligence.*" 
+	xmlns:lordPanel="views.windows.functionWins.lordPanel.*" 
+	xmlns:mail="views.windows.functionWins.mail.*" 
+	xmlns:notice="views.windows.functionWins.notice.*" 
+	xmlns:ranking="views.windows.functionWins.ranking.*" 
+	xmlns:store="views.windows.functionWins.store.*" 
+	xmlns:task="views.windows.functionWins.task.*" 
+	xmlns:buildings="views.windows.buildings.*"
+	xmlns:shop="views.windows.functionWins.shop.*"
+	xmlns:myItem="views.windows.functionWins.myItem.*" 
+	xmlns:town="views.mainModules.town.*" 
+	xmlns:outOfAlliance="views.windows.functionWins.alliance.outOfAlliance.*" 
+	xmlns:military="views.windows.functionWins.military.*" 
+	xmlns:kingInfoWin="views.windows.functionWins.playInfo.*"
+	xmlns:castleInfoWin="views.mainModules.map.*" 
+	xmlns:mainFrame="views.mainFrame.*" 
+	xmlns:hero="views.windows.functionWins.hero.*" 
+	xmlns:diplomacy="views.windows.functionWins.diplomacy.*" 
+	xmlns:armySituation="views.windows.functionWins.military.armySituation.*"
+	xmlns:post="views.windows.functionWins.post.*">
+	
+	<mx:Script source="PopupWindows_.as"/>
+	
+	<mx:ViewStack id="currentPopupWin" width="100%" height="100%" x="0" y="0">
+		<!--任务-->
+		<task:TaskWin id="taskWin"/>
+		<!--我的物品-->
+		<myItem:MyItemsWin id="myItemsWin"/>
+		<!--联盟-->
+		<alliance:Alliance id="unionWin"/>
+		<!--未加入联盟-->
+		<outOfAlliance:OutAllianceWin id="outAllianceWin" />
+		<!--内政-->
+		<domesticAffairs:DomesticAffairsWin id="domesticAffairsWin"/>
+		<!--好友-->
+		<friendly:FriendlyWin id="friendlyWin"/>
+		<!--外交-->
+		<diplomacy:DiplomacyWin id="diplomacyWin" />
+		<!-- 野地战报 -->
+		<intelligence:FieldBattleWin id="fieldBattleWin" />
+		<!--情报-->
+		<intelligence:IntelligenceWin id="intelligenceWin"/>
+		<!--君主面板-->
+		<lordPanel:LordPanelWin id="lordPanelWin"/>
+		<!--邮件-->
+		<mail:Mail id="mailWin"/>
+		<!--排行-->
+		<ranking:RankingWin id="rankingWin"/>
+		<!--商店-->
+		<shop:Shop id="storeWin"/>
+		<!--新建建筑窗口界面-->
+		<town:NewBuildingWindow id="consNewBuildingWin"/>
+		<!--建筑窗口信息界面-->
+		<buildings:BuildingInfoWindow id="buildingWindowInfo"/>
+		<!-- 玩家信息 -->
+		<kingInfoWin:KingInfoWin id="kingInfoWin"/>
+		<!-- 玩家logo修改界面 -->
+		<kingInfoWin:PlayerLogoWin id="playerLogoWin" />
+		<!-- 分配兵力 -->
+		<military:AssignTroopWin id="assignTroopWin"/>	
+		<!-- 资源购买 -->	
+		<mainFrame:PurResourcesWin id="buyItemResourceWin"/>
+		<!--英雄管理 -->
+		<hero:HerosMansionWin id="herosMansionWin"/>
+		<!--城市信息 -->
+		<castleInfoWin:CastleInfoWin id="castleInfoWin"/>
+		<!--NPC城市信息 -->
+		<castleInfoWin:TrainingRoomWin id="trainingRoomWin"/>
+		<!-- 出征加入战局 -->
+		<military:GoingToWarWin id="createArmyWin" />
+		<!--附庸城信息 -->
+		<diplomacy:VassalMesWin id="vassalMesWin"/>
+		<!-- 战局信息 -->
+		<intelligence:BattleSituationDetail id="battleSituationDetail"/>
+	</mx:ViewStack>
+</mx:Canvas>

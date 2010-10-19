@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	creationComplete="init()" width="610" height="380">
+<mx:Script>
+	<![CDATA[
+		import roma.util.JavaScriptHelper;
+		import roma.util.FiltersUtil;
+		import views.PleaseWaitUC;
+		import mx.utils.StringUtil;
+		import views.spreadUI.MyAlert;
+		import roma.RomaMain;
+		import roma.logic.CaesaryConfig;
+		import roma.util.MultiLang;
+		import mx.logging.ILogger;
+		import mx.logging.Log;
+		
+		private static var log:ILogger = Log.getLogger("views.LoginComp");
+		private static const COOKIE_NAME:String = "userInfo";
+		
+		[Bindable]
+		private var debugMode:Boolean = CaesaryConfig.instance.isDebug;
+		[Bindable]
+		private var saveAccountName:String;
+		[Bindable]
+		private var savePassword:String;
+		[Bindable]
+		private var isSaveUser:Boolean = true;
+		[Bindable]
+		private var savePass:Boolean = false;
+		[Bindable]
+		private var saveIp:String = CaesaryConfig.instance.serverIp;
+
+		private function init():void {
+			log.debug("init()");
+			this.getLocal();
+			
+			JavaScriptHelper.instance.loginFocus();
+			
+			this.userText.setFocus();
+			this.userText.setSelection(0,this.userText.text.length);
+		}
+		
+		/**
+		 * 从本地读取以前的信息
+		 */
+		private function getLocal():void {
+			var userObj:SharedObject = SharedObject.getLocal(COOKIE_NAME);
+			if (userObj.data) {
+				if (userObj.data.ip && CaesaryConfig.instance.isDebug) {
+					this.saveIp = userObj.data.ip;
+				}
+				
+				if (userObj.data.username) {
+					this.saveAccountName = userObj.data.username;
+				}
+				
+				if (userObj.data.password) {
+					this.savePassword = userObj.data.password;
+				}
+				
+				this.isSaveUser = (userObj.data.isSaveUser);
+				this.savePass = (userObj.data.savePass);
+			}
+		}
+		
+		/**
+		 * 将信息写回到本地
+		 */
+		private function setLocal():void {
+			var userObj:SharedObject = SharedObject.getLocal(COOKIE_NAME);
+			if (this.cb_password.selected) {
+				userObj.data.password = this.passText.text;
+			} else {
+				userObj.data.password = "";
+			}
+			
+			if (this.cb_UserName.selected) {
+				userObj.data.username = this.userText.text;
+				userObj.data.ip = this.ipText.text;
+			} else {
+				userObj.data.username = "";
+				userObj.data.ip = "";
+			}
+
+			userObj.data.isSaveUser = this.cb_UserName.selected;
+			userObj.data.savePass = this.cb_password.selected;
+
+			userObj.flush();
+		}
+
+		private function loginDo():void {
+			this.setLocal();
+			
+			var name:String = StringUtil.trim(this.userText.text);
+			var ps:String = StringUtil.trim(this.passText.text);
+			if (name.length == 0 || ps.length==0) {
+				MyAlert.show(MultiLang.msg('login.msg.mustInputUserNameAndPassword'),null);
+				return;
+			}
+			var ipStr:String;
+			if (!this.debugMode) {
+				ipStr = CaesaryConfig.instance.serverIp;
+			} else {
+				ipStr = this.ipText.text;
+			}
+
+			PleaseWaitUC.instance.show();
+			RomaMain.instance.doLogin(name, ps, ipStr);
+		}
+
+		private function onClickSavePassword():void{
+			var savePasswordOrNot:Function = function(ok:Boolean):void {
+				cb_password.selected=ok;
+			}
+			
+			if (this.cb_password.selected==true){
+				MyAlert.show(MultiLang.msg('login.msg.confirmForSavePassword'),savePasswordOrNot);
+			}
+		}
+
+		private function onIpFocusIn():void {
+			var index:int = this.ipText.text.lastIndexOf(".");
+			if (index>0) {
+				this.ipText.setSelection(index+1 , this.ipText.text.length);
+			}
+		}
+		
+	]]>
+</mx:Script>
+	<mx:VBox horizontalAlign="center" top="0" verticalGap="10" left="0" width="300" height="280" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:VBox width="100%" verticalGap="0" left="0">
+			<mx:Label text="{MultiLang.msg('login.input.username')}:" width="100%" fontSize="15" color="0xffffff" filters="{[FiltersUtil.glowFilter]}" textAlign="left" paddingLeft="5" fontWeight="bold"/>
+			<mx:TextInput id="userText" width="235" 
+				text="{this.saveAccountName}" 
+				enter="loginDo()" styleName="LoginTextInput" height="37" fontSize="15" paddingTop="7" tabIndex="1" />
+		</mx:VBox>
+		<mx:VBox width="100%" verticalGap="0" left="0">
+			<mx:Label text="{MultiLang.msg('password.label')}:" width="100%" fontSize="15" color="0xffffff" filters="{[FiltersUtil.glowFilter]}" textAlign="left" paddingLeft="5" fontWeight="bold"/>
+			<mx:TextInput displayAsPassword="true" id="passText"
+				text="{this.savePassword}" 
+				enter="loginDo()" tabIndex="2"
+				styleName="LoginTextInput" width="235" height="37" fontSize="15" paddingTop="7" />
+		</mx:VBox>
+		<mx:HBox width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off" horizontalAlign="left">
+			<mx:HBox verticalAlign="middle" horizontalGap="2">
+				<mx:CheckBox id="cb_UserName"
+					selected="{this.isSaveUser}" styleName="loginCheckBox" tabIndex="3" />
+				<mx:Label text="{MultiLang.msg('login.checkbox.saveUsername')}" styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}"  fontWeight="normal" fontSize="11"/>
+			</mx:HBox>
+			<mx:HBox verticalAlign="middle" horizontalGap="2">
+			<mx:CheckBox id="cb_password"
+				selected="{this.savePass}" 
+				change="onClickSavePassword()" styleName="loginCheckBox" tabIndex="4" />
+				<mx:Label text="{MultiLang.msg('login.checkbox.savePassword')}" styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}"  fontWeight="normal" fontSize="11"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:VBox>
+	
+	<mx:Button label="{MultiLang.msg('login.doLogin')}" width="200" styleName="loginBigSizeBtn" click="this.loginDo();" height="50" horizontalCenter="-185" bottom="150"/>
+	<mx:TextInput id="ipText"
+		text="{this.saveIp}"
+		focusIn="this.onIpFocusIn()"
+		enter="loginDo()"
+		width="120" visible="{this.debugMode}" includeInLayout="{this.debugMode}" right="10" bottom="27"/>
+	
+</mx:Canvas>

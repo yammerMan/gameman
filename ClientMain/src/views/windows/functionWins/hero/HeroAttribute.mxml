@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="220" height="300" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	xmlns:ns2="views.spreadUI.*"
+	xmlns:army="views.spreadUI.army.*"
+	xmlns:hero="views.windows.functionWins.hero.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.HeroManConstants;
+			import roma.util.FiltersUtil;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="HeroAttribute_.as"/>
+	<mx:VBox right="0" verticalGap="2" left="0" top="0" bottom="0" horizontalAlign="center">
+		<mx:Spacer height="2"/>
+		<mx:Canvas width="100%" height="48" horizontalScrollPolicy="off" verticalScrollPolicy="off" label="英雄头像">
+			<mx:Canvas width="96" height="48" styleName="bigBuildingLogo" verticalCenter="0" left="5">
+				<mx:Image source="{ImgManager.clazz(curHero.heroInfo.logoUrl)}" 
+					scaleX="{88/104}" scaleY="{40/48}" updateComplete="ImageHandle.onLoadComplete(event)" left="4" top="4" right="4" bottom="4"/>
+				<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" left="3" top="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{curHero.heroInfo.level}" x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center"/>
+			</mx:Canvas>
+			<mx:VBox left="120" height="100%" verticalGap="3" verticalScrollPolicy="off" horizontalScrollPolicy="off" right="5" top="2">
+				<mx:HBox width="100%" verticalAlign="middle">
+					<!--mx:TextInput id="heroNameText" text="{curHero.heroInfo.name}" alpha="0"  width="100%" editable="false" textAlign="center" color="{curHero.heroInfo.potentiality>0?0x0082cd:0x81511c}" styleName="titleBordLabel" change="textChange(event)"/-->
+					<ns2:ModifyTextInput textString="{curHero.heroInfo.name}" id="heroNameText" width="100%" textInputChangeHandle="textChange" modifyColor="{curHero.heroInfo.potentiality>0?'0x0082cd':'0x81511c'}"/>
+					<mx:Button id="modifyNameBtn"  width="16" height="15" click="onModifyName(event)" styleName="collectionModifyBtn" toolTip="{MultiLang.msg('favorite.modify.click')}"/>
+				</mx:HBox>
+				<mx:HRule width="100%" top="50" right="0" styleName="questInfoHRule"/>
+				<mx:HBox width="100%" horizontalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{curHeroStatus}" textAlign="center" styleName="discritionWithBorderAlphaTextArea"/>
+					<mx:Image width="16" height="16"  source="{curHero.stateIcon}" verticalCenter="0"
+						updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Spacer width="100%"/>
+					<mx:Button id="upgradeBtn" label="{MultiLang.msg('public.label.upgrade')}" width="52" height="18"
+						click="onUpgrade()" styleName="secondaryBtn" enabled="{!(curHero.heroInfo.level>=HeroManConstants.HIGHEST_LEVEL)?curHero.canUpdate:false}" visible="{curHero.isCaptive?false:true}" 
+						includeInLayout="{curHero.isCaptive?false:true}"  fontWeight="normal"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:VBox>
+	
+	<mx:VBox bottom="1" left="5" verticalGap="4" horizontalAlign="center" width="233">
+		<mx:HBox width="230" label="英雄升级" verticalAlign="middle" horizontalGap="0">
+			<mx:Canvas height="22" width="185" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Image width="185" height="13" verticalCenter="0" left="0" source="{ImgManager.clazz('background.heroExperienceBarBG')}" 
+					updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Image source="{ImgManager.clazz('background.heroExperienceBarProgress')}" width="164" left="10" 
+					height="5" visible="{!(curHero.heroInfo.level>=HeroManConstants.HIGHEST_LEVEL)}" verticalCenter="0" scaleX="{Math.min(1,curHero.heroInfo.exp/(Math.pow(curHero.heroInfo.level,2)*100*curHeroExp))}"/>
+				<mx:Text id="heroExpText" visible="{!(curHero.heroInfo.level>=HeroManConstants.HIGHEST_LEVEL)}" text="{curHero.heroInfo.level>= HeroManConstants.HIGHEST_LEVEL?HeroManConstants.HIGHEST_LEVEL:curHero.heroInfo.exp}/{int(Math.pow(curHero.heroInfo.level,2)*100*curHeroExp)}" height="20" width="185" filters="{[FiltersUtil.glowFilter]}" textAlign="center" color="0xffffff" y="1"/>
+			</mx:Canvas>
+			<mx:Spacer width="100%"/>
+			<mx:Button id="addExpBtn" styleName="addBtn" enabled="{curHero.isCaptive?false:!(curHero.heroInfo.level>=HeroManConstants.HIGHEST_LEVEL)}"
+				click="addExp(event)" toolTip="{MultiLang.msg('addButtonTip.heroExperience')}"/>
+			<mx:Spacer width="7"/>
+		</mx:HBox>
+		
+		<mx:HBox width="100%" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off" label="英雄属性">
+			<mx:HBox width="100%" height="100%" label="属性表格" horizontalGap="0">
+				<mx:Canvas width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" styleName="whiteBGwithBorder">
+					<mx:VBox verticalGap="0" height="100%" width="100%"  horizontalAlign="center" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+						<mx:Canvas width="225" height="22" toolTip="{MultiLang.msg('hero.physical.tip')}">
+							<hero:HeroProgressBar paintColor="{0x95da00}" progress="{curHero.heroInfo.strengthPoint/Math.min((curHero.heroInfo.level+HeroManConstants.STRENGTH_POINT_FOR_LEVEL_ONE_HERO-1),HeroManConstants.MAX_HERO_STRENGTH_POINT)}" y="2" x="0"/>
+							<mx:HBox width="225" verticalAlign="middle" horizontalAlign="left" horizontalGap="2" label="体力" height="22">
+								<mx:Label text="{MultiLang.msg('hero.physical')}: " textAlign="left" width="100%"/>
+		  						<mx:Label id="heroPhysicalText" text="{curHero.heroInfo.strengthPoint}/{Math.min((curHero.heroInfo.level+HeroManConstants.STRENGTH_POINT_FOR_LEVEL_ONE_HERO-1),HeroManConstants.MAX_HERO_STRENGTH_POINT)}" styleName="titleNameLabel"/>
+								<mx:Button id="addPhysicalBtn" styleName="addBtn" click="addPhisical()" enabled="{!curHero.isCaptive}" toolTip="{MultiLang.msg('addButtonTip.heroPhisical')}"/>
+								<mx:Spacer width="3"/>
+							</mx:HBox>
+						</mx:Canvas>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" label="三围" horizontalGap="2" height="44" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Spacer width="1"/>
+							<mx:VBox label="管理" toolTip="{MultiLang.msg('hero.politics.tip')}" verticalGap="0" height="44" width="72">
+								<mx:HBox horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="72" verticalAlign="middle">
+									<mx:Label text="{MultiLang.msg('hero.politics')}" height="20" styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}" width="100%"/>
+									<mx:Button id="addBtnPol" styleName="increaseAttributeBtn" 
+										click="addHeroPoint('addPol',1)" enabled="{remainPoint>0}" 
+										horizontalCenter="0" verticalCenter="0" width="14" height="14"/>
+									<mx:Button id="add3BtnPol" styleName="add3PointBtn" width="14" height="14"
+										click="addHeroPoint('addPol',3)" enabled="{remainPoint>=3}" 
+										horizontalCenter="0" verticalCenter="0"/>
+								</mx:HBox>
+								<mx:Label id="politicsText" width="100%"
+									text="{this.heroBuffPol >0?(politicsPoint+'+'+heroBuffPol):politicsPoint}" 
+									height="20"  filters="{[FiltersUtil.glowFilter]}" color="#D8FF20" fontWeight="bold" fontFamily="Arial" fontSize="14"/>
+							</mx:VBox>
+							<mx:VRule height="44"/>
+							<mx:VBox label="攻击" toolTip="{MultiLang.msg('hero.attack.tip')}" verticalGap="0" height="44" width="72">
+								<mx:HBox horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="72" verticalAlign="middle">
+									<mx:Label text="{MultiLang.msg('hero.attack')}" height="20" styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}" width="100%"/>
+									<mx:Button id="addBtnAtt"  styleName="increaseAttributeBtn" width="14" height="14"
+										click="addHeroPoint('addAtt',1)" enabled="{remainPoint>0}" 
+										horizontalCenter="0" verticalCenter="0"/>
+									<mx:Button id="add3BtnAtt" styleName="add3PointBtn" width="14" height="14"
+										click="addHeroPoint('addAtt',3)" enabled="{remainPoint>=3}" 
+										horizontalCenter="0" verticalCenter="0"/>
+								</mx:HBox>
+								<mx:Label id="attackText" width="100%"
+									text="{this.heroBuffAtt>0?(attackPoint+'+'+heroBuffAtt):attackPoint}" 
+									height="20"  filters="{[FiltersUtil.glowFilter]}" color="#3d8fff" fontWeight="bold" fontFamily="Arial" fontSize="14"/>
+							</mx:VBox>
+							<mx:VRule height="44"/>
+							<mx:VBox label="防御" toolTip="{MultiLang.msg('hero.defence.tip')}" verticalGap="0" height="44" width="72">
+								<mx:HBox horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="72" verticalAlign="middle">
+									<mx:Label text="{MultiLang.msg('hero.defence')}" height="20" styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}" width="100%"/>
+									<mx:Button id="addBtnInt" styleName="increaseAttributeBtn" width="14" height="14"
+										click="addHeroPoint('addInt',1)" enabled="{remainPoint>0}" 
+										horizontalCenter="0" verticalCenter="0"/>
+									<mx:Button id="add3BtnInt" styleName="add3PointBtn" width="14" height="14"
+										click="addHeroPoint('addInt',3)" enabled="{remainPoint>=3}" 
+										horizontalCenter="0" verticalCenter="0"/>
+								</mx:HBox>
+								<mx:Label id="intelligenceText" width="100%"
+									text="{this.heroBuffDef>0?(intelligencePoint+'+'+heroBuffDef):intelligencePoint}" 
+									height="20" filters="{[FiltersUtil.glowFilter]}" color="#ff3737" fontWeight="bold" fontFamily="Arial" fontSize="14"/>
+								<mx:Spacer width="1"/>
+							</mx:VBox>
+							<mx:Spacer width="0"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="223" horizontalGap="2" verticalAlign="middle" label="操作" height="22" toolTip="{MultiLang.msg('hero.loyaty.tip')}">
+							<mx:Button label="{MultiLang.msg('hero.save')}" id="saveBtn" click="save()" toolTip="{MultiLang.msg('hero.save.tip')}"
+								height="18" right="0" fontWeight="normal" enabled="false" styleName="secondaryBtn" width="45"/>
+							<mx:Button label="{MultiLang.msg('hero.reset')}" id="resetBtn" click="reset()" toolTip="{MultiLang.msg('hero.reset.tip')}"
+								height="18" right="0" fontWeight="normal" enabled="false" styleName="secondaryBtn" width="45"/>
+							<mx:Spacer width="100%"/>
+							<mx:Button label="{MultiLang.msg('hero.redistribute')}" click="washPoint()" height="18" toolTip="{MultiLang.msg('hero.redistribute.tip')}"
+								enabled="{!curHero.isCaptive?(curHero.heroInfo.managesAdd+curHero.heroInfo.powersAdd+curHero.heroInfo.stratagemsAdd)>0:false}" 
+								id="redistributeBtn" left="0" fontWeight="normal" styleName="secondaryBtn" width="55"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="225" horizontalGap="0" verticalAlign="middle" label="附加点" height="22" toolTip="{MultiLang.msg('hero.loyaty.tip')}" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+								<mx:Label text="{MultiLang.msg('hero.remainPoint')}: " height="20" textAlign="right" toolTip="{MultiLang.msg('hero.remainPoint.tip')}"/>
+								<mx:Label text="{remainPoint}" width="50" height="20" styleName="titleNameLabel" toolTip="{MultiLang.msg('hero.remainPoint.tip')}"/>
+							</mx:HBox>
+							<mx:HBox horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" verticalAlign="middle" label="潜力" height="22" toolTip="{MultiLang.msg('hero.potentiality.label.tip')}">
+								<mx:Label width="90" text="{MultiLang.msg('hero.potentiality.label')}: " height="20" textAlign="right"/>
+								<mx:Label text="{curHero.heroInfo.potentiality}" color="{curHero.heroInfo.potentiality>0?0x0082cd:0x000000}" width="30" height="20"/>
+							</mx:HBox>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+					
+						<mx:Canvas width="225" height="22" toolTip="{MultiLang.msg('hero.leadership.tip')}">
+							<hero:HeroProgressBar paintColor="{0xe2a400}" progress="{this.curHero.troopStrength/this.curHero.tempLeadership}" y="2" x="0"/>
+							<mx:HBox width="225" label="统帅" horizontalGap="0" verticalAlign="middle" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+								<mx:Label text="{MultiLang.msg('hero.leadership')}:" width="100%"/>
+								<mx:Label text="{this.curHero.troopStrength}/{this.curHero.tempLeadership}" styleName="titleNameLabel"/>
+								<mx:Button id="addLeaderShipBtn" styleName="addBtn" click="addLeaderShip()" enabled="{!curHero.isCaptive}" toolTip="{addArmyLimitTips}"/>
+								<mx:Spacer width="5"/>
+							</mx:HBox>
+						</mx:Canvas>
+					</mx:VBox>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:HBox>
+		
+
+		
+		<mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="220" horizontalAlign="center" verticalAlign="middle">
+			<army:HeroArmyUI hero="{this.curHero}"/>
+		</mx:VBox>
+	</mx:VBox>
+	
+</mx:Canvas>

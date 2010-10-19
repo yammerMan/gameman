@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:ui="views.spreadUI.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.common.constants.LetterConstant;
+		]]>
+	</mx:Script>
+	<mx:Script source="WriteMailCanvas_.as"/>
+	<mx:Canvas top="30" width="100%" styleName="subContentBG" height="80" label="邮件头" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:VBox height="100%" verticalCenter="0" left="13" verticalAlign="middle" width="100%" verticalGap="3">
+			<mx:HBox width="100%" horizontalGap="3">
+				<mx:Label text="{MultiLang.msg('mail.label.recipients')}:" width="80" textAlign="right" styleName="titleBordLabel"/>
+				<mx:TextInput text="{replyName}" width="430" id="receiveNameText"/>
+			</mx:HBox>
+			<mx:HBox width="100%" horizontalGap="3">
+				<mx:Label text="{MultiLang.msg('public.label.subject')}:" width="80" height="23" textAlign="right" styleName="titleBordLabel"/>
+				<mx:TextInput text="{mailTitle}" width="430" id="sendTitleInput" change="titleInputChange(event)"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas bottom="42" top="112" styleName="whiteBGEmailBorder"  width="100%" x="0">
+		<mx:VBox verticalGap="0" top="0" left="0" right="0" bottom="3">
+			<ui:MulHRule/>
+			<mx:TextArea id="sendContentText" text="" width="100%" height="100%" textAlign="left" focusAlpha="0" change="contentsInputChange(event)"/>
+		</mx:VBox>				
+	</mx:Canvas>
+	<mx:HBox bottom="42" right="0" alpha="0.5" mouseEnabled="false" mouseChildren="false">
+		<mx:Label text="{MultiLang.msg('mail.msg.maxWords',LetterConstant.CONTENT_LIMIT_LENGTH)}" styleName="titleBordLabel" />
+	</mx:HBox>
+	<mx:HBox verticalAlign="middle" horizontalAlign="right" bottom="11" right="0" horizontalGap="3" height="30">
+		<mx:Button label="{MultiLang.msg('mail.button.send')}" click="sendLetterToServer()" width="100"/>
+		<mx:Button label="{MultiLang.msg('public.label.return')}" click="backToMainWin()" width="100"/>
+		<mx:Spacer width="1"/>
+	</mx:HBox>
+</mx:Canvas>

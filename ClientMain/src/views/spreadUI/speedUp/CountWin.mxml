@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalAlign="right">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import mx.collections.ArrayCollection;
+			import roma.resource.ImgManager;
+			import roma.util.FiltersUtil;
+			
+			[Bindable]
+			private var filtAry:Array =[FiltersUtil.glowFilter];
+			[Bindable]
+			private var accountValue:int;
+		
+			public function set account(account:int):void{
+				this.accountValue=account;
+			}
+		]]>
+	</mx:Script>
+	<mx:Label text="{this.accountValue}" styleName="normalBoldLabel" filters="{filtAry}"/>
+	<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+</mx:HBox>

@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseWin xmlns="views.windows.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="100%" height="100%" 
+	creationComplete="init()" 
+	xmlns:myItem="views.windows.functionWins.myItem.*" 
+	xmlns:ns1="views.spreadUI.*" styleName="shopBG"
+	xmlns:ns2="views.windows.functionWins.myItem.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.EquipValueBean;
+			import roma.message.events.BuyEquipEvent;
+			import roma.common.valueObject.EquipBean;
+			import views.windows.functionWins.shop.ItemInShop;
+			import views.windows.functionWins.hero.EquipHelper;
+			import views.windows.functionWins.shop.ShopHelper;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import views.BeginnerGuide;
+			import roma.logic.CaesaryConfig;
+			import views.MainContainer;
+			import roma.util.JavaScriptHelper;
+			import roma.util.ImageHandle;
+			import roma.message.events.UseItemEvent;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.rule.GameRuleHelper;
+			import mx.collections.ArrayCollection;
+			import roma.util.FiltersUtil;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.shop.UseMaterialResultResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.CompCache;
+			import roma.message.EvtDispacther;
+			import roma.logic.object.player.PlayerObj;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.RomaConstants;
+			import mx.events.ItemClickEvent;
+			import views.windows.functionWins.shop.Shop;
+			import views.PopupWindows;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			
+			public static const WINDOW_SHOW:String ="MyItemWin.open";
+			public static const USE_ITEM:String = "MyItemWin.userItem";
+			
+			[Bindable]
+			private var loadComplete:Boolean = false;
+			
+			private var timer:Timer=new Timer(1000,1);
+			
+			[Bindable]
+			private var playerInfo:PlayerInfoDataBean; 
+			
+			private var cacheUi:CompCache = new CompCache(100);
+
+			private var curItemType:int = RomaConstants.ITEM_TYPE_TREASURE;
+			
+			private var treasureArr:ArrayCollection=new ArrayCollection();
+			private var speedUpArr:ArrayCollection=new ArrayCollection();
+			private var produceArr:ArrayCollection=new ArrayCollection();
+			private var chestArr:ArrayCollection=new ArrayCollection();
+			private var luxuryArr:ArrayCollection=new ArrayCollection();
+			private var curItemArr:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var curPage:int=0;
+			[Bindable]
+			private var totalPage:int=0;
+			
+			private var curUseItem:MaterialBean;
+			
+			private var equipsArr:ArrayCollection=new ArrayCollection();
+			private var isEquip:Boolean=false;
+			
+
+			private function init():void {
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE,initUiJudgement);
+				EvtDispacther.instance.addEventListener(EvtDispacther.ITEM_ADD_OR_REMOVE, onItemAddOrRemove);
+				EvtDispacther.instance.addEventListener(UseItemEvent.USE_ITEM, onItemUseHandler);
+				EvtDispacther.instance.addEventListener(UseItemEvent.EVENT_NAME,showUseItemWin);
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.ITEMRULE_CHANGE,onItemAddOrRemove);
+				
+				EvtDispacther.instance.addEventListener(BuyEquipEvent.EVENT_NAME_MYITEM,lookEquipHandle);
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_EQUIP_CHANGE,equipChangeHandle);	
+				
+				//新手指引
+				EvtDispacther.instance.addEventListener(BeginnerGuide.CLICK_NEWPLAYER_PACKAGE,onClickNewPlayerPackage);	
+				EvtDispacther.instance.addEventListener(BeginnerGuide.CLICK_HERO_PACKAGE,onClickHeroPackage);
+				EvtDispacther.instance.addEventListener(BeginnerGuide.CLICK_TROOP_PACKAGE,onClickTroopPackage);
+				EvtDispacther.instance.addEventListener(BeginnerGuide.USE_NEWPLAYER_PACKAGE,onUseNewPlayerPackage);
+				EvtDispacther.instance.addEventListener(BeginnerGuide.CLOSE_GET_ITEM_WIN,hideGetItemWin);	
+				
+				this.equipsArr=EquipHelper.instance.getPlayerEquipsArray();
+				setBtnSelected(RomaConstants.ITEM_TYPE_TREASURE);
+				/* for each(var btn:ButtonWithIcon in typeBtnContainer.getChildren()){
+					btn.isNew=true;
+				} */
+
+			}
+			
+			private function equipChangeHandle(event:Event):void{
+				if(this.isEquip){
+					this.equipsArr=EquipHelper.instance.getPlayerEquipsArray();
+					this.curItemArr=this.equipsArr;
+					countCurPage();
+					this.showItem();
+				}
+			}
+
+			private function lookEquipHandle(event:BuyEquipEvent):void{
+				this.equipWin.show(event.itemRule);
+				this.itemUseWin.visible=false;
+				this.equipWin.visible=true;
+			}
+			
+			private function showUseItemWin(event:UseItemEvent):void{
+				this.curUseItem=event.itemBean;
+				this.itemUseWin.show(event.itemBean);
+				this.receivedItemListWin.visible = false;
+				this.equipWin.visible=false;
+				this.itemUseWin.visible=true;
+			}
+			
+			private function equipChangHandle(event:Event=null):void{
+				if(isEquip){
+					for each (var ui:EquipInMyItem in this.equipsContainer.getChildren()) {
+						ui.refreshItemCount();
+					}
+				}
+			}
+			
+			private function showWin():void{
+				this.itemUseWin.show(this.curUseItem);
+				this.receivedItemListWin.visible = false;
+				this.itemUseWin.visible=true;
+			}
+
+			private function onClickNewPlayerPackage(evt:Event):void{
+				for each(var bean:MaterialBean in curItemArr){
+					if(bean.id =="player.box.present.1"){
+						this.curUseItem=bean;
+						break;
+					}
+				}
+				
+				showWin();
+			}
+			
+			private function onClickHeroPackage(evt:Event):void{
+				for each(var bean:MaterialBean in curItemArr){
+					if(bean.id =="player.box.gambling.hero.3"){
+						this.curUseItem=bean;
+						break;
+					}
+				}
+				
+				showWin();
+			}
+			
+			
+			private function onClickTroopPackage(evt:Event):void{
+				for each(var bean:MaterialBean in curItemArr){
+					if(bean.id =="Battalion.1"){
+						this.curUseItem=bean;
+						break;
+					}
+				}
+				
+				showWin();
+			}
+			
+			private function onUseNewPlayerPackage(evt:Event):void{
+				var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				ControllerFactory.getInstance().getShopController().usePlayerItem(cityId, this.curUseItem.id, onUseItemResponseHandle,false);
+				this.itemUseWin.visible = false;
+			}
+			
+			private function hideGetItemWin(evt:Event):void{
+				this.receivedItemListWin.visible = false;
+			}
+			
+			private function onItemAddOrRemove(event:Event):void{
+				this.addMyItemArr();
+				this.totalPage=Math.ceil(this.curItemArr.length/RomaConstants.ITEM_IN_ONPAGE);
+				this.curPage=this.totalPage>=this.curPage?this.curPage:this.curPage-1;
+				if(this.curPage==0&&this.curItemArr.length>0){
+					this.curPage=1;
+				}
+				this.showItem();
+			}
+
+			override public function refresh():void {
+				if(!timer.running){
+					timer.start();
+				}
+				if(CaesaryConfig.instance.firstTimeLogin){
+//					this.buttonBar.selectedIndex=3;
+					this.curItemType=RomaConstants.ITEM_TYPE_CHEST;
+					btnClickHandler(this.curItemType);
+				}
+				this.loadComplete=false;
+				this.receivedItemListWin.visible = false;
+				this.itemUseWin.visible=false;
+				this.equipWin.visible=false;
+				this.addMyItemArr();
+				this.loadComplete=true;
+				itemVisible(this.curItemType);
+			}
+			
+			private function addMyItemArr():void{
+				this.initArr();
+				var player:PlayerObj = GameContext.instance.getPlayerObj();
+				this.playerInfo = player.getPlayerInfo();
+				var itemRuleArr:ArrayCollection=GameRuleHelper.instance.showItemRuleArray;
+				var myItemArr:ArrayCollection=player.itemManager.itemArray;
+				for each (var itemRule:ItemRule in itemRuleArr) {
+					for each (var bean:MaterialBean in myItemArr) {
+						if(itemRule.itemId==bean.id){
+							if (bean.count >0 ) {
+								this.addToArr(bean);
+							}
+							break;
+						}
+					}	
+				}
+			}
+			
+			private function initUiJudgement(event:TimerEvent):void{
+				if(this.loadComplete==true){
+					timer.stop();
+				}
+			}
+			
+			
+			private function initArr():void{
+				this.treasureArr.removeAll();
+				this.speedUpArr.removeAll();
+				this.produceArr.removeAll();
+				this.chestArr.removeAll();
+				this.luxuryArr.removeAll();
+				this.curItemArr.removeAll();
+			}
+			private function addToArr(itemBean:MaterialBean):void{
+				switch(ItemRule(GameRuleHelper.instance.getItemRuleById(itemBean.id)).itemType){
+					case RomaConstants.ITEM_TYPE_TREASURE:
+						this.treasureArr.addItem(itemBean);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_SPEEDUP:
+						this.speedUpArr.addItem(itemBean);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_PRODUCE:
+						this.produceArr.addItem(itemBean);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_CHEST:
+						this.chestArr.addItem(itemBean);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_LUXURY:
+						this.luxuryArr.addItem(itemBean);
+					break;
+					
+					case RomaConstants.ITEM_TYPE_ACTIVITY:
+						this.treasureArr.addItem(itemBean);
+					break;
+					
+					default:
+				}
+			}
+			
+			private function onItemUseHandler(event:UseItemEvent):void {
+//				var ui:ItemForUse = ItemForUse(event.target);
+				var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				for(var i:int=0;i<event.useCount;i++){
+					ControllerFactory.getInstance().getShopController().usePlayerItem(cityId, this.curUseItem.id, onUseItemResponseHandle,false);
+				}
+				this.itemUseWin.visible = false;
+			}
+
+			private function onUseItemResponseHandle(event:UseMaterialResultResponse):void {
+				if (!event.isSuccess()) {
+					MyAlert.showError(event);
+				} else {
+					if(this.curUseItem.id=="reliveTroopAtWar"||this.curUseItem.id=="incArmyDefence1D"||this.curUseItem.id=="incArmyAttack1D"){
+						MainContainer.instance.risePlay(MultiLang.msg("myItems.itemUseTip."+this.curUseItem.id));
+					}
+					if(this.curUseItem.id.substr(0,4)=="fifa"||this.curUseItem.id.substr(0,8)=="football"){
+						DiamondWorldMap2.instance.setCenterToCurCastle();
+					}
+					if(this.curUseItem.id=="Britons"||this.curUseItem.id=="Gauls"||this.curUseItem.id=="Germans"||this.curUseItem.id=="Huns"||this.curUseItem.id=="Macedon"||this.curUseItem.id=="Rome"||this.curUseItem.id=="Spain"||this.curUseItem.id=="Carthage"||this.curUseItem.id=="Egypt"||this.curUseItem.id=="Parthia"||this.curUseItem.id=="king"){
+						DiamondWorldMap2.instance.setCenterToCurCastle();
+					}
+					if (event.itemsArray!=null && event.itemsArray.length>0) {
+						this.receivedItemListWin.setBeanArray(event.itemsArray);
+						this.receivedItemListWin.onShowUpdate();
+						this.receivedItemListWin.visible = true;
+					}
+					var rule:ItemRule = GameRuleHelper.instance.getItemRuleById(this.curUseItem.id);
+					JavaScriptHelper.instance.addItemLog(1, rule);
+				}
+			}
+			
+			private function tbClick(event:ItemClickEvent):void {
+				switch(event.index){
+					case 0:
+						itemVisible(RomaConstants.ITEM_TYPE_TREASURE);
+						break;
+					case 1:
+						itemVisible(RomaConstants.ITEM_TYPE_SPEEDUP);
+						break;
+					case 2:
+						itemVisible(RomaConstants.ITEM_TYPE_PRODUCE);
+						break;
+					case 3:	
+						itemVisible(RomaConstants.ITEM_TYPE_CHEST);				
+						break;
+					case 4:	
+						itemVisible(RomaConstants.ITEM_TYPE_LUXURY);				
+						break;
+					default:
+				}
+			}
+			/**
+			 * 显示相应类型商品
+			 */
+			private function  itemVisible(itemType:int):void{
+				switch(itemType){
+					case RomaConstants.ITEM_TYPE_TREASURE:
+						this.curItemArr=this.treasureArr;
+						break;
+					case RomaConstants.ITEM_TYPE_SPEEDUP:
+						this.curItemArr=this.speedUpArr;
+						break;
+					case RomaConstants.ITEM_TYPE_PRODUCE:
+						this.curItemArr=this.produceArr;
+						break;
+					case RomaConstants.ITEM_TYPE_CHEST:	
+						this.curItemArr=this.chestArr;	
+						break;
+					case RomaConstants.ITEM_TYPE_LUXURY:	
+						this.curItemArr=this.luxuryArr;	
+						break;
+					case EquipHelper.ITEM_TYPE_EQUIPS:	
+						this.curItemArr=this.equipsArr;	
+						EquipHelper.instance.getPlayerEquip();
+						break;
+					default:
+				}
+				this.isEquip=itemType==EquipHelper.ITEM_TYPE_EQUIPS;
+				this.curItemType = itemType;
+				if(this.isEquip)return;
+				countCurPage();
+				this.showItem();
+			}
+			//显示选中的页数
+			private function showPage(page:int):void{
+				var changePage:int=this.curPage+page;
+				if(changePage>=1&&changePage<=this.totalPage){
+					this.curPage+=page;
+					this.showItem();
+				}
+				
+			}
+			
+			private function showItem():void{
+				/* for each (var ui:ItemForUse in this.treasureContainer.getChildren()) {
+					ui.setBean(null);
+				} */
+				if(this.curPage==-1){
+					return;
+				}
+				
+				
+				var startNum:int=(this.curPage-1)*RomaConstants.ITEM_IN_ONPAGE;
+				var endNum:int=this.curItemArr.length>this.curPage*RomaConstants.ITEM_IN_ONPAGE?this.curPage*RomaConstants.ITEM_IN_ONPAGE:this.curItemArr.length;
+				/* if(this.curItemArr.length>0){
+					for(var i:int=startNum;i<endNum;i++){
+						ItemForUse(this["itemForUse"+i%RomaConstants.ITEM_IN_ONPAGE]).setBean(ItemEnlargeBean(MaterialBean(this.curItemArr.getItemAt(i))));
+						ItemEnlargeBean(MaterialBean(this.curItemArr.getItemAt(i))).isOverView=true;
+					}
+				} */
+				
+				this.treasureContainer.visible=!this.isEquip;
+				this.equipsContainer.visible=this.isEquip;
+				if(this.isEquip){
+					for each (var equipsUi:EquipInMyItem in this.equipsContainer.getChildren()) {
+						equipsUi.setRule(null);
+					}
+					if(this.curItemArr.length>0){
+						for(var j:int=startNum;j<endNum;j++){
+							EquipInMyItem(this["equipsInShop"+j%RomaConstants.ITEM_IN_ONPAGE]).setRule(EquipValueBean(this.curItemArr[j]));
+							EquipInMyItem(this["equipsInShop"+j%RomaConstants.ITEM_IN_ONPAGE]).refreshItemCount();
+						}
+					}
+				}else{
+					for each (var ui:ItemForUse in this.treasureContainer.getChildren()) {
+						ui.setBean(null);
+					}
+					if(this.curItemArr.length>0){
+						for(var i:int=startNum;i<endNum;i++){
+							ItemForUse(this["itemForUse"+i%RomaConstants.ITEM_IN_ONPAGE]).setBean(ItemEnlargeBean(MaterialBean(this.curItemArr.getItemAt(i))));
+							ItemEnlargeBean(MaterialBean(this.curItemArr.getItemAt(i))).isOverView=true;
+						}
+					}
+				}
+				
+				ShopHelper.instance.checkHaveNewItem();
+			}
+			//计算当前类别的页数情况
+			private function countCurPage():void{
+				this.curPage=this.curItemArr.length>0?1:0;
+				this.totalPage=Math.ceil(this.curItemArr.length/RomaConstants.ITEM_IN_ONPAGE);
+			}
+			
+			/**
+			 * 关闭窗口
+			 */ 
+			private function onCloseWin():void{
+				PopupWindows.closeAll();
+			}
+			
+			override public function destroy():void {
+				this.curItemType=RomaConstants.ITEM_TYPE_TREASURE;
+//				this.buttonBar.selectedIndex=0;
+				btnClickHandler(this.curItemType);
+			}
+			
+			private function btnClickHandler(index:int):void {
+				this.equipWin.visible=false;
+				itemVisible(index);
+				setBtnSelected(index);
+			}
+			
+			
+			private function setBtnSelected(index:int):void{
+				for each(var btn:ButtonAndIcon in typeBtnContainer.getChildren()){
+					btn.curBtnType(index);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="30" left="12" verticalGap="0" right="10">
+		<mx:HBox horizontalGap="0" id="typeBtnContainer">
+			<myItem:ButtonAndIcon buttonLabel="{MultiLang.msg('shop.type.main')}" click="btnClickHandler(RomaConstants.ITEM_TYPE_TREASURE)" btnType="{RomaConstants.ITEM_TYPE_TREASURE}" isNew="{CaesaryConfig.instance.haveNewTreasure}"/>
+			<myItem:ButtonAndIcon buttonLabel="{MultiLang.msg('shop.type.speedup')}" click="btnClickHandler(RomaConstants.ITEM_TYPE_SPEEDUP)" btnType="{RomaConstants.ITEM_TYPE_SPEEDUP}" isNew="{CaesaryConfig.instance.haveNewSpeedup}"/>
+			<myItem:ButtonAndIcon buttonLabel="{MultiLang.msg('shop.type.produce')}" click="btnClickHandler(RomaConstants.ITEM_TYPE_PRODUCE)" btnType="{RomaConstants.ITEM_TYPE_PRODUCE}" isNew="{CaesaryConfig.instance.haveNewProduce}"/>
+			<myItem:ButtonAndIcon buttonLabel="{MultiLang.msg('shop.type.chest')}" click="btnClickHandler(RomaConstants.ITEM_TYPE_CHEST)" btnType="{RomaConstants.ITEM_TYPE_CHEST}" isNew="{CaesaryConfig.instance.haveNewChest}"/>
+			<myItem:ButtonAndIcon buttonLabel="{MultiLang.msg('shop.type.luxury')}" click="btnClickHandler(RomaConstants.ITEM_TYPE_LUXURY)" btnType="{RomaConstants.ITEM_TYPE_LUXURY}" isNew="{CaesaryConfig.instance.haveNewLuxury}"/>
+			<myItem:ButtonAndIcon buttonLabel="{MultiLang.msg('hero.titleBtn.outfit')}" click="btnClickHandler(EquipHelper.ITEM_TYPE_EQUIPS)" btnType="{EquipHelper.ITEM_TYPE_EQUIPS}" isNew="false"/>
+		</mx:HBox>
+		<ns1:MulHRule>
+		</ns1:MulHRule>
+		   
+	</mx:VBox>
+	<mx:Canvas left="12" bottom="43" top="55" right="10" styleName="mainWindowContentBG">
+		<mx:Label text="Loading..." visible="{!this.loadComplete}"/>
+		<mx:Tile id="treasureContainer" 
+			left="3" top="2" right="2" bottom="0" 
+			backgroundAlpha="0" borderStyle="none" horizontalGap="13" verticalGap="2"  visible="{this.loadComplete}" horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+			<myItem:ItemForUse id="itemForUse0"/>
+			<myItem:ItemForUse id="itemForUse1"/>
+			<myItem:ItemForUse id="itemForUse2"/>
+			<myItem:ItemForUse id="itemForUse3"/>
+			<myItem:ItemForUse id="itemForUse4"/>
+			<myItem:ItemForUse id="itemForUse5"/>
+			<myItem:ItemForUse id="itemForUse6"/>
+			<myItem:ItemForUse id="itemForUse7"/>
+			<myItem:ItemForUse id="itemForUse8"/>
+			<myItem:ItemForUse id="itemForUse9"/>
+			<myItem:ItemForUse id="itemForUse10"/>
+			<myItem:ItemForUse id="itemForUse11"/>
+		</mx:Tile>	
+		<mx:Tile id="equipsContainer"
+			left="3" top="2" right="2" bottom="0" 
+			backgroundAlpha="0" borderStyle="none" horizontalGap="13" verticalGap="2"  visible="false" horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+			<ns2:EquipInMyItem id="equipsInShop0"/>
+			<ns2:EquipInMyItem id="equipsInShop1"/>
+			<ns2:EquipInMyItem id="equipsInShop2"/>
+			<ns2:EquipInMyItem id="equipsInShop3"/>
+			<ns2:EquipInMyItem id="equipsInShop4"/>
+			<ns2:EquipInMyItem id="equipsInShop5"/>
+			<ns2:EquipInMyItem id="equipsInShop6"/>
+			<ns2:EquipInMyItem id="equipsInShop7"/>
+			<ns2:EquipInMyItem id="equipsInShop8"/>
+			<ns2:EquipInMyItem id="equipsInShop9"/>
+			<ns2:EquipInMyItem id="equipsInShop10"/>
+			<ns2:EquipInMyItem id="equipsInShop11"/>
+		</mx:Tile>		
+	</mx:Canvas>
+	<mx:HBox horizontalAlign="center" verticalAlign="bottom" horizontalCenter="0" horizontalGap="3" top="1">
+			<mx:Label text="{MultiLang.msg('myItems.winTitle')}"  
+				styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+	</mx:HBox>
+	<mx:Button click="onCloseWin()" styleName="closeBtn" top="30" right="37"/>
+	<mx:HBox left="12" bottom="11" horizontalGap="2" right="12">
+		<mx:Canvas width="277" height="30" styleName="mainWindowContentBG">
+			<mx:HBox left="5" verticalCenter="0" verticalAlign="middle">
+				<mx:Label text="{MultiLang.msg('public.label.amount')}:" styleName="titleBigBordLabel"/>
+				<mx:Label text="{this.playerInfo.coin}" styleName="titleNameLabel"/>
+				<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			</mx:HBox>
+		</mx:Canvas>
+		<mx:Canvas x="316" y="420" width="100%" height="30" styleName="mainWindowContentBG">
+		<mx:HBox horizontalGap="0" visible="{this.curPage==0?false:true}" includeInLayout="{this.curPage==0?false:true}" verticalCenter="0" left="55">
+			<mx:Button id="previousBtn" styleName="previousBtn" click="showPage(-1)"/>
+			<mx:Label width="50" text="{this.curPage}/{this.totalPage}" textAlign="center" styleName="titleBordLabel"/>
+			<mx:Button id="nextBtn" styleName="nextBtn" click="showPage(1)"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="10" verticalCenter="0" right="4">
+			<mx:HBox verticalAlign="middle">
+				<mx:HBox horizontalGap="2">
+					<mx:Button label="{MultiLang.msg('public.label.recharge')}" 
+						click="ClientMain.recharge()" width="122" styleName="commomNormalBtn"/>
+					<mx:Button label="{MultiLang.msg('shop.buy.winTitle')}" 
+						click="PopupWindows.openFuncWin(Shop.WINDOW_SHOW)"  width="122" styleName="commomNormalBtn"/>
+				</mx:HBox>
+			</mx:HBox>
+		</mx:HBox>
+		</mx:Canvas>
+	</mx:HBox>
+	<myItem:ItemUseWin top="60" horizontalCenter="0" id="itemUseWin"/>
+	<myItem:ReceivedItemList id="receivedItemListWin" horizontalCenter="0" verticalCenter="0"/>
+	<myItem:EquipForUseWin top="60" horizontalCenter="0" id="equipWin"/>
+</BaseWin>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="200" height="73" styleName="BuildingAlphaWindow">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			private var _typeID:int;
+			[Bindable]
+			private var godName:String;
+			[Bindable]
+			private var godIcon:String;
+			
+			public function set typeID(id:int):void{
+				this._typeID = id;
+				this.godName = TempleHelper.instance.getName(this._typeID);
+				this.godIcon = TempleHelper.instance.getIcon(this._typeID);
+			}
+			
+			public function get typeID():int{
+				return this._typeID;
+			}
+			
+			public function setSelectStyle():void{
+				this.styleName = "techIconBG"
+				this.nameLabel.styleName = "titleLabel";
+			}
+			
+			public function setNormalStyle():void{
+				this.styleName = "BuildingAlphaWindow";
+				this.nameLabel.styleName = "taskNameTitleLabel";
+			}	
+		]]>
+	</mx:Script>
+
+	<mx:HBox horizontalAlign="center" verticalAlign="middle" horizontalCenter="0" verticalCenter="0" horizontalGap="0">
+		<mx:Canvas styleName="bigBuildingLogo" width="102" height="51">
+			<mx:Image width="94" source="{this.godIcon}" height="43" horizontalCenter="0" verticalCenter="0"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<mx:Label id="nameLabel" text="{this.godName}" styleName="taskNameTitleLabel" bottom="3" textAlign="center" width="90" fontSize="14"/>
+	</mx:HBox>
+</mx:Canvas>

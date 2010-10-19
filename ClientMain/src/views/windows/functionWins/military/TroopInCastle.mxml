@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTroopAtAssign xmlns="views.windows.functionWins.military.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:army="views.spreadUI.army.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.hero.HeroObj;
+			import roma.message.EvtDispacther;
+			import mx.events.DragEvent;
+			import mx.core.IUIComponent;
+			import mx.managers.DragManager;
+			import roma.util.FiltersUtil;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.valueObject.PairValueBean;
+			
+			[Bindable]
+			public var value:PairValueBean;
+
+			[Bindable]
+			public var troop:int;
+			
+			public function refresh(hero:HeroObj):void {
+				this.value = hero.castleObj.troopManager.getTroopByTypeId(troop);
+			}
+
+			override public function isCanDrag():Boolean {
+				if(this.value !=null){
+					return (this.value.value >0);
+				}
+				return false;
+			} 
+
+			override protected function isCanEnter(obj:BaseTroopAtAssign):Boolean {
+				if (obj is TroopInHero) {
+					//如果被拖动的是英雄的部队
+					var th:TroopInHero = TroopInHero(obj);
+					if (th.value.count>0 && th.value.troopType == this.troop) {
+						//如果有兵,并且和当前的兵种的一样
+						return true;
+					}
+				}
+				return false;
+			}
+
+			/**
+			 * 城堡能接受的，只能是从英雄那边拖过来的
+			 */
+			override protected function dropHandler():void {
+				var obj:BaseTroopAtAssign = AssignHelper.instance.dragObj;
+				if (obj is TroopInHero) {
+					var th:TroopInHero = TroopInHero(obj);
+					
+					AssignHelper.instance.betweenCastleAndHero.betweenCastleAndHero(th, this,true);
+					EvtDispacther.sendEvent(EvtDispacther.ASSIGN_TROOP_DROP,AssignHelper.instance.betweenCastleAndHero);
+				}
+			}
+		]]>
+	</mx:Script>
+	<army:SoldierLogoUI x="4" y="3"
+		count="{this.value.value}"
+		troop="{this.troop}" isAlwaysShow="true"/>
+</BaseTroopAtAssign> 

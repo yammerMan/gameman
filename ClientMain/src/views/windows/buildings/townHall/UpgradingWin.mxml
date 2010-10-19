@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ui="view.ui.*" creationComplete="init()" xmlns:tech="views.spreadUI.tech.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.rule.ruleCheck.ConditionCheck;
+			import roma.message.events.BuildingStatusChangeEvent;
+			import roma.message.EvtDispacther;
+			import roma.logic.rule.ruleCheck.ItemCheck;
+			import roma.logic.rule.ItemRule;
+			import views.spreadUI.MyAlert;
+			import roma.logic.rule.ruleCheck.TechCheck;
+			import roma.util.ImageHandle;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.logic.rule.ruleCheck.BaseCheck;
+			import roma.logic.rule.ruleCheck.BuildingDependsCheck;
+			import roma.common.constants.BuildingConstant;
+			import roma.util.MultiLang;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.DependData;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.util.ClientUtil;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import mx.utils.ObjectProxy;
+			import roma.logic.rule.BuildingRule;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.resource.ImgManager;
+			
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.UpgradingWin");
+		
+			[Bindable]
+			private var _buildingObj:BaseBuilding;//当前建筑的BuildingObj
+			[Bindable]
+			private var _result:RuleCheckResult;//升级检查
+			[Bindable] 
+			private var _dpendStr:String;
+			[Bindable]
+			private var _isMaxLevel:Boolean;
+			
+			[Bindable]
+			private var _buildingLevelDec:String;//建筑的效果
+			[Bindable]
+			private var _upgradeStr:String;//升级描述
+
+			public function init():void{
+				EvtDispacther.instance.addEventListener(BuildingStatusChangeEvent.EVENT_NAME,buildingChange);
+			}
+			
+			private function buildingChange(event:BuildingStatusChangeEvent):void{
+				if(_buildingObj!=null){
+					if(_buildingObj.typeId==event.buildingObj.typeId){
+						refresh();
+					}
+				}
+			}
+			
+			public function refresh():void{
+				upgradeStrFunction();
+			}
+			
+			public function set buildingObj(obj:BaseBuilding):void{
+				_buildingObj=obj;
+				upgradeStrFunction();
+			}
+			
+			//升级描述
+			private function upgradeStrFunction():void{
+				checkEffect();
+				
+				_isMaxLevel = false;
+				if(_buildingObj.level==BuildingConstant.HIGHEST_LEVEL){
+					_upgradeStr=MultiLang.msg('upgradingWin.topLevel');
+					_isMaxLevel = true;
+					return;
+				}
+				
+				_result=_buildingObj.getRuleCheckResultForUpgrade();
+				_dpendStr = ConditionCheck.instance.checkBuildingAndItemDepend(_result.buildingDepenAry,_result.itemDependAry,_result.populationDependAry);
+				_upgradeStr=MultiLang.msg('upgradingWin.updata2Level',_buildingObj.level+1);
+			}
+					
+			//获取当前级别以及下一级别的增效
+			private function checkEffect():void
+			{	
+				_buildingLevelDec="";
+				if(_buildingObj.level==0){
+					_buildingLevelDec+="<b><font color='#370d00'>"+MultiLang.msg("public.nextLevel")+"</font></b><br/>";
+					_buildingLevelDec+=_buildingObj.getFuncDesc(_buildingObj.level+1);
+				}
+				if(_buildingObj.level>0&&_buildingObj.level<BuildingConstant.HIGHEST_LEVEL){
+					_buildingLevelDec="<b><font color='#370d00'>"+MultiLang.msg("public.curLevel")+"</font></b><br/>";
+					_buildingLevelDec+=_buildingObj.getFuncDesc(_buildingObj.level);
+					_buildingLevelDec+="\n"+"\n"+"<b><font color='#370d00'>"+MultiLang.msg("public.nextLevel")+"</font></b><br/>";
+					_buildingLevelDec+=_buildingObj.getFuncDesc(_buildingObj.level+1);
+				}	
+				if(_buildingObj.level==BuildingConstant.HIGHEST_LEVEL){
+					_buildingLevelDec="<b><font color='#370d00'>"+MultiLang.msg("public.curLevel")+"</font></b><br/>";
+					_buildingLevelDec+=_buildingObj.getFuncDesc(_buildingObj.level);
+					trace("buildingLevelDec:"+_buildingLevelDec);
+				}			
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas top="3" styleName="buildingInfoContentBG" right="1" left="285" bottom="37" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Label text="{_upgradeStr}" width="100%" height="25" styleName="titleBordLabel" horizontalCenter="0" verticalCenter="-80" textAlign="center"/>
+		<tech:PublicConditionForm result="{_result}" dependStr="{_dpendStr}" horizontalCenter="0" verticalCenter="0" labelWidth="90" lineWidth="269" visible="{!_isMaxLevel}"/>
+	</mx:Canvas>
+	<mx:Canvas left="0" top="3" styleName="subContentBG" width="284" bottom="37" horizontalScrollPolicy="off">
+		<mx:TextArea htmlText="{_buildingLevelDec}" left="15" top="15" right="12" bottom="15" editable="false" styleName="discritionTextArea"/>
+	</mx:Canvas>
+</mx:Canvas>

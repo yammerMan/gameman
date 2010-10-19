@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*"
+	width="298" height="188" 
+	creationComplete="init()" 
+	xmlns:resPanel="views.spreadUI.resPanel.*" 
+	styleName="resourceInfoBG">
+
+	<mx:Script>
+		<![CDATA[
+			import views.BeginnerGuide;
+			import roma.util.MultiLang;
+			import roma.message.EvtDispacther;
+			import roma.message.events.MsgEvent;
+			import roma.resource.ImgManager;
+			import mx.collections.ArrayCollection;
+			import mx.events.ItemClickEvent;
+			
+			[Bindable]
+			private var toggleDataProvider:ArrayCollection =new ArrayCollection();
+			
+			private function init():void {
+				this.toggleDataProvider.addItem({icon:ImgManager.clazz("resPanel.castelTab"),toolTip:MultiLang.msg("market.resource")});
+				this.toggleDataProvider.addItem({icon:ImgManager.clazz("resPanel.heroTab"),toolTip:MultiLang.msg("resourcePanel.btnTip.hero")});
+				this.toggleDataProvider.addItem({icon:ImgManager.clazz("resPanel.troopTab"),toolTip:MultiLang.msg("resourcePanel.btnTip.heroAndTroop")});
+				this.toggleDataProvider.addItem({icon:ImgManager.clazz("resPanel.fieldTab"),toolTip:MultiLang.msg("resourcePanel.btnTip.field")});
+				this.myToggleButtonBar.selectedIndex=0;
+				
+				//新手引导,点击英雄标签
+				EvtDispacther.instance.addEventListener(BeginnerGuide.SELECT_HERO_TAG,onSelectedHeroTag);
+				EvtDispacther.instance.addEventListener(BeginnerGuide.SELECT_RES_TAG,onSelectedResTag);
+			}
+			
+			private function btnClick(event:ItemClickEvent):void{
+				this.myViewstack.selectedIndex = event.index;
+				if(event.index ==2){
+					this.troopContainer.refresh();
+				}
+			}
+			
+			private function onSelectedHeroTag(evt:Event):void{
+				this.myToggleButtonBar.selectedIndex=1;
+				this.myViewstack.selectedIndex = 1;
+			}
+			
+			private function onSelectedResTag(evnet:Event):void{
+				this.myToggleButtonBar.selectedIndex=0;
+				this.myViewstack.selectedIndex = 0;
+			}
+		]]>
+	</mx:Script>
+
+	<mx:ViewStack id="myViewstack" top="30" left="23" right="3" bottom="5">
+		<resPanel:CastleTab/>
+		<resPanel:HeroTab />
+		<resPanel:TroopTab id="troopContainer"/>
+		<resPanel:FieldTab/>
+	</mx:ViewStack>
+	<mx:ToggleButtonBar 
+		itemClick="btnClick(event)" 
+		dataProvider="{this.toggleDataProvider}"
+		styleName="resourceToggleButtonBar" 
+		top="4" horizontalCenter="12" 
+		id="myToggleButtonBar" 
+		clipContent="true" 
+		creatingContentPane="true">
+	</mx:ToggleButtonBar>
+</mx:Canvas>

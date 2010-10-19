@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" width="150" alpha="0.8"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off">
+<mx:Script>
+	<![CDATA[
+		import roma.logic.GameContext;
+		import views.mainModules.map.IMapTile;
+		import roma.common.valueObject.SimpleMapCastleBean;
+		import roma.util.MultiLang;
+		import roma.common.constants.FieldConstant;
+		import roma.logic.object.field.FieldHelper;
+
+		[Bindable]
+		private var field_name:String;
+		[Bindable]
+		private var fieldDes:String;
+		[Bindable]
+		private var positionStr:String;
+		[Bindable]
+		private var selecteTypeIndex:int=0;
+		
+		[Bindable]
+		private var mapCityBean:SimpleMapCastleBean = new SimpleMapCastleBean();
+		
+		[Bindable]
+		private var distance:Number;
+		[Bindable]
+		private var distanceTip:String;
+
+		public function setTile(tile:IMapTile):void {
+			this.distance = GameContext.instance.getPlayerObj().getCurCastleObj().getDistanceToField(tile.getFieldX(),tile.getFieldY());
+			this.distanceTip=MultiLang.msg("field.distanceFromHere",GameContext.getFieldPostionX(GameContext.instance.getPlayerObj().getCurCastleObj().idField),GameContext.getFieldPostionY(GameContext.instance.getPlayerObj().getCurCastleObj().idField));
+			this.positionStr ="["+tile.getFieldX() + "," + tile.getFieldY()+"]";
+			this.height = 100;
+			if (tile.getFieldType() == FieldConstant.TYPE_CITY) {
+				if (tile.getMapCityBean() !=null) {
+					this.field_name = tile.getMapCityBean().castleName;
+					this.mapCityBean = tile.getMapCityBean();
+				} else {
+					this.field_name = "";
+				}
+				selecteTypeIndex = 1;
+				this.height = 120;
+			} else {
+				this.field_name = FieldHelper.getFieldName(tile.getFieldType()) + " " + MultiLang.msg("public.label.level")+" " +  tile.getFieldLevel();
+				if (tile.getFieldType() == FieldConstant.FLAT_TYPE) {
+					this.field_name = FieldHelper.getFieldName(tile.getFieldType());
+				}
+				this.fieldDes = FieldHelper.getFieldDesc(tile.getFieldType() , tile.getFieldLevel());
+				selecteTypeIndex = 0;
+			}
+		}
+	]]>
+</mx:Script>	
+	<mx:VBox top="5" bottom="5" left="5" right="5"
+		verticalGap="0" horizontalGap="0" 
+		horizontalScrollPolicy="off">
+		<mx:HBox horizontalGap="0" label="坐标和距离">
+			<mx:Label text="{this.positionStr}" 
+				fontWeight="bold" width="60" styleName="titleBordLabel" fontSize="14"/>
+			<mx:Label text="{MultiLang.msg('world.distance{0}fromCastle',this.distance.toFixed(1))}" toolTip="{this.distanceTip}"
+				width="75" textAlign="right"/>
+		</mx:HBox>
+		
+		<mx:Label text="{this.field_name}"  
+			fontWeight="bold" styleName="goodNoticeLabel" fontSize="16"/>
+		
+		<mx:ViewStack selectedIndex="{this.selecteTypeIndex}" width="100%">
+			<mx:Canvas label="野地" 
+				height="115"  width="100%"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label text="{this.fieldDes}" />
+			</mx:Canvas>
+			<mx:Canvas label="城堡" 
+				height="115"  width="100%"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:VBox label="castleVs" styleName="toolTipWindow" verticalGap="0" horizontalGap="0">
+					<mx:HBox width="100%">
+						<mx:Label text="{MultiLang.msg('public.label.lord')}:"/>
+						<mx:Label text="{this.mapCityBean.playerName}" styleName="goodNoticeLabel"/>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="{MultiLang.msg('public.label.alliance')}:" />
+						<mx:Label text="{(this.mapCityBean.leagueName==null)?'- -':this.mapCityBean.leagueName}" 
+							styleName="goodNoticeLabel"/>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="{MultiLang.msg('public.label.prestige')}:" />
+						<mx:Label text="{this.mapCityBean.prestiges}" fontWeight="bold"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:Canvas>
+		</mx:ViewStack>
+	</mx:VBox>
+</BaseTip>

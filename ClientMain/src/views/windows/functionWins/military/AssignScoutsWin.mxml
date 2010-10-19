@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseFunctionWindow label="侦查兵调遣"
+	width="360" height="200"
+	title="{Lang.msg('military.scout.assign')}" 
+	xmlns="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:spreadUI="views.spreadUI.*"
+	xmlns:military="views.windows.functionWins.military.*" creationComplete="init()">
+	
+	<mx:Script source="AssignScoutsWin_.as"/>
+	
+	<mx:Canvas top="30" left="11" right="11" bottom="11" styleName="mainWindowContentBG">
+		<mx:Button bottom="2"
+			enabled="{this.sendBtnEnable}"
+			click="onSendBtnClick()"
+			label="{Lang.msg('military.scout.assign')}" horizontalCenter="0" width="130"/>
+		<mx:Label text="{Lang.msg('military.scout.startCity')}:" styleName="titleBordLabel" y="7" width="70" left="5" textAlign="right"/>
+		<mx:ComboBox id="cityCom" width="163" dataProvider="{cityComData}" labelField="name" change="onCitySelected(event)" left="77" top="5"/>
+		<mx:HBox verticalAlign="middle" horizontalGap="0" left="77" width="163" top="33">
+			<mx:Canvas styleName="smallLogoBG" width="64" height="32">
+				<mx:Image source="{TFHelper.getTroopIconClass(TroopForConstants.T_SCOUT)}" 
+					left="3" top="3" right="3" bottom="3"
+					updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{this.maxScoutNum}" 
+					bottom="0" right="0" styleName="titleLevelLabel"
+					filters="{[FiltersUtil.glowFilter]}"/>
+			</mx:Canvas>
+			<mx:Spacer width="100%"/>
+			<spreadUI:MyNumericStepper id="numStepper" maxValue="{this.maxScoutNum}" inputValue="{this.maxScoutNum}" onInputDataChange="countScout" width="100%"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="15" horizontalCenter="0" bottom="32">
+			<mx:Canvas  height="53" verticalScrollPolicy="off" horizontalScrollPolicy="off" styleName="whriteBG">
+				<mx:HBox left="0" top="0" right="0" bottom="0" horizontalGap="0">
+					<mx:VRule height="53"/>
+					<mx:VBox verticalGap="0" width="73">
+						<mx:HRule width="73"/>
+						<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+							<mx:Label text="{Lang.msg('intelligence.arriveTime')}:" width="100%" textAlign="right" height="25"/>
+							<mx:Spacer width="2"/>
+						</mx:HBox>
+						<mx:HRule width="73"/>
+						<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+							<mx:Label text="{Lang.msg('military.scout.targetCity')}:" width="100%" textAlign="right" height="25"/>
+							<mx:Spacer width="2"/>
+						</mx:HBox>
+						<mx:HRule width="73"/>
+					</mx:VBox>
+					<mx:VRule height="53"/>
+					<mx:VBox verticalGap="0">
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" verticalAlign="middle">
+							<mx:Spacer width="2"/>
+							<mx:Label text="{arrivedTimeStr}" height="25"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" verticalAlign="middle">
+							<mx:Spacer width="2"/>
+							<mx:Label text="{this.target}" height="25"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+					</mx:VBox>
+					<mx:VRule height="53"/>
+				</mx:HBox>
+			</mx:Canvas>
+		</mx:HBox>
+	</mx:Canvas>
+	
+</BaseFunctionWindow>

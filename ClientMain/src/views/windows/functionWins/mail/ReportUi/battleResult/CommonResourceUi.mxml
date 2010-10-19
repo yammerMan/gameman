@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="336" height="50" xmlns:spreadUI="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import mx.utils.ObjectProxy;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			public var resourceObj:ObjectProxy = new ObjectProxy();
+			
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%">
+		<!--mx:Text text="{Lang.msg('')}"/>
+		<mx:Text text="{Lang.msg('')}"/-->
+		<mx:Canvas styleName="whiteBGwithBorder" width="335" height="50" top="30" left="15" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:VBox width="100%" height="50" verticalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:HBox height="25" horizontalGap="0">
+					<mx:Image width="31" source="{ImgManager.clazz('icon.food')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label width="80" text="{resourceObj.food}"/>
+					<mx:VRule height="100%"/>
+					<mx:Image width ="31" source="{ImgManager.clazz('icon.wood')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label width="80" text="{resourceObj.wood}"/>
+					<mx:VRule height="100%"/>
+					<mx:Image width="31" source="{ImgManager.clazz('icon.stone')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label width="80" text="{resourceObj.stone}"/>
+				</mx:HBox>
+				<mx:HRule width="100%" />
+				<mx:HBox height="25" horizontalGap="0">
+					<mx:Image width="31" source="{ImgManager.clazz('icon.iron')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label width="80" text="{resourceObj.iron}"/>
+					<mx:VRule height="100%"/>
+					<mx:Image width="31" source="{ImgManager.clazz('icon.gold')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label width="80" text="{resourceObj.gold}"/>
+					<mx:VRule height="100%"/>
+					<!--mx:Image width="31" source="{ImgManager.clazz('icon.time')}"/>
+					<spreadUI:RemainTimeLabel remainTime="{resourceObj.endTime}" width="80"/-->
+				</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:VBox>
+</mx:Canvas>

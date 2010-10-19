@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="64" height="32"
+	styleName="smallLogoBG"
+	xmlns:troopCountLabel="views.spreadUI.troop.*" 
+	mouseOut="this.armyTooltip.onMouseOut()"
+	mouseMove="this.armyTooltip.onMouseMove(event)"
+	mouseOver="this.onMouseOver(event)"
+	visible="{this.count>0||isAlwaysShow}">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ArmyTooltip;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.castle.TFHelper;
+
+			protected var armyTooltip:ArmyTooltip = ToolTipContainer.instance.armyTooltip;
+
+			[Bindable]
+			public var isAlwaysShow:Boolean=false;
+			
+			[Bindable]
+			public var count:int =0;
+			
+			[Bindable]
+			public var troop:int;
+			
+			protected function onMouseOver(event:MouseEvent):void {
+				this.armyTooltip.setTroopType(this.troop);
+				this.armyTooltip.onMouseOver(event);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Image 
+		source="{TFHelper.getTroopIconClass(this.troop)}" scaleY="{26/46}" scaleX="{58/102}" updateComplete="ImageHandle.onLoadComplete(event)" right="3" bottom="3" top="3" left="3"/>
+	<troopCountLabel:TroopCountLabel text="{this.count}" 
+			bottom="0"  right="0"
+		 textAlign="right" left="0"/>
+</mx:Canvas>

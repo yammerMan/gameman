@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow xmlns:functionWins="views.windows.functionWins.*" label="附庸城信息界面" xmlns:mx="http://www.adobe.com/2006/mxml" width="650" height="390" 
+	title="{this.winTitle}"  xmlns:myArmy="views.windows.functionWins.diplomacy.*" 
+	xmlns:ns1="views.spreadUI.*" creationComplete="init()" xmlns:ns2="views.windows.functionWins.friendly.*" xmlns:troop="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HerosMansionWin;
+			import views.windows.functionWins.mail.Mail;
+			import views.windows.functionWins.hero.HeroHelper;
+			import views.MainContainer;
+			import views.mainModules.map.MapAddLabelHelper;
+			import views.mainModules.map.diamond2.ZoneGenerator;
+			import roma.logic.object.player.ConquestObj;
+			import roma.message.events.FavoriteEvent;
+			import views.spreadUI.favorite.FieldFavorite;
+			import views.mainModules.map.diamond2.TileHelper;
+			import views.windows.functionWins.military.GoingToWarWin;
+			import views.windows.functionWins.intelligence.IntelligenceWin;
+			import mx.resources.ResourceManager;	
+			import views.windows.functionWins.mail.Mail;
+			import roma.common.constants.CityConstant;
+			import views.mainModules.map.MapFieldInfoWin;
+			import roma.common.constants.HeroManConstants;
+			import roma.logic.object.hero.HeroObj;
+			import roma.common.controller.castle.ConquestResourceResponse;
+			import mx.utils.ObjectProxy;
+			import roma.common.valueObject.RelatedCastleTimeBean;
+			import roma.common.constants.PlayerConstant;
+			import roma.common.valueObject.MapFieldInfoBean;
+			import roma.common.controller.common.MapFieldInfoResponse;
+			import roma.logic.object.tech.BaseTechObj;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.common.constants.BuffConstants;
+			import roma.message.EvtDispacther;
+			import roma.common.constants.BattleConstants;
+			import views.windows.buildings.market.MarketWin;
+			import roma.common.constants.BuildingConstant;
+			import roma.data.MapTileData;
+			import roma.message.events.MsgEvent;
+			import views.spreadUI.castleIcon.CastleIconPanel;
+			import views.mainFrame.ToggleButton;
+			import views.PopupWindows;
+			import roma.logic.object.building.BaseBuilding;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.player.OtherArmyObj;
+			import views.mainModules.map.diamond2.GarrisonUI;
+			import mx.collections.ArrayCollection;
+			import roma.util.CompCache;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import roma.util.MultiLang;
+			
+			public static const WINDOW_SHOW:String = "vassalMesWin.show";
+			private static var log:ILogger = Log.getLogger("views.windows.functionWins.diplomacy.VassalMesWin");
+			[Bindable]
+			private var field_name:String;
+			[Bindable]
+			private var logoSource:String;
+			[Bindable]
+			private var zoneName:String;
+			[Bindable]
+			private var distance:Number;
+			[Bindable]
+			private var distanceTip:String;
+			[Bindable]
+			private var winTitle:String;
+			[Bindable]
+			private var fieldPostion:String;
+			[Bindable]
+			private var hostDis:String;
+			[Bindable]
+			private var castleStatusStr:String;
+			
+			[Bindable]
+			private var castleObj:CastleObj;
+			[Bindable]
+			private var conquestBean:RelatedCastleTimeBean;
+			private var conquestObj:ConquestObj;
+			[Bindable]
+			private var myMapFieldInfoBean:MapFieldInfoBean;//附庸城的MapFieldInfoBean
+			private var cacheUI:CompCache = new CompCache(30);
+			[Bindable]
+			private var resourceObj:ObjectProxy = new ObjectProxy();
+			[Bindable]
+			private var troopSeizeArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var diplomacyTime:String;
+			
+			[Bindable]
+			private var mapTileData:MapTileData = new MapTileData();
+			
+			[Bindable]
+			private var isInBattle:Boolean = false;
+			
+			private function init():void{
+				var maskSp:Sprite = new Sprite();
+				maskSp.graphics.beginFill(0,0);
+				maskSp.graphics.drawCircle(40,40,38);
+				maskSp.graphics.endFill();
+				this.playerLogo.addChild(maskSp);
+				this.playerLogo.mask = maskSp;
+			}
+			
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				if(this.initialized)
+				{
+					setVassalMesBean(ConquestObj(this.winData));
+				}
+			}
+	
+			/**
+			 * 界面隐藏调用，停止当前窗体一切相关动画等
+			 */ 
+			override public function destroy():void{
+			}
+			
+			public function setVassalMesBean(data:ConquestObj):void{
+				this.conquestBean =data.relatedCityBean;
+				this.conquestObj = data;
+				this.myMapFieldInfoBean=null;
+				this.castleObj = GameContext.instance.getPlayerObj().getCastleObjById(data.selfCastleId);
+				this.winTitle =this.conquestBean.castle.castleName+" [" + GameContext.getFieldPostionX(this.conquestBean.castle.fieldId) + "," + GameContext.getFieldPostionY(this.conquestBean.castle.fieldId) + "]";
+				this.fieldPostion="[" + GameContext.getFieldPostionX(this.conquestBean.castle.fieldId) + "," + GameContext.getFieldPostionY(this.conquestBean.castle.fieldId) + "]";
+
+				this.distance=this.castleObj.getDistanceToField(GameContext.getFieldPostionX(this.conquestBean.castle.fieldId),GameContext.getFieldPostionY(this.conquestBean.castle.fieldId));
+				
+				this.distanceTip=MultiLang.msg("field.distanceFromHere",GameContext.getFieldPostionX(GameContext.instance.getPlayerObj().getCurCastleObj().idField),GameContext.getFieldPostionY(GameContext.instance.getPlayerObj().getCurCastleObj().idField));
+				this.diplomacyTime=GameContext.toLocalTimeStr(this.conquestBean.time);
+
+				var zone:int = ZoneGenerator.getInstance().getZoneId(conquestBean.castle.fieldId);
+				this.zoneName=TileHelper.getZoneName(zone);
+
+				ControllerFactory.getInstance().getCityController().conquestResource(data.selfCastleId,conquestBean.castle.cityId,
+					onConquestResource,false);
+				ControllerFactory.getInstance().getCommonController().mapFieldInfo(this.castleObj.cityId,GameContext.getFieldPostionX(this.conquestBean.castle.fieldId),GameContext.getFieldPostionY(this.conquestBean.castle.fieldId) , onMapResponse,false);	
+
+				setTroopArr();
+			}
+			
+			private function setTroopArr():void{
+				troopSeizeArr.removeAll();
+				for each(var castle:CastleObj in GameContext.instance.getPlayerObj().getAllCastle()){
+					var arr:ArrayCollection =castle.heroManager.heroArray;
+					for each(var h:HeroObj in arr){
+						if(h.heroInfo.status == HeroManConstants.STATUS_GUARD){
+							if(h.heroInfo.targetFieldId == conquestBean.castle.fieldId){
+								troopSeizeArr.addItem(h);
+							}
+						}
+					}
+				}
+			}
+			
+			private function onMapResponse(event:MapFieldInfoResponse):void {
+				this.myMapFieldInfoBean=event.mapFieldInfoBean;
+				this.hostDis="";
+				if(this.myMapFieldInfoBean.hostCastle!=''&&this.myMapFieldInfoBean.hostCastle!=null){
+					this.hostDis=this.myMapFieldInfoBean.hostCastle+" [" + GameContext.getFieldPostionX(this.myMapFieldInfoBean.hostFieldId) + "," + GameContext.getFieldPostionY(this.myMapFieldInfoBean.hostFieldId) + "]";	
+				}
+				
+				this.getCastleStatus(this.myMapFieldInfoBean);
+				this.getMapTileDate();
+				this.logoSource =ImgManager.clazz(this.myMapFieldInfoBean.playerLogoUrl);
+				this.isInBattle = event.mapFieldInfoBean.inBattle;
+			}
+			
+			//召回军队
+			public function recallArmy(obj:Object):void{
+				var armyObj:HeroObj=HeroObj(obj);
+				HeroHelper.instance.callbackHero(armyObj,onResponse);
+//				ControllerFactory.getInstance().getArmyController().reCallArmy(
+//						armyObj.castle.cityId,armyObj.heroInfo.id,onResponse);
+			}
+			
+			private function onResponse(event:CommonResponse):void {
+				if (!event.isSuccess()) {
+					MyAlert.showError(event);
+				}else{
+					MainContainer.instance.risePlay(MultiLang.msg('hero.temper.callBack.success.tips'));
+					setTroopArr();
+//					this.addArmy();
+				}
+			}
+			
+			
+			/**
+			 * 运输
+			 */
+			private function newTransport():void {
+				var building:BaseBuilding = this.getMarket(); 
+				if (building!=null) {
+					PopupWindows.openBuildingInfoWin(MarketWin.WINDOW_SHOW,building , this.mapTileData);
+				}
+			}
+			
+			private function getMarket():BaseBuilding {
+				return GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING);	
+			}
+			
+			/**
+			 * 进入战局
+			 */ 
+			private function onIntoBattle():void{
+				var o:Object = {};
+				o.idField = conquestBean.castle.fieldId;
+				PopupWindows.openFuncWin(IntelligenceWin.WINDOW_SHOW,o); 
+			}
+			 
+			 /**
+			 * 出征
+			 */
+			private function createArmy():void {
+				this.mapTileData.missionType = BattleConstants.ARMY_MISSION_REINFORCE;
+				//PopupWindows.openFuncWin(GoingToWarWin.WINDOW_SHOW,mapTileData);
+				HeroHelper.instance.targetMapTileData=mapTileData;
+				PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW_CAMPAIGN);
+			}
+			
+			private function getMapTileDate():void {
+				this.mapTileData.canAttack = false;
+				this.mapTileData.scoutable = false;
+				this.mapTileData.canTransport = true;
+				this.mapTileData.canReinforce = true;
+				this.mapTileData.fieldName = this.field_name;
+				this.mapTileData.fieldX=GameContext.getFieldPostionX(this.conquestBean.castle.fieldId);
+				this.mapTileData.fieldY=GameContext.getFieldPostionY(this.conquestBean.castle.fieldId);
+			}
+			
+			
+			private function getCastleStatus(bean:MapFieldInfoBean):void{
+				if(bean==null){
+					return;
+				}
+				this.field_name=bean.castleName;
+				switch(bean.status){
+					case PlayerConstant.PLAYER_STATUS_NORMAL:
+						this.castleStatusStr=MultiLang.msg("playInfo.buffNormalStatus");
+					break;
+					
+					case PlayerConstant.PLAYER_STATUS_FRESH_MAN:
+						this.castleStatusStr=MultiLang.msg("playInfo.buffFreshManStatus.short");
+					break;
+					
+					case PlayerConstant.PLAYER_STATUS_FREE_OF_WAR:
+						this.castleStatusStr=MultiLang.msg("playInfo.buffPeaceStatus");
+					break;
+					default:
+					this.castleStatusStr=MultiLang.msg("playInfo.buffNormalStatus");
+				}
+			}
+			
+			private function onConquestResource(event:ConquestResourceResponse):void{
+				if(event.isSuccess()){
+					this.resourceObj['food'] = event.foods ;
+					this.resourceObj['wood'] = event.woods ;
+					this.resourceObj['stone'] = event.stones ;
+					this.resourceObj['iron'] = event.irons ;
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			private function onSendMail():void{
+				Mail.writeMailToPlayer(conquestBean.castle.playerName);
+			}
+			
+			private function giveUpCastle():void{
+				MyAlert.show(MultiLang.msg("diplomacy.giveUp.warm"),onRemove);
+			}
+			
+			private function onRemove(_true:Boolean):void{
+				if(_true){
+					ControllerFactory.getInstance().getCityController().giveupConquestedCastle(castleObj.cityId,conquestBean.castle.cityId,onGiveUpConquested);	
+				}
+				function onGiveUpConquested(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg('townHall.giveUp.success'));
+						PopupWindows.closeAll();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function scout():void{
+				PopupWindows.closeAll();
+				EvtDispacther.instance.dispatchEvent(new MsgEvent(MapFieldInfoWin.NEW_SCOUT_EVENT, this.mapTileData));
+			}  
+			
+			private function diplomacyAllView():void{
+				var data:Object=new Object();
+				data.selectId=1;
+				data.conquectObj = conquestObj;
+				PopupWindows.openFuncWin(DiplomacyWin.WINDOW_SHOW,data);
+			}
+			
+			/**
+			 * 增加到收藏夹
+			 */
+			private function addFavorite():void {
+				FieldFavorite.instance.addListener();				
+				FavoriteEvent.addFavorite(FieldFavorite.ADD_FAVORITE,this.conquestBean.castle.fieldId,this.field_name);
+			}
+			
+			private function showMenu(event:MouseEvent):void{
+				if(this.conquestBean==null)return;
+				MapAddLabelHelper.instance.showMenu(this,event,this.conquestBean.castle.fieldId,this.field_name);
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="285" top="35" left="11" bottom="35" styleName="alphaBlackBG" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox left="11" top="11" bottom="11" styleName="whiteBGwithBorder" verticalGap="0" right="11" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Canvas height="99" top="4" left="4" right="4"  verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%">
+				<mx:Canvas width="99" height="97" verticalCenter="0" left="1" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" width="99" height="97" x="0" y="0"/>
+					<mx:Image source="{this.logoSource}" updateComplete="ImageHandle.onLoadComplete(event);" id="playerLogo" width="79" height="77" x="10" y="10"/>
+				</mx:Canvas>
+				<mx:HBox horizontalGap="0" top="0" bottom="0" right="0" left="101">
+					<mx:VRule height="100%" />
+					<mx:VBox height="100%" width="100%" verticalGap="0" horizontalAlign="center" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+						<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" verticalGap="-6">
+							<!--mx:Label styleName="titleBigBordLabel" text="{this.conquestBean.castle.cityName} {Lang.msg('public.label.level')} {(this.conquestBean.castle.castleLevel)}"/-->
+							<mx:Label styleName="titleBigBordLabel" text="{this.conquestBean.castle.castleName}"/>	
+							<mx:HBox  width="100%" horizontalAlign="center" horizontalGap="0">
+								<mx:Label text="{this.fieldPostion}" styleName="addLinkLabel" click="showMenu(event)"/>
+								<mx:Button styleName="collectionBtn" width="16" height="16" toolTip="{MultiLang.msg('public.label.favorites')}" click="addFavorite()"/>
+							</mx:HBox>
+						</mx:VBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('chatType.zone')}:" width="70" textAlign="right"/>
+							<mx:VRule height="22"/>
+							<mx:Label styleName="darkCommonStyle" text="{this.zoneName}"/>
+						</mx:HBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('public.label.distanceBetweenHere')}:" width="70" textAlign="right"/>
+							<mx:VRule height="22"/>
+							<mx:Label styleName="darkCommonStyle" text="{MultiLang.msg('world.castle.distance',this.distance.toFixed(0))}" toolTip="{distanceTip}"/>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:HRule width="100%" />
+			<mx:HBox horizontalGap="0" width="100%" height="100%">
+				<mx:VBox height="100%" verticalGap="2" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{MultiLang.msg('public.label.lord')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('public.label.prestige')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('castleInfoWin.cityStatus')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('diplomacy.conquest.leaderCity.label')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+				</mx:VBox>
+				<mx:VRule height="100%" />
+				<mx:VBox height="100%" verticalGap="2" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label text="{this.conquestBean.castle.playerName}" styleName="darkCommonStyle" width="100%"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{this.myMapFieldInfoBean.prestiges}" styleName="darkCommonStyle" width="100%"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{this.myMapFieldInfoBean.leagueName}"  styleName="darkCommonStyle" width="100%"/>
+					<mx:HRule width="100%" />
+					<mx:Label text="{this.castleStatusStr}" styleName="darkCommonStyle" width="100%"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{this.hostDis}" styleName="darkCommonStyle" width="100%"/>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:HRule width="100%"/>
+			<mx:VBox width="100%" height="100%" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Label text="{MultiLang.msg('diplomacy.vassal.addition.label')}:" styleName="titleBordLabel" height="100%" textAlign="right"/>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="24" verticalAlign="middle">
+					<mx:Canvas width="25%" height="100%">
+						<mx:Image source="{ImgManager.clazz('icon.food')}" horizontalCenter="0" verticalCenter="0"/>
+					</mx:Canvas>
+					<mx:Label width="25%" text="+{resourceObj.food != undefined?resourceObj.food:0}" styleName="chatTradePlayer"/>
+					<mx:VRule height="24"/>
+					<mx:Canvas width="25%" height="100%">
+						<mx:Image source="{ImgManager.clazz('icon.stone')}" horizontalCenter="0" verticalCenter="0"/>
+					</mx:Canvas>
+					<mx:Label width="25%" text="+{resourceObj.stone != undefined?resourceObj.stone:0}" styleName="chatTradePlayer"/>
+				</mx:HBox>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="24" verticalAlign="middle">
+					<mx:Canvas width="25%" height="100%">
+						<mx:Image source="{ImgManager.clazz('icon.wood')}" horizontalCenter="0" verticalCenter="0"/>
+					</mx:Canvas>
+					<mx:Label width="25%" text="+{resourceObj.wood != undefined?resourceObj.wood:0}" styleName="chatTradePlayer"/>
+					<mx:VRule height="24"/>
+					<mx:Canvas width="25%" height="100%">
+						<mx:Image source="{ImgManager.clazz('icon.iron')}" horizontalCenter="0" verticalCenter="0"/>
+					</mx:Canvas>
+					<mx:Label width="25%" text="+{resourceObj.iron != undefined?resourceObj.iron:0}" styleName="chatTradePlayer"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:HBox width="100%" left="11" bottom="11" horizontalGap="2">
+		<mx:Button label="{MultiLang.msg('diplomacy.vassal.remove.label')}" styleName="commomNormalBtn" click="giveUpCastle()"/>
+		<mx:Button label="{MultiLang.msg('diplomacy.diplomacyCityView')}" styleName="commomNormalBtn" click="diplomacyAllView()"/>
+		<mx:Button label="{MultiLang.msg('diplomacy.battleBtn.label')}" styleName="commomNormalBtn" enabled="{isInBattle}" click="onIntoBattle()"/>
+		<mx:Button label="{MultiLang.msg('military.mission.reinforce')}" styleName="commomNormalBtn" click="createArmy()" toolTip="{MultiLang.msg('military.newArmy.tip.reinforce')}"/>
+		<mx:Button label="{MultiLang.msg('market.transport')}" styleName="commomNormalBtn" click="newTransport()" toolTip="{MultiLang.msg('market.tip.transport')}"/>
+		<mx:Button label="{MultiLang.msg('mail.button.write')}" styleName="commomNormalBtn" click="onSendMail()"/>
+		<mx:Button label="{MultiLang.msg('military.mission.scout')}" styleName="commomNormalBtn" click="scout()"/>
+	</mx:HBox>
+	<mx:Canvas right="11" top="35" styleName="buildingInfoContentBG" width="340" bottom="35">
+		<mx:HBox left="0" horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0">
+			<mx:Spacer width="5"/>
+			<mx:Button height="25" label="{MultiLang.msg('diplomacy.garrison.label')}" styleName="tabBtn" selected="true"/>
+		</mx:HBox>
+		
+		<mx:TileList id="troopsContainer" dataProvider="{troopSeizeArr}" width="100%" bottom="0" borderStyle="none" useRollOver="false" selectable="false" backgroundAlpha="0" top="23">
+			<mx:itemRenderer>
+				<mx:Component>
+					<myArmy:MyArmyGarrisonUI hero="{HeroObj(data)}" recallArmy="{outerDocument.recallArmy}">
+						<mx:Script>
+							<![CDATA[
+								import roma.logic.object.hero.HeroObj;
+							]]>
+						</mx:Script>
+					</myArmy:MyArmyGarrisonUI>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:TileList>
+		<!--mx:Tile top="25" right="0" left="0" bottom="0" id="tooopContainer"/-->
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow>
+

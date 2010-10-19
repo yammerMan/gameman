@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+			width="100%" height="100%" styleName="subContentBG"
+			creationComplete="init()" xmlns:spreadUI="views.spreadUI.*" horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:market="views.windows.buildings.market.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.NumericStepper;
+			import roma.common.constants.ResourceConstant;
+			import views.MainContainer;
+			import roma.common.constants.AllianceConstant;
+			import roma.common.controller.common.MapFieldInfoResponse;
+			import roma.common.constants.TradeConstant;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import roma.util.ImageHandle;
+			import roma.logic.CaesaryConfig;
+			import views.spreadUI.popups.MarketPosition;
+			import views.spreadUI.popups.BasePopup;
+			import roma.common.constants.PopulationConstant;
+			import views.spreadUI.popups.PopupContainer;
+			import roma.common.valueObject.FieldCollectBean;
+			import mx.events.ItemClickEvent;
+			import mx.collections.ArrayCollection;
+			import roma.data.MapTileData;
+			import roma.util.ClientUtil;
+			import roma.common.action.ControllerFactory;
+			import roma.resource.ImgManager;
+			import roma.common.valueObject.CityBean;
+			import roma.logic.object.castle.CastleObj;
+			import mx.controls.Menu;
+			import mx.core.UITextField;
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.castle.TradeManager;
+			import roma.logic.object.building.impl.Market;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleResourceManager;
+			import mx.events.MenuEvent;
+			import roma.common.controller.CommonResponse;
+			
+			[Bindable]
+			private var resManager:CastleResourceManager = GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+			[Bindable]
+			private var marketObj:Market = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING) as Market;
+			[Bindable]
+			private var tradeManager:TradeManager = GameContext.instance.getPlayerObj().getCurCastleObj().tradeManager;
+			
+			[Bindable]
+			private var curSelectPost:String = "";
+			private var curCastleId:int = 0;
+			private var idField:int = 0;
+			[Bindable]
+			private var resourceSpace:int = 0;
+			[Bindable]
+			public var distanceTime:Number = 0;
+			[Bindable]
+			private var transSpaceCount:int = 0;
+			[Bindable]
+			public var transportings:int = 0;
+			
+			private var marketPosition:MarketPosition; 
+			
+			public function show(mapTileData:MapTileData):void{
+				initTransport();
+				if(mapTileData != null){
+					this.textX.text = String(mapTileData.fieldX);
+					this.textY.text = String(mapTileData.fieldY);
+					menuBtn.label = "";
+					targetCoorChange();
+				}
+				else{
+					this.textX.text = "";
+					this.textY.text = "";
+					menuBtn.label = "";
+					distanceTime = 0;
+				}
+				curCastleId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+			}
+			
+			public function onSubmit():void{
+				if(!checkTransport())return;
+				var str:String = "[" + textX.text + "," + textY.text + "]";
+				MyAlert.show(MultiLang.msg('market.transport.sureToTransport',str),sureToTransport);
+			}
+			
+			private function checkTransport():Boolean{
+				if(textX.text == "" || textY.text == ""){
+					MyAlert.show(MultiLang.msg('market.transport.targetIsEmpty'));
+					return false;
+				}
+				idField = GameContext.getFieldId(int(textX.text),int(textY.text));
+				
+				if(MapDataByteArray.instance.getTileObj(int(textX.text),int(textY.text)) == null){
+					MyAlert.show(MultiLang.msg('market.transport.isMustBeCastle'));
+					return false;				
+				}
+				if(!MapDataByteArray.instance.getTileObj(int(textX.text),int(textY.text)).isCastle()){
+					MyAlert.show(MultiLang.msg('market.transport.isMustBeCastle'));
+					return false;
+				} 
+				
+				if(idField == GameContext.instance.getPlayerObj().getCurCastleObj().idField){
+					MyAlert.show(MultiLang.msg('market.transports.yourSelf.tips'));
+					return false;
+				}
+				
+				if(!checkField())return false;
+				return true;
+			}
+			
+			/**
+			 * 是否为敌盟
+			 */ 
+			private function checkField():Boolean{
+				var isTrue:Boolean = true;
+				ControllerFactory.getInstance().getCommonController().mapFieldInfo(curCastleId,int(textX.text),int(textY.text),onResponse,false);
+				function onResponse(e:MapFieldInfoResponse):void{
+					if(e.mapFieldInfoBean.relation == AllianceConstant.ALLIANCE_RELATION_HOSTILE){
+						MyAlert.show(MultiLang.msg("market.transport.isEnemyAlliance"));
+						isTrue = false;
+					}
+				}
+				return isTrue;
+			}
+			
+			/**
+			 * 确定建立运输
+			 */ 
+			private function sureToTransport(isTrue:Boolean):void{
+				if(!isTrue)return;
+				idField = GameContext.getFieldId(int(textX.text),int(textY.text));
+				curCastleId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				var totalValue:int = foodNumberStep.effectValue+woodNumberStep.effectValue+stoneNumberStep.effectValue+ironNumberStep.effectValue+
+					goldsNumberStep.effectValue;
+				if(totalValue>0){
+					if(marketObj.getTradeSpace()-marketObj.getTransport()>= Math.ceil(totalValue/TradeConstant.RESOURCE_LOAD_PER_CARAVAN)){
+						ControllerFactory.getInstance().getTradeController().transport(curCastleId,idField,foodNumberStep.effectValue,woodNumberStep.effectValue,
+							stoneNumberStep.effectValue,ironNumberStep.effectValue,goldsNumberStep.effectValue,transportResponse);
+					}else{
+						MyAlert.show(MultiLang.msg('market.level.notEnough'));
+					}
+				}
+				else{
+					MyAlert.show(MultiLang.msg('market.resourceIsEmpty'));
+				}
+			}
+			
+			private function initTransport():void{
+				if(!this.initialized){
+					return;
+				}
+				foodNumberStep.refresh();
+				woodNumberStep.refresh();
+				stoneNumberStep.refresh();
+				ironNumberStep.refresh();
+				goldsNumberStep.refresh();
+				foodNumberStep.transportValueObj = woodNumberStep.transportValueObj = stoneNumberStep.transportValueObj = ironNumberStep.transportValueObj = goldsNumberStep.transportValueObj = this.valueObj;
+				resourceSpace = 1;
+				resManager = GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager; 
+				
+				transSpaceCount = marketObj.getTradeSpace();
+				transportings = marketObj.getTransport();
+				resourceSpace = (transSpaceCount-transportings)*TradeConstant.RESOURCE_LOAD_PER_CARAVAN;
+				
+				foodRespaceText.text = String(int(resManager.food.curAmount));
+				woodRespaceText.text = String(int(resManager.wood.curAmount));
+				stoneRespaceText.text = String(int(resManager.stone.curAmount));
+				ironRespaceText.text = String(int(resManager.iron.curAmount));
+				goldsRespaceText.text = String(int(resManager.golds.curAmount)); 
+
+			}
+			
+			private var valueObj:TransportValueObj = new TransportValueObj(setTotalValue);
+			private function init():void{
+				initTransport();
+				valueObj = new TransportValueObj(setTotalValue);
+				marketPosition = PopupContainer.instance.marketPosition;
+				this.stage.addEventListener(MouseEvent.MOUSE_DOWN,onStageDown);
+			}
+			
+			/**
+			 * 运输的响应
+			 */ 
+			private function transportResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					MainContainer.instance.risePlay(MultiLang.msg('market.transportsSuccess'));
+					initTransport();
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			private function setTotalValue(tId:int):int{
+				var t:int = foodNumberStep.effectValue+woodNumberStep.effectValue + stoneNumberStep.effectValue+ironNumberStep.effectValue+goldsNumberStep.effectValue;
+				switch(tId){
+					case ResourceConstant.TYPE_FOOD:
+						return t-foodNumberStep.effectValue;
+					case ResourceConstant.TYPE_WOOD:
+						return t- woodNumberStep.effectValue;
+					case ResourceConstant.RESOURCE_TYPE_STONES:
+						return t- stoneNumberStep.effectValue;
+					case ResourceConstant.TYPE_IRON:
+						return t- ironNumberStep.effectValue;
+					case ResourceConstant.RESOURCE_TYPE_MONEY:
+						return t- goldsNumberStep.effectValue;
+					default:
+					return t;
+				}
+			}
+			
+			private function onNumberStepChange(curStepCom:NumericStepperCom):void{
+				foodRespaceText.text = String(Math.max(0,int(resManager.food.curAmount)-foodNumberStep.effectValue));
+				woodRespaceText.text = String(Math.max(0,int(resManager.wood.curAmount)-woodNumberStep.effectValue));
+				stoneRespaceText.text = String(Math.max(0,int(resManager.stone.curAmount)-stoneNumberStep.effectValue));
+				ironRespaceText.text = String(Math.max(0,int(resManager.iron.curAmount)-ironNumberStep.effectValue));
+				goldsRespaceText.text = String(Math.max(0,int(resManager.golds.curAmount)-goldsNumberStep.effectValue)); 
+			}
+			
+			private function onStageDown(event:MouseEvent):void{
+				if(marketPosition.hitTestPoint(event.stageX,event.stageY)){}
+				else{
+					marketPosition.visible = false;
+				}
+			}
+			
+			private function targetCoorChange():void{
+				if(!this.initialized)return;
+				var fid:int = GameContext.getFieldId(int(textX.text),int(textY.text));
+				distanceTime = marketObj.getTransportTime(fid);
+			}
+			
+			private function onShowPositionList(event:MouseEvent):void{
+				var p:Point = Button(event.target).localToGlobal(new Point(event.target.x,event.target.y));
+				marketPosition.visible = !marketPosition.visible;
+				marketPosition.setPos(p.x,p.y+event.target.height);
+				marketPosition.showMyCity(true);
+				marketPosition.filterField();
+				marketPosition.callBackFun = onGetMarketCoor;
+			}
+			
+			private function onGetMarketCoor(obj:Object):void{
+				var px:int= 0;
+				var py:int = 0;
+				curSelectPost = "";
+				
+				if(obj.hasOwnProperty('cityId')){
+					px = CastleObj(obj).idField/10000;
+					py = CastleObj(obj).idField%10000;
+					curSelectPost = CastleObj(obj).name;
+				}else{
+					px = FieldCollectBean(obj).fieldId/10000;
+					py = FieldCollectBean(obj).fieldId%10000;
+					curSelectPost = FieldCollectBean(obj).remark;
+				}  
+				this.textX.text = String(px);
+				this.textY.text = String(py);
+				targetCoorChange();
+			}
+			
+			/**
+			 * 激活道具（连续运输，和双倍运输）
+			 */ 
+			private function awardItem(event:MouseEvent):void{
+				// todo 使用道具（连续运输，和双倍运输）
+				switch(event.target){
+//					case seriatePostBtn:
+//					break
+//					case doublePostBtn:
+//					break;
+				}
+			}
+
+		]]>
+	</mx:Script>
+		<mx:Canvas width="115" right="15" top="12" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:VBox horizontalCenter="0" verticalCenter="0" verticalGap="0">
+			<!--mx:Label text="{Lang.msg('market.loadIsOver')}" top="60" horizontalCenter="-50" color="0xff0000" visible="{false}"/-->
+				<mx:VBox horizontalAlign="right" verticalGap="0" width="100%">
+					<mx:HBox horizontalAlign="left" height="22" horizontalGap="1" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off" verticalAlign="middle">
+						<mx:Image source="{ImgManager.clazz('icon.food')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Text id="foodRespaceText" height="17" width="100%"/>
+					</mx:HBox>
+					<market:NumericStepperCom id="foodNumberStep" onInputDataChange="{onNumberStepChange}" width="88" stepperComType="{ResourceConstant.TYPE_FOOD}"/>
+				</mx:VBox>
+				<mx:VBox horizontalAlign="center" verticalGap="0">
+					<mx:HBox horizontalAlign="left" height="22" horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%" verticalAlign="middle">
+						<mx:Image source="{ImgManager.clazz('icon.wood')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Text id="woodRespaceText" height="17" width="100%"/>
+					</mx:HBox>
+					<market:NumericStepperCom id="woodNumberStep" onInputDataChange="{onNumberStepChange}"  width="88" stepperComType="{ResourceConstant.TYPE_WOOD}"/>
+				</mx:VBox>
+				<mx:VBox horizontalAlign="center" verticalGap="0">
+					<mx:HBox horizontalAlign="left" height="22" horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%" verticalAlign="middle">
+						<mx:Image  source="{ImgManager.clazz('icon.stone')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Text id="stoneRespaceText" height="17" width="100%"/>
+					</mx:HBox>
+					<market:NumericStepperCom id="stoneNumberStep" onInputDataChange="{onNumberStepChange}"  width="88" stepperComType="{ResourceConstant.RESOURCE_TYPE_STONES}"/>	
+				</mx:VBox>
+				<mx:VBox horizontalAlign="center" verticalGap="0">
+					<mx:HBox horizontalAlign="left" height="22" horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%" verticalAlign="middle">
+						<mx:Image source="{ImgManager.clazz('icon.iron')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Text id="ironRespaceText" height="17" width="100%"/> 
+					</mx:HBox>
+					<market:NumericStepperCom id="ironNumberStep" onInputDataChange="{onNumberStepChange}" stepperComType="{ResourceConstant.TYPE_IRON}" width="88" />
+				</mx:VBox>
+				<mx:VBox horizontalAlign="center" verticalGap="0">
+					<mx:HBox horizontalAlign="left" height="22" horizontalGap="1" width="100%" verticalAlign="middle">
+						<mx:Image source="{ImgManager.clazz('icon.gold')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Text id="goldsRespaceText" height="17" width="100%"/>
+					</mx:HBox>
+					<market:NumericStepperCom id="goldsNumberStep" onInputDataChange="{onNumberStepChange}" width="88" stepperComType="{ResourceConstant.RESOURCE_TYPE_MONEY}"/>
+				</mx:VBox>
+			</mx:VBox>
+		</mx:Canvas>
+		
+		<mx:VRule height="80%" verticalCenter="0" left="215"/>
+		
+		<mx:Canvas width="200" left="15" top="20" bottom="40" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:VBox width="100%" height="100%" verticalGap="8">
+				<mx:HBox horizontalGap="0" width="100%">
+					<mx:Label text="{MultiLang.msg('market.target')}: " width="70" textAlign="right"/>
+					<mx:Label text="x=" width="20"/>
+					<mx:TextInput id="textX" width="43" change="targetCoorChange()"/>
+					<mx:Label text="y=" width="20"/>
+					<mx:TextInput id="textY" width="43" change="targetCoorChange()"/>
+				</mx:HBox>
+				<mx:HBox id="citySelect" width="100%">
+					<mx:Label text="{MultiLang.msg('market.city')}: " width="70" textAlign="right"/>
+					<mx:Button label="{curSelectPost}" click="{onShowPositionList(event)}" width="120" styleName="comboBoxBtn" id="menuBtn" />
+				</mx:HBox>
+				<mx:HBox width="100%" horizontalAlign="center">
+					<mx:TextArea id="textTranspostDesc" text="{MultiLang.msg('market.transportsDesc',transportings,transSpaceCount)}" width="95%" height="70" editable="false"/>
+				</mx:HBox>
+				<mx:HBox width="100%">
+					<mx:Label text="{MultiLang.msg('market.duration')}: " width="70" textAlign="right"/>
+					<spreadUI:TransLabel id="remainTimeLabel" remainTime="{distanceTime}"/>
+				</mx:HBox>
+				<!--mx:VBox bottom="30" left="10" right="10">
+					<mx:HBox>
+						<mx:Label text="{Lang.msg('market.seriatePost')}: "/>
+						<mx:Button id="seriatePostBtn" styleName="addBtn" click="{awardItem(event)}"/>
+					</mx:HBox>
+					<mx:HBox>
+						<mx:Label text="{Lang.msg('market.doublePost')}: "/>
+						<mx:Button id="doublePostBtn" styleName="addBtn" click="{awardItem(event)}"/>
+					</mx:HBox>
+				</mx:VBox-->
+			</mx:VBox>
+		</mx:Canvas>
+		
+</mx:Canvas>

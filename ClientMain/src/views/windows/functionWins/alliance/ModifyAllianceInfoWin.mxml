@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()"
+	xmlns:util="views.util.*" title="{MultiLang.msg('alliance.changeInfo')}"
+	width="340" height="330">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.PopupWinManager;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			private var modifyAllianceInfo:Function; 
+			[Bindable]
+			private var allianceNote:String;
+			[Bindable]
+			private var allianceDesc:String;
+			private static var instancePopup:ModifyAllianceInfoWin = new ModifyAllianceInfoWin();
+			private function init():void{
+				instancePopup=this;
+			}
+			
+			public static function show(allianceNote:String,allianceDesc:String,modifyAllianceInfo:Function,modal:Boolean=true):void {
+  				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,modal);
+				}
+				instancePopup.allianceNote=allianceNote;
+				instancePopup.allianceDesc=allianceDesc;	
+				instancePopup.modifyAllianceInfo=modifyAllianceInfo;
+  			}
+  			private function changeInfo():void{
+  				if(modifyAllianceInfo!=null){
+  					this.modifyAllianceInfo.apply(this,[describe.text,affiche.text]);
+  				}
+  				PopupWinManager.instance.removePopup(this);
+  			}
+		]]>
+	</mx:Script>
+	<mx:VBox top="36" left="14" right="14" bottom="14" verticalGap="1" horizontalAlign="center">
+		<mx:Canvas width="100%" height="115" styleName="mainWindowContentBG">
+			<mx:TextArea  left="1" top="1" bottom="1" right="1" id="affiche" text="{this.allianceNote}"/>
+		</mx:Canvas>
+		<mx:Button label="{MultiLang.msg('alliance.modifyNotice')}" click="changeInfo()"/>
+		<mx:Canvas width="100%" height="115" styleName="mainWindowContentBG">
+			<mx:TextArea  left="1" top="1" bottom="1" right="1" id="describe" text="{this.allianceDesc}"/>
+		</mx:Canvas>
+		<mx:Button label="{MultiLang.msg('alliance.change.describe')}" click="changeInfo()"/>
+	</mx:VBox>
+	
+</functionWins:BasePopUpWindow>

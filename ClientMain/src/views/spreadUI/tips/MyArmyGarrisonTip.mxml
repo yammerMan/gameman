@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip width="245" 
+	xmlns="views.spreadUI.tips.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.mainFrame.CastleInfo.*" 
+	xmlns:resPanel="views.spreadUI.resPanel.*"
+	xmlns:army="views.spreadUI.army.*"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.GameContext;
+			import roma.util.MultiLang;
+			import views.windows.buildings.trainningField.AllyArmyUI;
+			import roma.logic.object.player.OtherArmyObj;
+			import roma.common.constants.TroopForConstants;
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.HeroTroopBean;
+			import views.spreadUI.army.SoldierView;
+			import mx.collections.ArrayCollection;
+			import roma.logic.object.hero.HeroArmyManager;
+			import roma.logic.object.hero.HeroObj;
+			import roma.resource.ImgManager;
+
+			[Bindable]
+			private var hero:HeroObj;
+			
+			[Bindable]
+			private var playerName:String;
+			
+			private var uiArray:Array = new Array();
+			
+			private function init():void {
+				this.addTroop(TroopForConstants.T_TRIARII);
+				this.addTroop(TroopForConstants.T_CAVALRY);
+				this.addTroop(TroopForConstants.T_URBAN_COHORT);
+				this.addTroop(TroopForConstants.T_ARCHERS);
+				this.addTroop(TroopForConstants.T_BALLISTAS);
+				this.addTroop(TroopForConstants.T_ONAGERS);
+			}
+
+			public function setHeroObj(obj:HeroObj):void {
+				for (var i:int = 0; i< this.uiArray.length; i++) {
+					var ui:SoldierView =this.uiArray[i] as SoldierView;
+					var b:HeroTroopBean = obj.armyManager.troopsArray[i] as HeroTroopBean;
+					if(b !=null){
+						ui.troopBean =b; 
+					}else{
+						ui.troopBean = null;
+					}
+				}
+
+				playerName=GameContext.instance.getPlayerObj().getPlayerInfo().playerName;
+				hero = obj;
+			}
+			private function addTroop(type:int):void {
+				var ui:SoldierView = new SoldierView();
+				ui.troop_type = type;
+				ui.troopCount = 0;
+				uiArray.push(ui);
+				viewContrainer.addChild(ui);
+			}
+		
+		]]>
+	</mx:Script>
+	<mx:VBox y="5" left="0" right="0" kerning="true" horizontalAlign="center">
+		<mx:HBox  horizontalGap="1">
+			<mx:Label text="{hero.heroInfo.name}"/>
+			<mx:Label text="Lv.{hero.heroInfo.level}"/>
+		</mx:HBox>
+		<mx:Label text="{MultiLang.msg('public.label.lord')}:{playerName}"/>
+		<mx:Label text="{MultiLang.msg('label.city')}:{hero.belongCastle}"/>
+		<mx:Label text="{MultiLang.msg('public.label.time')}:{hero.arriveTimeStr}"/>
+		<mx:Tile id="viewContrainer" horizontalGap="2" verticalGap="2"/>
+		<mx:Spacer height="5"/>
+	</mx:VBox>
+</BaseTip>

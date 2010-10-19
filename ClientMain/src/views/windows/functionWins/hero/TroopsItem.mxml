@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="104" height="56" styleName="heroArmyBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.TFHelper;
+			import roma.resource.ImgManager;
+			import roma.logic.object.hero.HeroObj;
+			import roma.util.FiltersUtil;
+			import roma.common.valueObject.HeroTroopBean;
+			
+			[Bindable]
+			public var troopBean:HeroTroopBean;
+			[Bindable]
+			private var troopNumText:String = "";
+			
+			public function set troopUiId(id:int):void{
+				switch(id){
+					case 0:
+						troopNumText = "I";
+					break;
+					case 1:
+						troopNumText = "II";
+					break;
+					case 2:
+						troopNumText = "III";
+					break;
+					case 3:
+						troopNumText = "IV";
+					break;
+					case 4:
+						troopNumText = "V";
+					break;
+					case 5:
+						troopNumText = "VI";
+					break;
+					
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas visible="{troopBean.count == 0}" width="96" height="48" verticalCenter="0" horizontalCenter="0">
+		<mx:Label text="{troopNumText}" horizontalCenter="0" verticalCenter="0" styleName="titleBordLabel" filters="{[FiltersUtil.glowFilter1]}"/>
+	</mx:Canvas>
+	<mx:Canvas visible="{troopBean.count > 0}" styleName="bigBuildingLogo" width="96" height="48" horizontalCenter="0" verticalCenter="0">
+		<mx:Image source="{TFHelper.getTroopIconClass(troopBean.troop)}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Canvas bottom="5" left="5" right="5" styleName="alphaBlackcolorBG" height="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{troopBean.count}" styleName="titleLevelLabel" fontSize="10" verticalCenter="0" filters="{[FiltersUtil.glowFilter]}"/>
+		</mx:Canvas>
+	</mx:Canvas>
+</mx:Canvas>

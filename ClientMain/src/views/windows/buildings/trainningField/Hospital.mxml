@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ui="view.ui.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.message.EvtDispacther;
+			import roma.message.events.InjuredTroopChangeEvent;
+			import roma.common.valueObject.PairValueBean;
+			import views.spreadUI.MyAlert;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.TFHelper;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+		
+			[Bindable]
+			private var injuredTroopArray:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var allowAlliance:Boolean;
+			[Bindable]
+			private var antiLoot:Boolean;
+			public function refresh():void{
+				if(this.initialized){
+					this.troopSelector.selected=false;
+					GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.troopSelected(false);
+				}
+				this.injuredTroopArray=GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.injuredTroopArray;
+				this.allowAlliance=GameContext.instance.getPlayerObj().getCurCastleObj().castleMilitaryManager.militaryBean.allow;
+				this.antiLoot=GameContext.instance.getPlayerObj().getCurCastleObj().castleMilitaryManager.militaryBean.antiLoot;
+			}
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(InjuredTroopChangeEvent.INJUREDTROOP_CHANGE,InjuredTroopHandle);
+			}
+			
+			private function InjuredTroopHandle(event:InjuredTroopChangeEvent):void{
+				this.refresh();
+			}
+
+			/*治疗伤兵*/			
+			private function cureTroop():void{
+				if(GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.getGoldsForCureTroop()==0){
+					MyAlert.show(MultiLang.msg('hospital.noSelectCureTroop'));
+					return;
+				}
+				MyAlert.show(MultiLang.msg('hospital.speedGoldTocure',GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.getGoldsForCureTroop()),doCure);
+				function doCure(isSure:Boolean):void{
+  					if(isSure){
+  						if(GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.golds.curAmount>=GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.getGoldsForCureTroop()){
+  							GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.cureInjureds(GameContext.instance.getPlayerObj().getCurCastleObj().cityId,GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.cureTroopString());
+  						}else{
+  							MyAlert.show(MultiLang.msg('hospital.noGoldTocure'));
+  						}
+  					}
+  				}
+			}
+			
+			/* 遣散伤兵 */
+			private function disbandTroopss():void{
+				if(GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.cureTroopString()==""){
+					MyAlert.show(MultiLang.msg('hospital.noSelectdemobTroop'));
+					return;
+				}
+				MyAlert.show(MultiLang.msg('hospital.sureToDisband'),doDisband);
+				function doDisband(isSure:Boolean):void{
+					if(isSure){
+						GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.destructDownBuilding(GameContext.instance.getPlayerObj().getCurCastleObj().cityId,GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.cureTroopString());
+					}
+				}
+			}
+			
+			/*回调函数 ，返回兵种名称 */
+			private function returnTroopName(bean:Object,column:DataGridColumn):String{
+				return TFHelper.instance.getTfName(BruiseTroopData(bean).typeId);			
+			}
+			
+			private function selectChange():void{
+				GameContext.instance.getPlayerObj().getCurCastleObj().injuredTroopManager.troopSelected(troopSelector.selected);
+			}
+				
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="subContentBG" left="0" top="3" bottom="37" width="284">
+		<mx:Text htmlText="{MultiLang.msg('hospital.desc')}" left="24" top="23" right="24" bottom="10"/>
+	</mx:Canvas>
+	
+	<mx:DataGrid textAlign="center" height="22"
+		 draggableColumns="false" sortableColumns="false" resizableColumns="false" selectable="false" dataProvider="{this.injuredTroopArray}" left="285" right="1" top="3" bottom="37">
+		
+		<mx:columns>
+			<mx:DataGridColumn headerText="{''}" dataField="selected" width="30">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox width="100%" height="22" horizontalAlign="center" verticalAlign="middle">
+							<mx:CheckBox click="data.selected = !data.selected" selected="{data.selected}"/>							
+						</mx:HBox>	
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hospital.troop.type')}" dataField="type" labelFunction="returnTroopName"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.amount')}" dataField="value" />
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox horizontalGap="3" right="100" bottom="15">
+		<mx:CheckBox label="{MultiLang.msg('public.label.selectAll')}" id="troopSelector" change="selectChange()"/>
+		<mx:Button label="{MultiLang.msg('hospital.troop.cure')}" width="120" click="cureTroop()" enabled="{this.injuredTroopArray.length>0?true:false}"/>
+		<mx:Button label="{MultiLang.msg('hospital.troop.disband')}" width="120" click="disbandTroopss()" enabled="{this.injuredTroopArray.length>0?true:false}"/>
+	</mx:HBox>
+</mx:Canvas>

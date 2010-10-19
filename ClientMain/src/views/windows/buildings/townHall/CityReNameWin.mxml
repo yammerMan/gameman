@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"  xmlns:ui="views.sprendUI.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import roma.util.InputTextHelper;
+			import views.mainModules.town.Town;
+			import roma.logic.object.building.impl.TownHall;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import roma.util.MultiLang;
+			import roma.resource.LogoData;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.resource.ImgManager;
+			import mx.collections.ArrayCollection;
+			import roma.util.ImageHandle;
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.CityReNameWin");
+			
+			[Bindable]
+			private var logoArray:ArrayCollection;
+			[Bindable]
+			private var logoSource:* ;
+			[Bindable]
+			private var logoArrayIndex:int;
+			[Bindable]
+			private var logoUrl:String;
+			[Bindable]
+			private var townHallObj:TownHall;
+
+			public function refresh():void{
+				if(this.initialized){
+					this.init();
+				}
+			}
+			
+			public function set buildingObj(obj:TownHall):void{
+				this.townHallObj=obj;
+			}
+			
+			public function init():void{
+				this.logoArray=ImgManager.instance.getCityLogos();
+				this.logoArrayIndex=0;
+				this.nameInputText.text="";
+				this.logoSource = this.logoArray[this.logoArrayIndex];
+				for(var i:int=0;i<this.logoArray.length;i++){
+					if(LogoData(this.logoArray[i]).name==GameContext.instance.getPlayerObj().getCurCastleObj().logoUrl){
+						this.logoArrayIndex=i;
+						break;
+					}	
+				}
+				resetLogoData();
+			}
+			private function changeLogo(num:int):void {
+		    	this.logoArrayIndex += num;
+		    	if (this.logoArrayIndex < 0 ) {
+		    		this.logoArrayIndex = this.logoArray.length-1;
+		    	} else if (this.logoArrayIndex >= this.logoArray.length ) {
+		    		this.logoArrayIndex = 0;
+		    	}
+		    	this.resetLogoData();
+		    }
+		    
+		    private function reName():void{
+		   		this.townHallObj.cityChangeName(nameInputText.text,this.logoUrl,this.logoSource);		
+		    }
+		    
+		    private function resetLogoData():void {
+				var logoData:LogoData = this.logoArray[this.logoArrayIndex] as LogoData;
+				this.logoSource = logoData.source;
+				this.logoUrl = logoData.name;
+			}
+			
+			private function textInputChange(e:Event):void{
+ 				var c:int = 0;
+ 				TextInput(e.currentTarget).maxChars = 20;
+				for(var i:int=0;i<e.target.text.length;i++){
+					var str:String = e.target.text.substr(i,1);
+					if(InputTextHelper.isDoubleByte(str)){
+						c +=2;
+					}
+					else{
+						c +=1;
+					}
+					if(e.currentTarget == this.nameInputText && c>CaesaryConfig.instance.nameLimit) {  						
+						this.nameInputText.text = this.nameInputText.text.substring(0,i);
+						break;
+					}					
+				}
+			}   
+		]]>
+	</mx:Script>
+	<mx:Canvas width="220" top="3" left="0" bottom="37" styleName="subContentBG">
+		<mx:VBox height="100%" left="42" top="21" right="20" verticalGap="7">
+			<mx:Label text="{MultiLang.msg('townHall.label.changCityName')}:" styleName="titleBordLabel"/>
+			<!--mx:Spacer height="10"/-->
+			<mx:Spacer height="20"/>
+			<mx:Label text="{MultiLang.msg('townHall.label.cityName')}:" styleName="titleLable"/>
+			<mx:Spacer height="5"/>
+			<mx:TextInput width="120" id="nameInputText" change="textInputChange(event)"/>
+			<mx:Spacer height="5"/>
+			<mx:Button label="{MultiLang.msg('public.label.sure')}" click="reName()" width="120"/>
+			<mx:Label text="{MultiLang.msg('townHall.label.cityLogo')}:" styleName="titleLable" visible="false" includeInLayout="false"/>
+			<mx:VBox width="100%" verticalGap="0" visible="false" includeInLayout="false">
+				<mx:HBox width="100%" verticalAlign="middle" horizontalAlign="center">
+					<mx:Button styleName="previousBtn" click="changeLogo(-1)"/>
+					<mx:Image source="{this.logoSource}" width="72" height="42" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Button styleName="nextBtn" click="changeLogo(1)"/>
+				</mx:HBox>
+			<mx:Label text="{this.logoArrayIndex+1+'/'+this.logoArray.length}" width="100%" textAlign="center"/>
+			</mx:VBox>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas left="221" top="3" right="1" bottom="37" styleName="buildingInfoContentBG">
+		<mx:VBox left="18" top="15" right="18" bottom="15" verticalGap="9">
+			<mx:Label text="{MultiLang.msg('townHall.label.changCityName')}:" styleName="titleBordLabel"/>
+			<mx:TextArea width="100%" height="100%" editable="false" text="{MultiLang.msg('townHall.label.cityChageNameDsc')}" styleName="discritionTextArea"/>
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>

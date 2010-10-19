@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="29" height="38"
+	mouseOut="this.buffTooptip.onMouseOut()" 
+	mouseOver="onMouseOver(event)" 
+	mouseMove="this.buffTooptip.onMouseMove(event)" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+<mx:Script>
+	<![CDATA[
+		import roma.util.ImageHandle;
+		import roma.util.FiltersUtil;
+		import roma.util.BufferHandle;
+		import views.spreadUI.tips.ToolTipContainer;
+		import roma.util.ClientUtil;
+		import roma.logic.GameContext;
+		import roma.logic.object.buff.BaseBuffObj;
+		import roma.common.constants.BuffConstants;
+		import roma.common.valueObject.BufferBean;
+		import views.spreadUI.tips.PlayerBuffTip;
+		private var buffTooptip:PlayerBuffTip = ToolTipContainer.instance.playerBuffTooptip;
+		[Bindable]
+		private var buff:BaseBuffObj;
+		[Bindable]
+		private var reqTime:String;//剩余时间
+		private var progressBarWidth:int = 28;	
+		private function onLoadComplete(event:Event):void{
+			Bitmap(event.target.contents).smoothing = true;
+		}
+
+		public function set buffObj(obj:BaseBuffObj):void {
+			this.buff = obj;
+		}
+		
+		private function onMouseOver(event:MouseEvent):void {
+			this.buffTooptip.setBuffObj(this.buff);
+			buffTooptip.onMouseOver(event);
+		}
+
+		
+		public function remainingTime():void{
+			if (this.buff.buffBean!=null) {
+				this.progressBar.width = (this.buff.buffBean.totalTime-(this.buff.buffBean.endTime - new Date().valueOf() +GameContext.instance.getTimeDis()))/this.buff.buffBean.totalTime*this.progressBarWidth;
+				this.reqTime=BufferHandle.timeToString(this.buff.getRemainTimeSec());
+			}
+		}
+	]]>
+</mx:Script>
+	<mx:Image source="{this.buff.iconClass}" width="25" updateComplete="ImageHandle.onLoadComplete(event)" height="25" horizontalCenter="0" top="0"/>
+	<mx:UIComponent id="progressBg" width="28" height="2" bottom="10"/>
+	<mx:UIComponent  id="progressBar" width="28" height="2" bottom="10"/>
+	<mx:Label text="{this.reqTime}" horizontalCenter="0" bottom="-4" styleName="samllstyleTimeLabel" filters="{[FiltersUtil.glowFilter]}"/>
+</mx:Canvas>

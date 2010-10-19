@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow2 xmlns:mx="http://www.adobe.com/2006/mxml" 
+	title="{MultiLang.msg('intelligence.title')}" label="野地情报"
+	width="100%" height="100%" 
+	xmlns:ns1="views.spreadUI.*"
+	xmlns:functionWins="views.windows.functionWins.*" xmlns:intelligence="views.windows.functionWins.intelligence.*">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.MyAlert;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.player.BattleFieldObj;
+			import roma.common.valueObject.BattleFieldBean;
+			import roma.util.MultiLang;
+			import mx.events.FlexEvent;
+			import roma.common.controller.army.BattleInfoResponse;
+			import mx.collections.ArrayCollection;
+			
+			public static const WINDOW_SHOW:String="fieldBattleWin.show";
+			private var timer:Timer=new Timer(1000);
+			[Bindable]
+			private var heroPhysicalRequest:int=0;
+			[Bindable]
+			private var titleBtnArr:ArrayCollection = new ArrayCollection([MultiLang.msg('battleSituation.info.label')]);
+			
+			private var battleSituationArray:ArrayCollection = new ArrayCollection();
+			
+			/**
+			 * 每次界面弹出调用，刷新数据
+			 */
+			override public function refresh():void
+			{
+				if (this.winData != null)
+				{	
+					showFieldBattle(this.winData.idField);
+					if(this.winData.hasOwnProperty("heroPhysicalRequest")){
+						heroPhysicalRequest=this.winData.heroPhysicalRequest;
+					}else{
+						heroPhysicalRequest=0;
+					}
+				}
+			}
+			
+			override protected function onCreationComplete(event:FlexEvent):void{
+				super.onCreationComplete(event);
+				buttonBar.selectedIndex=0;
+				viewStack.selectedIndex=0;
+
+				this.timer.addEventListener(TimerEvent.TIMER,timerHandler);
+			}
+			
+			private function onGetPlayerBattleInfo(event:BattleInfoResponse):void
+			{
+				battleSituationArray.removeAll();
+				var b1:BattleFieldBean;
+				var b2:BattleFieldBean;
+				var b3:BattleFieldBean;
+				var bo:BattleFieldObj
+				if (event.isSuccess())
+				{
+					for each (b1 in event.attackBattlesArray)
+					{
+						bo = new BattleFieldObj(b1);
+						bo.isAttack=true;
+						battleSituationArray.addItem(bo);
+					}
+					for each (b2 in event.defendBattlesArray)
+					{
+						bo = new BattleFieldObj(b2);
+						bo.isDefend=true;
+						battleSituationArray.addItem(bo);
+					}
+					for each (b3 in event.otherBattlesArray)
+					{
+						bo = new BattleFieldObj(b3);
+						bo.isMid =true;
+						battleSituationArray.addItem(bo);
+					}
+					battleSituationArray.toArray().sortOn("battleTime", Array.NUMERIC);
+					battleSituation.refresh(battleSituationArray);
+					if(battleSituationArray.length>0)
+					this.timer.start();
+					else this.timer.stop();
+				}
+				else
+				{
+					MyAlert.showError(event);
+				}
+			} 
+			
+			private var _count:int = 0;
+			private function timerHandler(event:Event):void{
+				checkBattleSituationArray();
+				_count ++;
+				if(_count>10){
+					_count = 0;
+					ControllerFactory.getInstance().getArmyController().getFieldBattleInfo(this.winData.idField, onGetPlayerBattleInfo,false);
+				}
+			}
+			
+			private function showFieldBattle(fId:int):void
+			{
+				ControllerFactory.getInstance().getArmyController().getFieldBattleInfo(fId, onGetPlayerBattleInfo,false);
+			}
+			
+			private function checkBattleSituationArray():void{
+				for(var i:int =0;i<this.battleSituationArray.length;i++){
+					var b:BattleFieldObj = battleSituationArray[i] as BattleFieldObj;
+					var now:Number = new Date().valueOf();
+					var remain:Number=(b.battleWildBean.battleTime + GameContext.instance.timeDis - now) / 1000;
+					if (remain <= 0)
+					{
+						battleSituationArray.removeItemAt(i);
+						battleSituation.refresh(battleSituationArray);
+					}
+					else
+					{
+						continue;
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="11" top="33" verticalGap="0" right="11" label="导航标签">
+	<mx:ToggleButtonBar dataProvider="{titleBtnArr}" styleName="titleToggleButtonBar" id="buttonBar"/>
+	<ns1:MulHRule/>
+	</mx:VBox>
+	<mx:ViewStack id="viewStack" top="60" bottom="11" left="11" right="11">
+		<!-- 野地战局 -->
+		<intelligence:BattleSituationList id="battleSituation" label="战局情报" refreshQueue="refresh" heroPhysicalRequest="{heroPhysicalRequest}"/>
+	</mx:ViewStack>
+</functionWins:BaseFunctionWindow2>

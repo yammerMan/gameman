@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*" title="{_otherArmyObj.king}" setPopUp="false" creationComplete="init()"
+	width="365" height="275">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.common.constants.TroopForConstants;
+			import roma.logic.object.player.OtherArmyObj;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var _otherArmyObj:OtherArmyObj;
+			private var troopInHero:Array = new Array();
+			
+			private function addTroop(type:int):void {
+				var ui:AllyArmyUI = new AllyArmyUI();
+				ui.troop = type;
+				this.troopInHero.push(ui);
+				this.troop_container.addChild(ui);
+			}
+			
+			private function init():void{
+				this.addTroop(TroopForConstants.T_TRIARII);
+				this.addTroop(TroopForConstants.T_CAVALRY);
+				this.addTroop(TroopForConstants.T_URBAN_COHORT);
+				this.addTroop(TroopForConstants.T_ARCHERS);
+				this.addTroop(TroopForConstants.T_BALLISTAS);
+				this.addTroop(TroopForConstants.T_ONAGERS);
+			}
+			
+			public  function show(otherArmyObj:OtherArmyObj):void {
+  				this._otherArmyObj=otherArmyObj;
+  				if(troopInHero.length>0){
+  					for(var i:int=0;i<this.troopInHero.length;i++){
+  						var ui:AllyArmyUI = troopInHero[i] as AllyArmyUI;
+  						var b:HeroTroopBean = otherArmyObj.bean.troopsArray[i] as HeroTroopBean;
+							if(b !=null){
+								ui.troopBean =b;
+							}else{
+								ui.troopBean = null;
+							}
+	  					}
+  				}
+  				this.visible=true;
+  			}
+		]]>
+	</mx:Script>
+	<mx:Canvas height="70" left="15" top="33" right="15" styleName="subContentBG" horizontalScrollPolicy="off">
+		<mx:Canvas width="96" height="47" label="英雄logo" styleName="bigBuildingLogo" verticalCenter="0" left="17">
+			<mx:Image source="{ImgManager.clazz(_otherArmyObj.heroInfoBean.logoUrl)}" left="4" scaleX="{88/104}" scaleY="{39/48}" updateComplete="ImageHandle.onLoadComplete(event)" top="4" bottom="4" right="4"/>	
+		</mx:Canvas>
+		<mx:Label text="{this._otherArmyObj.bean.heroInfo.name}" styleName="titleBordLabel" top="10" left="140"/>
+		<mx:HBox left="140" bottom="10" horizontalGap="10">
+			<mx:Label text="Lv{_otherArmyObj.heroInfoBean.level}"/>
+			<mx:Label text="{_otherArmyObj.heroInfoBean.manages}/{_otherArmyObj.heroInfoBean.powers}/{_otherArmyObj.heroInfoBean.stratagems}"/>
+		</mx:HBox>
+		
+	</mx:Canvas>
+	<mx:Canvas top="105" left="15" right="15" bottom="17" styleName="mainWindowContentBG">
+		<mx:Tile left="3" right="3" top="2" bottom="1" id="troop_container" verticalGap="1" horizontalAlign="center" verticalAlign="middle" paddingLeft="22">
+			
+		</mx:Tile>
+	</mx:Canvas>
+</functionWins:BasePopUpWindow>

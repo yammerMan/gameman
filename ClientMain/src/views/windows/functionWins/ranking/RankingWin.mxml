@@ -1,0 +1,367 @@
+<functionWins:BaseFunctionWindow2 xmlns="views.windows.*" xmlns:mx="http://www.adobe.com/2006/mxml" styleName="shopBG"
+	xmlns:functionWins="views.windows.functionWins.*" width="800" height="400"
+	xmlns:ranking="views.windows.functionWins.ranking.*"  xmlns:ns1="views.spreadUI.*" 
+	title="{MultiLang.msg('ranking.label.ranking')}">
+	<mx:Script>
+		<![CDATA[
+			import views.PopupWindows;
+			import roma.util.FiltersUtil;
+			import roma.common.constants.RankConstant;
+			import roma.common.controller.rank.RankCityResponse;
+			import roma.common.controller.rank.RankPlayerDataResponse;
+			import roma.logic.RomaConstants;
+			import roma.common.constants.GeneralConstants;
+			import roma.message.events.PublicEvent;
+			import roma.logic.GameContext;
+			import roma.common.controller.rank.RankHeroManResponse;
+			import roma.common.controller.rank.RankLeagueResponse;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.events.DropdownEvent;
+			import views.spreadUI.MyAlert;
+			import roma.common.action.ControllerFactory;
+			import mx.events.ItemClickEvent;
+			import mx.validators.ValidationResult;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			
+			public static const WINDOW_SHOW:String = "rankingWin.show";
+			
+			private var zone:int = 0;
+			private var sortType:int = -1;
+			private var page_size:int = 10;
+			[Bindable]
+			private var total_page:int = 0;
+			[Bindable]
+			private var _pageNo:int = 0;
+			
+			private var searchMyHeros:Boolean = false;
+			private var stateId:int = -1;
+
+			private var curRankingView:BaseRanking;
+
+			[Bindable]
+			private var buttonTitle:Array=new Array(
+				MultiLang.msg('ranking.label.player'),
+				MultiLang.msg('public.label.alliance'),
+				MultiLang.msg('hero.hero'),
+				MultiLang.msg('label.city'));
+				
+			[Bindable]								
+			private var searchTypeAry:ArrayCollection = new ArrayCollection([
+				{label:MultiLang.msg('ranking.label.searchByName'),data:0},
+				{label:MultiLang.msg('ranking.label.searchByRanking'),data:1}]);
+			
+			private var playerSortTypeAry:ArrayCollection = new ArrayCollection( [
+				{label:MultiLang.msg("ranking.lable.composite"),data:RankConstant.PLAYER_RANK_TITLE},
+				{label:MultiLang.msg("label.horne"),data:RankConstant.PLAYER_RANK_HONOR},
+				{label:MultiLang.msg("info.player.castleCount"),data:RankConstant.PLAYER_RANK_CITY},
+				{label:MultiLang.msg("label.population"),data:RankConstant.PLAYER_RANK_POPULATION}]);
+				
+			private var allianceSortTypeAry:ArrayCollection = new ArrayCollection([
+				{label:MultiLang.msg("ranking.lable.composite"),data:RankConstant.LEAGUE_TYPE_MEMBER},
+				{label:MultiLang.msg("public.label.prestige"),data:RankConstant.LEAGUE_TYPE_PRESTIGE},
+				{label:MultiLang.msg("label.horne"),data:RankConstant.LEAGUE_TYPE_HONOR}]);
+				
+			private var heroSortTypeAry:ArrayCollection = new ArrayCollection([
+				{label:MultiLang.msg("public.label.level"),data:RankConstant.HEROMAN_TYPE_LEVEL},
+				{label:MultiLang.msg("hero.politics"),data:RankConstant.HEROMAN_TYPE_MANAGEMENT},
+				{label:MultiLang.msg("hero.attack"),data:RankConstant.HEROMAN_TYPE_POWER},
+				{label:MultiLang.msg("hero.defence"),data:RankConstant.HEROMAN_TYPE_STRATAGEM}]);
+				
+			private var castleSortTypeAry:ArrayCollection = new ArrayCollection([
+				{label:MultiLang.msg("label.population"),data:RankConstant.CITY_TYPE_POPULATION},
+				{label:MultiLang.msg("public.label.level"),data:RankConstant.CASTLE_TYPE}]);
+				
+			[Bindable]
+			private var stateDataArray:ArrayCollection = new ArrayCollection([
+				{label:MultiLang.msg('state.allState'),data:RankConstant.CASTLE_RANK_WITHOUT_ZONE},
+				{label:MultiLang.msg("state.Britons"),data:1},
+				{label:MultiLang.msg("state.Reich"),data:2},
+				{label:MultiLang.msg("state.Asiana"),data:3},
+				{label:MultiLang.msg('state.Gauls'),data:4},
+				{label:MultiLang.msg('state.Hispania'),data:5},
+				{label:MultiLang.msg('state.Italia'),data:6},
+				{label:MultiLang.msg('state.Macedon'),data:7},
+				{label:MultiLang.msg('state.Carthage'),data:8},
+				{label:MultiLang.msg('state.Egypt'),data:9},
+				{label:MultiLang.msg('state.Parthia'),data:10}]);
+			
+			[Bindable]
+			private var cbDataArray:ArrayCollection = playerSortTypeAry;
+			
+			private var curSeleIndex:int;
+			
+			private var specialSearch:Boolean=false;
+			
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				this.buttonBar.selectedIndex=curSeleIndex;
+				this.specialSearch=false;
+				callViewstack(curSeleIndex);
+				if(this.initialized){
+					this.searchText.text="";
+				}
+			}
+			
+			/**
+			 * 界面隐藏调用，停止当前窗体一切相关动画等
+			 */ 
+			override public function destroy():void{
+			}
+			
+			/**
+			 * 获得玩家排名列表响应
+			 */ 
+			private function onGetPlayerRankList(event:RankPlayerDataResponse):void{
+				if(event.isSuccess()){
+					playerView.playerRankArray = event.beansArray;
+					this.total_page = event.totalPage;
+					_pageNo = event.pageNo;
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			/**
+			 * 联盟排名列表相应
+			 */ 
+			private function onGetAllianceRankList(event:RankLeagueResponse):void{
+				if(event.isSuccess()){
+					allianceView.allianceRankArray = event.beansArray;
+					total_page = event.totalPage;
+					_pageNo = event.pageNo;
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			/**
+			 * 英雄排行列表的相应
+			 */ 
+			private function onGetHeroRankList(event:RankHeroManResponse):void{
+				if(event.isSuccess()){
+					heroView.heroRankArray = event.beansArray;
+					total_page = event.totalPage;
+					_pageNo = event.pageNo;
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			/**
+			 * 城池排行列表的相应
+			 */ 
+			private function onGetCastleList(event:RankCityResponse):void{
+				if(event.isSuccess()){
+					castleView.castleRankArray = event.beansArray;
+					total_page = event.totalPage;
+					_pageNo = event.pageNo;
+				}else{MyAlert.showError(event)}
+			}
+			
+			private function clickHandler(event:ItemClickEvent):void{
+				this.specialSearch=false;
+				callViewstack(ToggleButtonBar(event.target).selectedIndex)
+			}
+			
+			private function callViewstack(index:int):void{
+				switch(index){
+					case 0:
+						viewstack.selectedIndex =0;
+						cbDataArray = playerSortTypeAry;
+						curRankingView = playerView;
+					break;
+					case 1:
+						viewstack.selectedIndex =1;
+						cbDataArray = allianceSortTypeAry;
+						curRankingView = allianceView;
+					break;
+					case 2:
+						viewstack.selectedIndex =2;
+						cbDataArray = heroSortTypeAry;
+						curRankingView = heroView;
+					break;
+					case 3:
+						viewstack.selectedIndex =3;
+						cbDataArray = castleSortTypeAry;
+						//this.zone = worldState.selectedItem.data;
+						curRankingView = castleView;
+					break;
+				}
+				sortType = myComboBox.selectedItem.data;
+				curRankingView.searchName = null;
+				curRankingView.searchNum = -99;
+				getRankList();
+			}
+			
+			private function getRankList(key:String = null,pNo:int = 1):void {
+				switch (viewstack.selectedIndex) {
+					case 0:
+						ControllerFactory.getInstance().getRankController().getPlayerRank(key,pNo,page_size,sortType,onGetPlayerRankList);
+						break;
+					case 1:
+						ControllerFactory.getInstance().getRankController().getLeagueRank(key,pNo,page_size,sortType,onGetAllianceRankList);
+						break;
+					case 2:
+						ControllerFactory.getInstance().getRankController().getHeroManRank(key,pNo,page_size,sortType,searchMyHeros,onGetHeroRankList);
+						break;
+					case 3: 
+						ControllerFactory.getInstance().getRankController().getCityRank(key ,pNo, page_size,sortType,zone,onGetCastleList);
+						break;
+					case 4:
+					break;
+				}
+			}
+			
+			private function changePageNo(num:int):void{
+				var p:int = _pageNo + num;
+				if (p>0 && p<=total_page) {
+					_pageNo = p;
+					if(specialSearch){
+						specialSearchHandle(_pageNo);
+					}else{
+						getRankList(null,_pageNo);
+					}
+				}
+			}
+			
+			private function gotoTargetPage(page:int):void{
+				if(page<=0){
+					page=1;
+				}
+				if(page>this.total_page){
+					page=total_page;
+				}
+				if (page>0 && page<=this.total_page) {
+					this._pageNo = page;
+					if(this.specialSearch){
+						specialSearchHandle(_pageNo);
+					}else{
+						getRankList(null,_pageNo);
+					}
+				}
+			}
+			
+			private function specialSearchHandle(pageNo:int):void{
+				switch(searchTypeCB.selectedItem.data){
+					case 0:
+						getRankList(searchText.text,pageNo);
+						curRankingView.searchName =  searchText.text;
+						curRankingView.searchNum = pageNo; 
+					break;
+					case 1:
+						if(int(searchText.text) <= 0){
+							MyAlert.show(MultiLang.msg("ranking.alarm.searchOverOne"));
+						}else{
+							getRankList(null,pageNo);
+							curRankingView.searchNum = pageNo;
+						}
+					break;
+				}
+			}
+			
+			private function closeHandle(event:Event):void{
+				this.sortType = ComboBox(event.target).selectedItem.data; 
+				if(this.specialSearch){
+					specialSearchHandle(_pageNo);
+				}else{
+					getRankList(null,_pageNo);
+				}
+			}
+			
+			private function stateCloseHandle(event:Event):void{
+				this.zone = ComboBox(event.target).selectedItem.data;
+				getRankList(null,_pageNo);
+			}
+			
+			private function onSearchBtnClick(event:MouseEvent):void{
+				this.specialSearch=true;
+				switch(searchTypeCB.selectedItem.data){
+					case 0:
+						getRankList(searchText.text);
+						curRankingView.searchName =  searchText.text;
+						curRankingView.searchNum = -99; 
+					break;
+					case 1:
+						if(int(searchText.text) <= 0){
+							MyAlert.show(MultiLang.msg("ranking.alarm.searchOverOne"));
+						}else{
+							getRankList(null,Math.ceil(int(searchText.text)/page_size));
+							curRankingView.searchName = null;
+							curRankingView.searchNum = int(searchText.text);
+						}
+					break;
+				}
+			}
+			
+			private function searchMySelf():void{
+				if(viewstack.selectedIndex==1){
+					if(GameContext.instance.getPlayerObj().getPlayerInfo().leagueName==""||GameContext.instance.getPlayerObj().getPlayerInfo().leagueName==null){
+						MyAlert.show(MultiLang.msg("world.castle.not.alliance"));
+					}else{
+						curRankingView.searchName =  GameContext.instance.getPlayerObj().getPlayerInfo().leagueName;
+						curRankingView.searchNum = -99; 
+						getRankList(GameContext.instance.getPlayerObj().getPlayerInfo().leagueName);
+					}
+					return;
+				}
+				curRankingView.searchName =  GameContext.instance.getPlayerObj().getPlayerInfo().playerName;
+				curRankingView.searchNum = -99; 
+				getRankList(GameContext.instance.getPlayerObj().getPlayerInfo().playerName);
+			}
+			
+			public function gotoRanking(id:int):void{
+				this.curSeleIndex=id;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas label="View1" left="10" right="10" height="367" y="33">
+		<mx:VBox left="0" right="0" verticalGap="0" id="buttonBarVB" height="327" y="0">
+			<mx:HBox horizontalGap="10">
+				<mx:ToggleButtonBar itemClick="this.clickHandler(event);" 
+					dataProvider="{buttonTitle}" 
+					id="buttonBar" styleName="titleToggleButtonBar" />
+				<mx:ComboBox id="myComboBox" 
+					styleName="ComboBox" 
+					dataProvider="{cbDataArray}" 
+					close="closeHandle(event)" 
+					width="110"/>
+				<mx:Label 
+					text="{MultiLang.msg('ranking.updateTips')}"/>
+			</mx:HBox>
+			
+			<ns1:MulHRule width="100%"/>
+			<mx:ViewStack id="viewstack" bottom="0" width="100%" height="100%">
+				<ranking:PlayerRanking id="playerView"/>
+				<ranking:AllianceRanking id="allianceView" />
+				<ranking:HeroRanking id="heroView" />
+				<ranking:CastleRanking id="castleView"/>
+				<!--ranking:TopRanking id="topView"/-->
+			</mx:ViewStack>
+		</mx:VBox>
+		
+		<mx:Canvas height="29" styleName="mainWindowContentBG" horizontalScrollPolicy="off" verticalScrollPolicy="off" left="0" right="0" y="328">
+			<mx:HBox horizontalGap="2" left="5" height="100%" verticalAlign="middle" verticalCenter="0">
+				<mx:ComboBox dataProvider="{searchTypeAry}" id="searchTypeCB" width="110"/>
+				<mx:TextInput id="searchText" styleName="textInput" width="110"/>
+				<mx:Button id="nameSearchBtn" label="{MultiLang.msg('ranking.label.search')}" width="60" click="onSearchBtnClick(event)"/>
+			</mx:HBox>
+			<mx:Canvas width="498" height="100%" right="0" verticalCenter="0">
+				<mx:HBox verticalAlign="middle" id="turnPageBox" verticalCenter="0" horizontalGap="2" right="130">
+					<mx:Label text="{MultiLang.msg('public.label.page')}" styleName="darkCommonStyle" visible="{total_page>2}" includeInLayout="{total_page>2}"/>
+					<mx:TextInput width="50" restrict="0-9" id="targetPageInput" visible="{total_page>2}" includeInLayout="{total_page>2}" textAlign="center"/>
+					<mx:Button label="{MultiLang.msg('public.page.goto')}" styleName="commomNormalBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(targetPageInput.text==''?0:int(targetPageInput.text))"/>
+					<mx:Spacer width="3" includeInLayout="{total_page>2}"/>
+					<mx:Button styleName="minBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(1)"/>
+					<mx:Button  id="toLeftBtn" styleName="previousBtn" click="this.changePageNo(-1)"/>
+					<mx:Label text="{_pageNo+'/'+total_page}"/>
+					<mx:Button id="toRightBtn" styleName="nextBtn" click="this.changePageNo(1)"/>
+					<mx:Button styleName="maxBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(total_page)"/>
+				</mx:HBox>
+				<mx:Button id = "mySearch" label="{MultiLang.msg('ranking.label.myRanking')}" width="120" click="searchMySelf()"  visible="{viewstack.selectedIndex>1?false:true}" right="5" verticalCenter="0"/>
+			</mx:Canvas>
+		</mx:Canvas>
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow2>

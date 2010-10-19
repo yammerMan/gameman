@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()"
+	xmlns:util="views.util.*" title="{MultiLang.msg('alliance.allianceInfo')}"
+	width="360" height="330">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.alliance.AllianceInfoDataResponse;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import views.MainContainer;
+			import roma.message.events.ChatCallEvent;
+			import roma.message.EvtDispacther;
+			import roma.message.events.AllianceHandleEvent;
+			import views.spreadUI.MyAlert;
+			import roma.common.valueObject.RankLeagueBean;
+			import roma.resource.LogoData;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.common.constants.AllianceConstant;
+			import mx.collections.ArrayCollection;
+			import roma.util.PopupWinManager;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var allianceObj:RankLeagueBean; 
+			[Bindable]
+			private var topLogoSource:*;
+			
+			[Bindable]
+			private var middleLogoSource:*;
+			
+			[Bindable]
+			private var hasRight:Boolean=false;
+			[Bindable]
+			private var hasAlliance:Boolean=false;
+			
+			[Bindable]
+			private var bottomLogoSource:*;
+			[Bindable]
+			private var relationshipArr:ArrayCollection=new ArrayCollection();
+			
+			private var curAllianceId:int;
+			
+			private static var instancePopup:AllianceInfoView = new AllianceInfoView();                                           // 联盟的信息
+			private function init():void{
+				instancePopup=this;
+				this.relationshipArr.addItem({label:MultiLang.msg('alliance.relationship.friend'),data:AllianceConstant.ALLIANCE_RELATION_FRIENDLY});
+				this.relationshipArr.addItem({label:MultiLang.msg('alliance.relationship.enemy'),data:AllianceConstant.ALLIANCE_RELATION_HOSTILE});
+			}
+			public static function show(allianceId:int,modal:Boolean=true):void {
+  				instancePopup.hasRight=false;
+  				instancePopup.curAllianceId=allianceId;
+  				instancePopup.getLeagueInfo(allianceId);
+  				instancePopup.checkHasAlliance();
+  				AllianceHelper.instance.reFreshRelation();
+  				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,modal);
+				}
+  			}
+  			
+  			//获取联盟信息
+  			private function getLeagueInfo(allianceId:int):void{
+  				ControllerFactory.getInstance().getOutOfAllianceController().getLeagueInfo(allianceId,callback);
+  				/**
+				 * 联盟排名列表相应
+				 */ 
+				 function callback(event:AllianceInfoDataResponse):void{
+					if(event.isSuccess()){
+						allianceObj=event.leagueInfo;
+						getImage();
+						setRelation();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+  			}
+  			
+  			//判断是否可以设置联盟关系
+  			private function setRelation():void{
+  				if(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight>=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF&&GameContext.instance.getPlayerObj().getPlayerInfo().leagueName!=allianceObj.name){
+  					this.hasRight=true;
+  				}
+  			}
+  			
+  			//修改联盟关系
+  			private function modifyRelationship():void{
+  				if(AllianceHelper.instance.haveRelation(relationSelector.selectedItem.data,allianceObj.name)){
+  					return;
+  				}
+  				ControllerFactory.getInstance().getAllianceManagementController().setAllianceRelation(allianceObj.name,relationSelector.selectedItem.data,callback);
+  				function callback(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						EvtDispacther.instance.dispatchEvent(new AllianceHandleEvent(AllianceHandleEvent.EVENT_NAME_RELATIONCHANGE));
+  						var str:String="";
+  						if(relationSelector.selectedItem.data==AllianceConstant.ALLIANCE_RELATION_FRIENDLY){
+  							var friendStr:String=MultiLang.msg("alliance.relationship.friend");
+  							str=MultiLang.msg("alliance.event.setRelationEvent",GameContext.instance.getPlayerObj().getPlayerInfo().playerName,leagueName.text,friendStr);
+  						}else{
+  							var enemyStr:String=MultiLang.msg("alliance.relationship.enemy");
+  							str=MultiLang.msg("alliance.event.setRelationEvent",GameContext.instance.getPlayerObj().getPlayerInfo().playerName,leagueName.text,enemyStr);
+  						}
+  						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,str));
+  						EvtDispacther.instance.dispatchEvent(new AllianceHandleEvent(AllianceHandleEvent.EVENT_NAME_RELATIONCHANGE));
+  						MyAlert.show(MultiLang.msg("alliance.relationship.setRelation"));
+  						PopupWinManager.instance.removePopup(instancePopup);
+  						AllianceHelper.instance.reFreshRelation();
+  					}else{
+						MyAlert.showError(event);
+					}
+  				}
+  			}
+  			
+  			//取消联盟关系
+  			private function cancleRelationship():void{
+  				if(AllianceHelper.instance.haveRelation(AllianceConstant.ALLIANCE_RELATION_NEUTRAL,allianceObj.name)){
+  					return;
+  				}
+  				ControllerFactory.getInstance().getAllianceManagementController().deleteAllianceRelation(allianceObj.name,callback);
+  				function callback(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						EvtDispacther.instance.dispatchEvent(new AllianceHandleEvent(AllianceHandleEvent.EVENT_NAME_RELATIONCHANGE));
+  						MainContainer.instance.risePlay(MultiLang.msg("alliance.removeRelationship.sucess"));
+  						PopupWinManager.instance.removePopup(instancePopup);
+  					}else{
+						MyAlert.showError(event);
+					}
+  				}
+  			}
+  			
+  			//获取联盟logo
+  			private function getImage():void{
+  				if(this.allianceObj!=null){
+					var logoCode:int=this.allianceObj.logo;
+					var topIndex:int=logoCode>>16;
+					var middleIndex:int=logoCode<<16>>24;
+					var bottomIndex:int=logoCode<<24>>24;
+					
+					this.topLogoSource=LogoData(ImgManager.instance.getLeagueTopLogos()[topIndex]).source;
+					this.middleLogoSource=LogoData(ImgManager.instance.getLeagueMiddleLogos()[middleIndex]).source;
+					this.bottomLogoSource=LogoData(ImgManager.instance.getLeagueBottomLogos()[bottomIndex]).source;
+				}	
+			}
+			
+			//检查是否有联盟
+			private function checkHasAlliance():void{
+				if(GameContext.instance.getPlayerObj().getPlayerInfo().leagueName == "" || GameContext.instance.getPlayerObj().getPlayerInfo().leagueName == null){
+					this.hasAlliance=false;
+				}else{
+					this.hasAlliance=true;
+				}
+			}
+			//加入联盟
+			private function joinAlliance():void{
+				ControllerFactory.getInstance().getOutOfAllianceController().apply(this.curAllianceId,callback);
+				function callback(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						MainContainer.instance.risePlay(MultiLang.msg("alliance.relationship.applySuccess"));
+  						PopupWinManager.instance.removePopup(instancePopup);
+  					}else{
+						MyAlert.showError(event);
+					}
+  				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas id="allianceMes" top="36" height="140" styleName="alphaBlackBG" left="12" right="12">
+		<mx:Canvas width="123" height="121" left="10" verticalCenter="0">
+			<mx:Image left="0" right="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.bottomLogoSource}" width="102" height="102"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.middleLogoSource}" width="102" height="102"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.topLogoSource}" width="102" height="102"/>
+		</mx:Canvas>
+		<mx:VBox height="121" verticalGap="-1" verticalCenter="0" left="137" right="5" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label id="leagueName" text="{allianceObj.name}" width="100%" textAlign="center" fontWeight="bold"/>
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('alliance.leader')}: " width="75" textAlign="right"/>
+				<mx:Label id="allianceLeader" text="{allianceObj.leader}" width="100%" />	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('alliance.ofMember')}: " width="75" textAlign="right"/>
+				<mx:Label id="allianceMembers" text="{allianceObj.member}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('public.label.level')}: " width="75" textAlign="right"/>
+				<mx:Label id="allianceLevel" text="{allianceObj.level}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('ranking.label.ranking')}: " width="75" textAlign="right"/>
+				<mx:Label id="allianceRanking" text="{allianceObj.rank}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('public.label.prestige')}: " width="75" textAlign="right"/>
+				<mx:Label id="allianceHonor" text="{allianceObj.prestiges}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas id="allianceDescView" top="178" bottom="37" left="12" styleName="mainWindowContentBG" right="12">
+		<mx:HBox left="0" horizontalGap="0" top="0" styleName="tecTitleBG" right="0" height="25">
+			<mx:Spacer width="5"/>
+			<mx:Label text="{MultiLang.msg('public.label.describe')}"/>
+		</mx:HBox>
+		<mx:TextArea left="1" right="1" top="24" bottom="0" text="{allianceObj.desc}" editable="false"/>
+	</mx:Canvas>
+	<mx:HBox bottom="12" left="12" right="12" horizontalGap="2" visible="{this.hasRight}">
+		<mx:ComboBox width="90" dataProvider="{this.relationshipArr}" labelField="label" id="relationSelector"></mx:ComboBox>
+		<mx:Button label="{MultiLang.msg('alliance.changeRelationship')}" width="120" click="modifyRelationship()"/>
+		<mx:Button label="{MultiLang.msg('alliance.removeRelationship')}" width="120" click="cancleRelationship()"/>
+	</mx:HBox>
+	<mx:HBox bottom="12" right="12" horizontalGap="2" visible="{!this.hasAlliance}">
+		<mx:Button label="{MultiLang.msg('alliance.joinAlliance')}" width="120" click="joinAlliance()"/>
+	</mx:HBox>
+</functionWins:BasePopUpWindow>

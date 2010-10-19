@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" kerning="true">
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var tipTitle:String;
+			[Bindable]
+			private var tipContent:String;
+			
+			public function setTip(contents:String,title:String=""):void {
+				this.tipTitle=title;
+				this.tipContent=contents;
+				this.width=245;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:Label text="{this.tipTitle}"  styleName="titleBordLabel" includeInLayout="{this.tipTitle==''?false:true}" visible="{this.tipTitle==''?false:true}"/>
+		
+		<mx:Text htmlText="{this.tipContent}" width="100%"/>
+	</mx:VBox>
+	
+</BaseTip>

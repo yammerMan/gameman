@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" 
+	xmlns:ReportUi="views.windows.functionWins.post.ReportUi.*" xmlns:report="views.windows.functionWins.post.*" 
+	verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:battleResult="views.windows.functionWins.post.ReportUi.battleResult.*" 
+	xmlns:spreadUI="views.spreadUI.*" creationComplete="init()" xmlns:items="views.windows.functionWins.mail.ReportUi.battleResult.items.*" xmlns:battleResult1="views.windows.functionWins.mail.ReportUi.battleResult.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.report.ReportNpcStorys;
+			import roma.util.CompCache;
+			import views.windows.functionWins.mail.ReportUi.battleResult.AcquireItemUI;
+			import roma.resource.ImgManager;
+			import mx.controls.Alert;
+			import roma.util.JavaScriptHelper;
+			import roma.logic.CaesaryConfig;
+			import mx.utils.StringUtil;
+			import roma.common.constants.BattleConstants;
+			import views.windows.functionWins.mail.bean.ResourceType;
+			import views.windows.functionWins.mail.bean.BattleReportType;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.field.FieldHelper;
+			import roma.common.constants.FieldConstant;
+			import roma.logic.GameContext;
+			import roma.logic.object.player.PlayerObj;
+			import roma.util.MultiLang;
+			import mx.rpc.xml.SimpleXMLDecoder;
+			import mx.utils.XMLUtil;
+			import mx.collections.ArrayCollection;
+			import mx.utils.ObjectProxy;
+
+			[Bindable]
+			private var playerName:String = GameContext.instance.getPlayerObj().getPlayerInfo().playerName;
+			[Bindable]
+			private var othersName:String = "";
+			[Bindable]
+			private var isSuccess:Boolean = false;
+			[Bindable]
+			private var battleB:BattleReportType = null;
+			[Bindable]
+			private var resourceB:ResourceType;
+			[Bindable]
+			private var vrHeight:Number = 0;
+			[Bindable]
+			private var battleTileDesc:String = "";
+			[Bindable]
+			private var battleResultDesc:String = "";
+			[Bindable]
+			private var battleTimeStr:String = "";
+			private var battleUrlStr:String;
+			[Bindable]
+			private var battleTaleStr:String = "";
+			
+			[Bindable]
+			private var isShowResource:Boolean = false;
+			[Bindable]
+			private var isShowItems:Boolean = false;
+			[Bindable]
+			private var isCanPlay:Boolean = false;
+			[Bindable]
+			private var captiveHers:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var isCaptiveHeros:Boolean = false;
+			
+			public function set battleBean(b:BattleReportType):void {
+				this.battleB = b;
+				battleTimeStr = "";
+				battleTileDesc = "";
+				battleResultDesc = "";
+				this.resourceB = null;
+				
+				if(battleB.lootResource != null){
+					resourceB = battleB.lootResource;
+				}
+				if(battleB.lostRes != null){
+					resourceB = battleB.lostRes;
+				}
+				
+				othersName = battleB.battle.battleFieldName != ""?
+									(battleB.battle.battleFieldName+GameContext.getFieldPostionString(battleB.battle.battleFieldId)):
+									FieldHelper.getFieldName(battleB.battle.battleFieldType,1)+GameContext.getFieldPostionString(battleB.battle.battleFieldId);
+				isSuccess = (battleB.isAttack && battleB.battle.isAttackSuccess)||(!battleB.isAttack && !battleB.battle.isAttackSuccess)?true:false;
+				if(isSuccess){
+					vrHeight = Math.max(battleB.battle.attackerTroop.length,battleB.battle.defenderTroop.length)*65<140?140:Math.max(battleB.battle.attackerTroop.length,battleB.battle.defenderTroop.length)*65;
+				}else{
+					vrHeight = Math.max(battleB.battle.attackerTroop.length,battleB.battle.defenderTroop.length)*65<205?205:Math.max(battleB.battle.attackerTroop.length,battleB.battle.defenderTroop.length)*65;
+				}
+				battleTimeStr = ReportManager.instance.receiveTimeStr;
+				battleTileDesc = battleB.getBattleTitle();
+				if(battleB.battle.battleMission == BattleConstants.ARMY_MISSION_INDEPENDENT){
+					battleResultDesc = battleB.getIndependenceDesc();
+				}else{
+					battleResultDesc = battleB.getResultDesc();
+				}
+				
+				if(battleB.battle.battleMission ==BattleConstants.ARMY_MISSION_LOOT || battleB.battle.battleMission == BattleConstants.ARMY_MISSION_ATTACK || battleB.battle.battleMission == BattleConstants.ARMY_MISSION_TRAINNING){
+					isShowResource = ((resourceB == null)?false:true);
+					isShowItems = battleB.items.length >0;
+				}else{
+					isShowResource = false;
+					isShowItems = false;
+				}
+				setItems(battleB.items);
+				
+				isCanPlay = true;
+				/* if(b.battle.round>=1){
+					if(battleB.isAttack && battleB.battle.isAttackSuccess){
+						isCanPlay = true;
+					}else if(!battleB.isAttack && !battleB.battle.isAttackSuccess){
+						isCanPlay = true;
+					}
+					else{
+						isCanPlay = b.battle.round>1;
+					}
+				}else{
+					isCanPlay = false;
+				} */
+				
+				if(battleB.captiveHeros.length>0){
+					captiveHers = battleB.captiveHeros;
+				}else if(battleB.beCaptiveHeros.length>0){
+					isCaptiveHeros = true;
+					captiveHers = battleB.beCaptiveHeros;
+				}else{
+					isCaptiveHeros = false;
+					captiveHers = new ArrayCollection();
+				}
+				
+				battleTaleStr = ReportNpcStorys.getStorys(battleB.npcIndex);
+			} 
+			
+			private var itemCache:CompCache = new CompCache(4);
+			private function setItems(list:ArrayCollection):void{
+				if(list.length<=0){
+					return;}
+				itemContainer.removeAllChildren();
+				for each(var i:ObjectProxy in list){
+					var item:AcquireItemUI = itemCache.getUI(AcquireItemUI) as AcquireItemUI;
+					item.itemBean = i;
+					itemContainer.addChild(item);
+				}  
+			}
+			
+			private function init():void{
+			}
+			
+			/**
+			 * 播放战斗
+			 */ 
+			private function onPlayBattle():void{
+				var str:String = ReportManager.getBattleUrl(ReportManager.instance.url);
+				JavaScriptHelper.instance.getURL(str);
+			}
+			
+			private function onCopyBattleUrl():void{
+				var str:String = ReportManager.getBattleUrl(ReportManager.instance.url);
+				System.setClipboard(str);
+			} 
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="mainWindowContentBG" width="650" height="25" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Label text="{battleTimeStr+', '+battleTileDesc}" width="100%" textAlign="left" top="0" left="12" toolTip="{battleTimeStr+', '+battleTileDesc}"/>
+	</mx:Canvas>
+	<mx:Button label="{MultiLang.msg('battle.playBtn.label')}" id="playBtn" click="onPlayBattle()" enabled="{isCanPlay}" width="100" right="12" top="2"/>
+	<!--mx:Button label="{Lang.msg('battle.copyBtn.label')}" click="onCopyBattleUrl()" width="120" right="12" top="2" toolTip="{Lang.msg('battle.copyBtn.tip')}"/ -->
+	
+	<mx:Canvas top="27" bottom="31" left="0" right="0" styleName="alphaBlackBG" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Button styleName="popUpWinTitle2Btn" horizontalCenter="0" filters="{isSuccess?null:[FiltersUtil.darkColorMatrixFilter]}" top="0" enabled="false" width="180"/>
+		<mx:Label id="titleName" text="{isSuccess?MultiLang.msg('battle.win.label'):MultiLang.msg('battle.lose.label')}" styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}" 
+			top="2" width="180" horizontalCenter="0" textAlign="center"/>
+			<mx:Canvas horizontalScrollPolicy="off" left="10" right="10" top="30" bottom="8" id="battleResult">
+				<mx:Canvas width="100%" horizontalScrollPolicy="off">
+					<mx:VBox horizontalAlign="center" width="100%" verticalGap="2">
+						<mx:Spacer height="1"/>
+						<mx:Text text="{battleResultDesc}" width="95%"/>
+						<mx:Canvas styleName="mainWindowContentBG" width="98%" height="25" verticalScrollPolicy="off" horizontalScrollPolicy="off" visible="{battleB.npcIndex>0}" includeInLayout="{battleB.npcIndex>0}">
+							<mx:Image source="{ImgManager.clazz('report.tale')}" x="5"/>
+							<mx:Text text="{battleTaleStr}" width="92%" textAlign="left" top="0" right="12"/>
+						</mx:Canvas>
+						<mx:HRule width="98%"/>
+						<battleResult1:PlayerInfoUI width="98%" id="playerInfoUi" height="25" res="{resourceB}" visible="{isShowResource}" includeInLayout="{isShowResource}"/>
+						<mx:Canvas width="98%" height="28" visible="{isShowItems || battleB.isTraining}" includeInLayout="{isShowItems || battleB.isTraining}" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<mx:Tile id="itemContainer" width="50%" height="28" horizontalGap="1" visible="{isShowItems}" includeInLayout="{isShowItems}" />
+							<mx:Text text="{MultiLang.msg('report.battle.npc.tips')}" top="2" right="12" width="50%" visible="{battleB.battle.battleFieldType==13}" styleName="NoticeLabel" textAlign="right"/>
+						</mx:Canvas>
+						<mx:HRule width="98%" visible="{playerInfoUi.visible||isShowItems}" includeInLayout="{playerInfoUi.visible||isShowItems}"/>
+						<mx:HBox horizontalGap="5" id="troopsInfo" width="98%" paddingLeft="5" paddingRight="5">
+							<battleResult1:TroopsInfoUI id="attackTroopsView" width="370" attackBean="{battleB.battle}" />
+							<mx:VRule height="{vrHeight*.98}"/>
+							<battleResult1:TroopsInfoUI id="defendTroopsView" width="370" defenseBean="{battleB.battle}" />
+						</mx:HBox>
+						
+						<mx:Canvas width="100%" visible="{battleB.independentCastles.length>0}" label="战斗中获得独立的城池，需要测试" includeInLayout="{battleB.independentCastles.length>0}">
+							<mx:VBox width="100%" horizontalAlign="center" verticalGap="2">
+							<mx:HRule width="98%" />
+							<mx:Label text="{MultiLang.msg('battle.result.independentCastle.label')}" width="98%" textAlign="left"/>
+							<mx:TileList dataProvider="{battleB.independentCastles}" width="98%" backgroundAlpha="0" selectable="false" useRollOver="false" borderStyle="none">
+								<mx:itemRenderer>
+									<mx:Component>
+										<mx:HBox horizontalGap="0">
+											<mx:Image source="{data.castleLogo}"/>
+											<mx:VBox verticalGap="0">
+												<mx:Label text="{data.playerName}" />
+												<mx:Label text="{data.cityName}" />
+											</mx:VBox>
+										</mx:HBox>
+									</mx:Component>
+								</mx:itemRenderer>
+							</mx:TileList>
+							</mx:VBox>
+						</mx:Canvas>
+						
+						<mx:Canvas label="俘虏英雄/被俘虏的英雄" width="100%" visible="{captiveHers.length>0}" includeInLayout="{captiveHers.length>0}">
+							<mx:VBox width="100%" horizontalAlign="center" verticalGap="2">
+							<mx:HRule width="98%" />
+							<mx:Label text="{isCaptiveHeros?MultiLang.msg('battle.result.isCaptiveHero.label'):MultiLang.msg('battle.result.captiveHero.label')}" width="98%" textAlign="left"/>
+							<mx:TileList dataProvider="{captiveHers}" width="98%" height="80" backgroundAlpha="0" selectable="false" useRollOver="false" borderStyle="none">
+								<mx:itemRenderer>
+									<mx:Component>
+										<items:HeroItem2 hero2="{data}"/>
+									</mx:Component>
+								</mx:itemRenderer>
+							</mx:TileList>
+							</mx:VBox>
+						</mx:Canvas>
+						
+					</mx:VBox>
+				</mx:Canvas>
+			</mx:Canvas>
+			<!--ReportUi:BattleReplay id="battleReplay" top="30" right="10" bottom="8" left="10" visible="false"/-->
+	</mx:Canvas>
+</mx:Canvas>

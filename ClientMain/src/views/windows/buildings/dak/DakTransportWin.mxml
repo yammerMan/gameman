@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.castle.ResourceStaticResponse;
+			import roma.common.valueObject.ResourceStaticBean;
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.valueObject.PostTransportBean;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.message.EvtDispacther;
+			import roma.message.events.DakChangeEvent;
+			import mx.collections.ArrayCollection;
+			import roma.common.valueObject.CityBean;
+			import roma.util.CompCache;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			
+				
+			[Bindable]
+			private var food:ResourceStaticBean;
+			[Bindable]
+			private var wood:ResourceStaticBean;
+			[Bindable]
+			private var stone:ResourceStaticBean;
+			[Bindable]
+			private var iron:ResourceStaticBean;
+			
+			[Bindable]
+			private var nextTimeStr:String;
+			
+			
+			[Bindable]
+			private var curTownResourceManager:CastleResourceManager;
+			private var cacheUI:CompCache = new CompCache(20);
+			private var dakArr:ArrayCollection=new ArrayCollection();
+			private var transportOutArr:ArrayCollection=new ArrayCollection();
+			private var transportInArr:ArrayCollection=new ArrayCollection();
+			private var addDakUi:AddTransportUI=new AddTransportUI();
+			private var _buildingObj:BaseBuilding;//当前建筑的BuildingObj
+			[Bindable]
+			private var curCastle:CastleObj;
+			private var _timer:Timer = new Timer(1000);
+			public function init():void{
+				if(this.initialized){
+					this.refresh();
+				}
+			}
+			
+			public function set buildingObj(obj:BaseBuilding):void{
+				this._buildingObj=obj;
+				addDakUi.buildingObj=obj;
+			}
+			
+			
+			//驿站更新
+			private function dakChange(event:Event):void
+			{
+				this.refresh();
+			}
+			
+			public function refresh():void{
+				EvtDispacther.instance.addEventListener(DakChangeEvent.EVENT_NAME , dakChange);
+				this.getResourceStatics();
+				this.cacheUI.reset();
+				this.dakArr.removeAll();
+				this.transportOutArr.removeAll();
+				this.transportInArr.removeAll();
+				this.curCastle=GameContext.instance.getPlayerObj().getCurCastleObj();
+				this.curTownResourceManager=this.curCastle.resourceManager;
+				transportContainer.removeAllChildren();
+//				this.dakArr=GameContext.instance.getPlayerObj().getCurCastleObj().dakManager.dakList;
+     			this.dakArr=GameContext.instance.getPlayerObj().dakManager.getDakList();
+				if(this._buildingObj.level>0){
+					if(!_timer.running){
+					 	_timer.addEventListener(TimerEvent.TIMER, timerHandler);
+					 }
+	                 _timer.start();
+					if(GameContext.instance.getPlayerObj().dakManager.size()>0){
+						for(var i:int=0;i<this.dakArr.length;i++){
+							var postTransportBean:PostTransportBean=this.dakArr[i];
+							if(postTransportBean.startCastleId==this.curCastle.cityId){
+								this.transportOutArr.addItem(postTransportBean);
+							}
+							if(postTransportBean.targetCastleId==this.curCastle.cityId){
+								this.transportInArr.addItem(postTransportBean);
+							}
+						}
+						if(this.transportInArr.length>0){
+							for(var inP:int=0;inP<this.transportInArr.length;inP++){
+								var transportUI:TransportUI = this.cacheUI.getUI(TransportUI) as TransportUI;
+								transportUI.setDakBean(this.transportInArr[inP]);
+								transportUI.buildingObj=this._buildingObj;
+								transportContainer.addChild(transportUI);
+							}
+						}
+						if(this.transportOutArr.length>0){
+							for(var outP:int=0;outP<this.transportOutArr.length;outP++){
+								var transportOutUI:TransportUI = this.cacheUI.getUI(TransportUI) as TransportUI;
+								transportOutUI.setDakBean(this.transportOutArr[outP]);
+								transportOutUI.buildingObj=this._buildingObj;
+								transportContainer.addChild(transportOutUI);
+							}
+						}
+					}
+					addDakUi.refresh();
+					transportContainer.addChild(addDakUi);	
+				}
+			}
+			
+			public function destroy():void{
+				_timer.stop();
+				EvtDispacther.instance.removeEventListener(DakChangeEvent.EVENT_NAME , dakChange);
+				this.removeEventListener(TimerEvent.TIMER, timerHandler);
+			}
+			
+				/*获取资源生产数据*/
+			private function getResourceStatics():void{
+				GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getTownHall().getResourceStatics(callback);
+				function callback(event:ResourceStaticResponse):void{
+					food=event.foodBean;
+					wood=event.woodBean;
+					stone=event.stoneBean;
+					iron=event.ironBean;
+					if(initialized){
+						curTownResourceManager.refreshResource(event);	
+					}
+				}
+			}
+			
+			/*计算需要时间*/
+			private function timerHandler(evt:TimerEvent):void {
+				var time:Number=Number(new Date());
+				var d:Date = new Date(time - GameContext.instance.getTimeDis());
+				this.nextTimeStr=MultiLang.msg("dak.builtLine.nextTime")+" "+(5-d.getMinutes()%6)+MultiLang.msg("date.min")+" "+(60-d.getSeconds())+MultiLang.msg("date.sec");
+	        }
+		]]>
+	</mx:Script>
+	<mx:Canvas width="100%" styleName="mainWindowContentBG" height="45">
+		<mx:Canvas styleName="dataGridHeaderBG" width="100%" horizontalScrollPolicy="off">
+			<mx:HBox left="0" right="0" horizontalGap="0">
+				<mx:Label width="120" textAlign="center"/>
+				<mx:Label width="110" textAlign="center" text="{MultiLang.msg('dak.cityName')}"/>
+				<mx:Label text="{MultiLang.msg('label.food')}" width="100" textAlign="center"/>
+				<mx:Label text="{MultiLang.msg('label.wood')}" width="100" textAlign="center"/>
+				<mx:Label text="{MultiLang.msg('label.stone')}" width="100" textAlign="center"/>
+				<mx:Label text="{MultiLang.msg('label.iron')}" width="100" textAlign="center"/>
+				<mx:Label width="100%" textAlign="center" text="{nextTimeStr}"/>
+			</mx:HBox>
+		</mx:Canvas>
+		<mx:HBox left="0" right="0" bottom="0" horizontalGap="0">
+			<mx:Label width="120" textAlign="center" text="{MultiLang.msg('dak.output')}" toolTip="{MultiLang.msg('dak.output.tip')}"/>
+			<mx:Label width="110" textAlign="center" text="{curCastle.name}"/>
+			<mx:Label text="{Number(curTownResourceManager.food.totalProduce).toFixed(0)}" width="100" textAlign="center"/>
+			<mx:Label text="{Number(curTownResourceManager.wood.totalProduce).toFixed(0)}" width="100" textAlign="center"/>
+			<mx:Label text="{Number(curTownResourceManager.stone.totalProduce).toFixed(0)}" width="100" textAlign="center"/>
+			<mx:Label text="{Number(curTownResourceManager.iron.totalProduce).toFixed(0)}" width="100" textAlign="center"/>
+			<mx:Label width="100%" textAlign="center"/>
+		</mx:HBox>
+	</mx:Canvas>
+	<mx:Canvas height="175" left="0" right="0" top="46" styleName="subContentBG">
+		<mx:Canvas top="10" left="10" right="10" bottom="10" horizontalScrollPolicy="off">
+			<mx:VBox id="transportContainer" verticalGap="1" width="100%" height="100%">
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	<mx:HBox left="0" right="0" bottom="35" styleName="mainWindowContentBG" horizontalGap="0">
+			<mx:Label width="230" textAlign="left" text="{MultiLang.msg('dak.outputTotal')}" toolTip="{MultiLang.msg('dak.outputTotal.tip')}"/>
+			<mx:Label text="{Number(curTownResourceManager.food.totalProduce+this.food.dakTransport).toFixed(0)}" styleName="{int(curTownResourceManager.food.totalProduce+this.food.dakTransport)>=0?'goodNoticeLabel':'NoticeLabel'}" width="100" textAlign="center"/>
+			<mx:Label text="{Number(curTownResourceManager.wood.totalProduce+this.wood.dakTransport).toFixed(0)}" styleName="{int(curTownResourceManager.wood.totalProduce+this.wood.dakTransport)>=0?'goodNoticeLabel':'NoticeLabel'}" width="100" textAlign="center"/>
+			<mx:Label text="{Number(curTownResourceManager.stone.totalProduce+this.stone.dakTransport).toFixed(0)}" styleName="{int(curTownResourceManager.stone.totalProduce+this.stone.dakTransport)>=0?'goodNoticeLabel':'NoticeLabel'}" width="100" textAlign="center"/>
+			<mx:Label text="{Number(curTownResourceManager.iron.totalProduce+this.iron.dakTransport).toFixed(0)}" styleName="{int(curTownResourceManager.iron.totalProduce+this.iron.dakTransport)>=0?'goodNoticeLabel':'NoticeLabel'}" width="100" textAlign="center"/>
+			<mx:Label width="100%" textAlign="center"/>
+	</mx:HBox>
+	<mx:Label horizontalCenter="0" bottom="15" text="{MultiLang.msg('dak.bottom.tip')}"/>
+</mx:Canvas>

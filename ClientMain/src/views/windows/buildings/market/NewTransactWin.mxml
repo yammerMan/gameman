@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="view.ui.*" creationComplete="init()" horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:market="views.windows.buildings.market.*" borderStyle="none" styleName="mainWindowContentBG">
+<mx:Script>
+	<![CDATA[
+		import roma.logic.CaesaryConfig;
+		import roma.logic.object.castle.CastleObj;
+		import views.MainContainer;
+		import roma.logic.object.building.BaseBuilding;
+		import roma.logic.object.castle.GoldResourceObj;
+		import roma.common.constants.BuildingConstant;
+		import mx.events.ItemClickEvent;
+		import roma.common.constants.TradeConstant;
+		import roma.logic.object.castle.ResourceObj;
+		import mx.resources.ResourceManager;
+		import roma.common.valueObject.ResourceInfoDataBean;
+		import roma.common.constants.ResourceConstant;
+		import mx.messaging.AbstractConsumer;
+		import mx.logging.ILogger;
+		import mx.logging.LogLogger;
+		import mx.logging.Log;
+		import roma.common.action.DebugController;
+		import roma.message.events.WindowSwitchEvent;
+		import roma.logic.object.building.impl.Market;
+		import roma.message.EvtDispacther;
+		import views.spreadUI.MyAlert;
+		import roma.common.controller.CommonResponse;
+		import roma.logic.GameContext;
+		import roma.common.action.ControllerFactory;
+		import roma.util.MultiLang;
+		
+		private static var log:ILogger = Log.getLogger("views.windows.buildings.market");
+		public static var NEW_PENDING:String = "newPending";
+		
+		private var castleObj:CastleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+		[Bindable]
+		private var tradeObj:TradeObj = new TradeObj();
+		[Bindable]
+		private var resInfo:ResourceObj = castleObj.resourceManager.food;
+		[Bindable]
+		private var goldsInfo:GoldResourceObj = castleObj.resourceManager.golds;
+		
+		private var pendingSpace:int= 0;
+		private var marketObject:Market = Market(castleObj.buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING));
+		private var pendingFun:Function;
+		
+		private function init():void{
+		}
+		
+		public function refresh(tObj:TradeObj=null,fun:Function=null):void{
+			if(tObj != null)
+			tradeObj = tObj;
+			pendingFun = fun;
+			resInfo = getResInfo();
+			goldsInfo = this.getGoldsInfo();
+			refreshInit();
+		}
+		
+		private function refreshInit():void{
+			if(this.initialized){
+				amountsText.text = String(0);
+				unitPriceText.text = String(this.tradeObj.price);
+			}
+		}
+		
+		/**
+		 * 发布挂单
+		 */ 
+		private function post():void{
+			this.castleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+			marketObject = castleObj.buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING) as Market;
+			pendingSpace = marketObject.getPendingSpace();
+			var curPendingCount:int = castleObj.tradeManager.tradeList.length;
+			if(tradeObj.tradeType == TradeConstant.BUSINESS_TYPE_BUY){
+				var needG:int = Number(feeText.text)+Number(spendText.text);
+				if(!(marketObject.checkResource(ResourceConstant.RESOURCE_TYPE_MONEY,needG))){
+					MyAlert.show(MultiLang.msg("market.resourse.notEnough",MarketHelper.instance.getResourceType(ResourceConstant.RESOURCE_TYPE_MONEY)));
+					return;
+				}
+			}else{
+				if(!marketObject.checkResource(tradeObj.resType,int(amountsText.text)))
+				{
+					MyAlert.show(MultiLang.msg("market.resourse.notEnough",MarketHelper.instance.getResourceType(tradeObj.resType)));
+					return;
+				}
+			}
+			
+			if(pendingSpace - curPendingCount<=0){
+				MyAlert.show(MultiLang.msg('market.level.notEnough'));
+				return;
+			}
+			
+			if(Number(unitPriceText.text) >0 && int(amountsText.text) >0){
+				ControllerFactory.getInstance().getTradeController().createNewTrade(tradeObj.casetleId,tradeObj.resType,tradeObj.tradeType,int(amountsText.text),String(unitPriceText.text),onNewTradeResponse);
+			}else{
+				if(int(amountsText.text) <= 0)
+				MyAlert.show(MultiLang.msg('market.resourceIsEmpty'));
+			}
+		}
+		
+		/**
+		 * 挂单的响应
+		 */ 
+		private function onNewTradeResponse(event:CommonResponse):void{
+			if(event.isSuccess()){
+				MainContainer.instance.risePlay(MultiLang.msg('market.pending.success'));
+				if(this.pendingFun !=null)
+					pendingFun.call(this,NEW_PENDING);
+			}else{
+				MyAlert.showError(event);
+			}
+		}
+		
+		private function maxSelect():void{
+			resInfo = getResInfo();
+			goldsInfo = getGoldsInfo();
+			var amountsNum:Number = 0;
+			if(tradeObj.tradeType == TradeConstant.BUSINESS_TYPE_SELL){
+				amountsNum = Math.floor(resInfo.curAmount);
+			}else if(tradeObj.tradeType == TradeConstant.BUSINESS_TYPE_BUY){
+				amountsNum = Number(unitPriceText.text) == 0?0:Math.floor(Math.floor(goldsInfo.curAmount)/Number(unitPriceText.text)*(1-TradeConstant.MARKET_TRADE_COMMIT_PER));
+			}
+			amountsNum = Math.min(amountsNum,maxRes);
+			this.amountsText.text = String(amountsNum);
+		}
+
+		private function onRadioClick(event:ItemClickEvent):void{
+			tradeObj.tradeType = event.index;
+			if(tradeObj.tradeType == 0){
+				this.buyItemRadio.selected = true;
+			}
+			else{
+				this.sellRadio.selected = true;			
+			}
+		}
+		
+		private static var maxRes:Number = 200000000;
+		private function onMaxInputChange(event:Event):void{
+			this.resInfo = getResInfo();
+			this.goldsInfo = getGoldsInfo();
+			var max:Number = 0;
+			if(tradeObj.tradeType == TradeConstant.BUSINESS_TYPE_SELL){
+				max = Math.min(maxRes,int(resInfo.curAmount));
+			}else if(tradeObj.tradeType == TradeConstant.BUSINESS_TYPE_BUY){
+				max = Number(unitPriceText.text) == 0?0:int(int(goldsInfo.curAmount)/(Number(unitPriceText.text)*(1-TradeConstant.MARKET_TRADE_COMMIT_PER)));
+				max = Math.min(max,maxRes);
+			}
+			if(Number(event.target.text)<0){
+				amountsText.text = String(0);
+			}else if(Number(event.target.text)>max && max >0){
+				amountsText.text = String(max);
+			}
+		}
+		
+		private function onPriceChange(event:Event):void{
+			if(isNaN(Number(event.target.text))){
+				unitPriceText.text = String(0);
+				return;
+			}
+			if(Number(event.target.text)>1000){
+				unitPriceText.text = String(1000);
+			}
+			else if(Number(event.target.text)<0.001 && Number(event.target.text)!=0){
+				unitPriceText.text = String(0.001);
+			}
+			this.tradeObj.price = Number(unitPriceText.text);
+		}
+		
+		private function onTextFocusIn(event:FocusEvent):void{
+			TextInput(event.currentTarget).setSelection(0,TextInput(event.currentTarget).selectionEndIndex);
+		}
+		
+		private function getGoldsInfo():GoldResourceObj{
+			this.castleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+			return castleObj.resourceManager.golds;
+		}
+		
+		private function getResInfo():ResourceObj{
+			this.castleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+			switch(tradeObj.resType){
+				case ResourceConstant.TYPE_FOOD:
+					return castleObj.resourceManager.food;
+				break;
+				case ResourceConstant.TYPE_WOOD:
+					return castleObj.resourceManager.wood;
+				break;
+				case ResourceConstant.RESOURCE_TYPE_STONES:
+					return castleObj.resourceManager.stone;
+				break;
+				case ResourceConstant.TYPE_IRON:
+					return castleObj.resourceManager.iron;
+				break;
+				default:
+					return null;
+			}
+		}
+	]]>
+</mx:Script>
+	<mx:VBox height="100%" horizontalAlign="center" verticalGap="2" paddingTop="10" left="0" right="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+			<mx:HBox height="25" horizontalGap="6" >
+				<market:ResourceLabel width="130" id="resText" resouceLabel="{tradeObj.resType}" textAlign="right"/>
+				<mx:Label width="80" text="{int(resInfo.curAmount)}"/>
+			</mx:HBox>
+			<mx:HBox height="25" horizontalGap="6" >
+				<mx:Label width="60" text="{MultiLang.msg('label.gold')}:" textAlign="right"/>
+				<mx:Label width="100" text="{int(goldsInfo.curAmount)}" />
+			</mx:HBox>
+		</mx:HBox>
+		
+		<mx:HBox width="100%" height="25" verticalAlign="middle" horizontalGap="30" >
+			<mx:RadioButtonGroup id="radiogroup" itemClick="onRadioClick(event)" />
+			<mx:RadioButton width="135" textAlign="right" label="{MultiLang.msg('market.buy')}" groupName="radiogroup" selected="{tradeObj.tradeType == 0}" id="buyItemRadio"/>
+			<mx:RadioButton label="{MultiLang.msg('market.sell')}" groupName="radiogroup" selected="{tradeObj.tradeType == 1}" id="sellRadio"/>
+		</mx:HBox>
+		
+		<mx:HBox width="100%" height="25" verticalAlign="middle" horizontalGap="6">
+			<mx:Label text="{MultiLang.msg('market.amount')}: " width="130" textAlign="right"/>
+			<mx:TextInput id="amountsText" text="0" width="100" focusIn="{onTextFocusIn(event)}" restrict="0-9" change="onMaxInputChange(event)" maxChars="10"/>
+			<mx:Button label="{MultiLang.msg('market.max')}" click="maxSelect()" width="80" height="22"/>
+		</mx:HBox>
+		
+		<mx:HBox width="100%" height="25" verticalAlign="middle" horizontalGap="6">
+			<mx:Label text="{MultiLang.msg('market.price')}: " width="130" textAlign="right"/>
+			<mx:TextInput id="unitPriceText" focusIn="{onTextFocusIn(event)}" restrict="0-9." change="onPriceChange(event)" maxChars="6" width="100" />
+		</mx:HBox>
+		
+		<mx:HBox width="100%" height="25" verticalAlign="middle">
+			<mx:Label text="{MultiLang.msg('market.fee')}: " width="130" textAlign="right"/>
+			<mx:Label id="feeText" text="{MultiLang.msg('market.gold{0}',Math.ceil(Number(unitPriceText.text)*Number(amountsText.text)*TradeConstant.MARKET_TRADE_COMMIT_PER))}" width="164"/>
+		</mx:HBox>
+
+		<mx:HBox width="100%" height="25" verticalAlign="middle">
+			<mx:Label text="{MultiLang.msg('market.totalPrice')}: " width="130" textAlign="right"/>
+			<mx:Label id="spendText" text="{MultiLang.msg('market.gold{0}',Math.ceil(Number(unitPriceText.text)*Number(amountsText.text)))}" width="164"/>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Text width="100%" text="{MultiLang.msg('market.payOutForFee')}" textAlign="center"/>
+			<mx:Button label="{MultiLang.msg('public.label.sure')}" width="100" right="5" click="{post()}" />
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseFunctionWindow 
+	xmlns="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:buildings="views.windows.buildings.*" 
+	width="820" height="410" 
+	xmlns:ns1="views.spreadUI.*"
+	title="{MultiLang.msg('public.label.newBuilding')}">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import views.spreadUI.speedUp.ItemWin;
+			import roma.util.ClientUtil;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.ItemRule;
+			import roma.common.constants.BuffConstants;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.constants.BuildingConstant;
+			import views.windows.buildings.BuildingTypeUI;
+			import views.PopupWindows;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleBuildingManager;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.util.CompCache;
+			import roma.util.MultiLang;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import views.mainModules.town.BuildingSpace;
+			
+			private static var log:ILogger = Log.getLogger("views.windows.NewBuildingWindow");
+			
+			public static const WINDOW_SHOW:String ="consNewBuildingWindow.show";
+			
+			public static const BUILD_NEW_BUILDING_EVENT:String = "buildNewBuildingEvent";
+			
+			private var position:int;
+			
+			/** 使用缓存，缓存显示控件 */
+			private var cacheUI:CompCache = new CompCache(30);
+			
+			private var timer:Timer = new Timer(1000);
+						
+			/**
+			 * 每次弹出界面刷新
+			 */ 
+			override public function refresh():void{
+				position = winData.position;
+				log.debug("refresh() data=" + position);
+				addBuildTypeUi();	
+			}
+			
+			/**
+			 * 根据可建造建筑类型的数组，生成 BuildingTypeUI，并加入到显示容器中间
+			 */
+			private function addBuildTypeUi():void {
+				this.cacheUI.reset();
+				this.typeUIContainer.removeAllChildren();
+				var typeIdArray:Array = this.getBuildingTypeIdArray();
+				for (var i:int=0; i<typeIdArray.length; i++) {
+					var ui:BuildingTypeUI = BuildingTypeUI(this.cacheUI.getUI(BuildingTypeUI));
+					ui.setBuildingType(typeIdArray[i]);
+					this.typeUIContainer.addChild(ui);
+					
+					ui.addEventListener(BUILD_NEW_BUILDING_EVENT , sendHandler);
+				}
+				
+				//加入定时器，每秒检查一次是否够条件
+				this.timer.addEventListener(TimerEvent.TIMER , timerHandler);
+				this.timer.start();
+			}
+			
+			private function timerHandler(evt:TimerEvent):void {
+				for each(var ui:BuildingTypeUI in this.typeUIContainer.getChildren()) {
+					ui.reCheck();
+				}
+			}
+			
+			/**
+			 * 开始建筑
+			 */
+			private function sendHandler(event:Event):void{
+				var buffObj:BaseBuffObj = GameContext.instance.getPlayerObj().buffManager.getBuffById(BuffConstants.PLAYER_INCREASE_CONSTRUCT_LIMIT);
+				if(buffObj !=null){
+					if(GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUnNormalBuilidngArr().length>=BuildingConstant.AFTER_INCREASE_CONSTRUCT_LIMIT){
+						MyAlert.show(MultiLang.msg('public.construct.full'));
+					}else{
+						sureToBuild(event);
+					}
+				}else{
+					if(GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUnNormalBuilidngArr().length>=BuildingConstant.NORMAL_CONSTRUCT_LIMIT){
+						ItemSelectSpeedUpWin.show(ItemResManager.prolongBuildingProcessItemArrayCollection,null,null,null,callBack);
+					}else{
+						sureToBuild(event);
+					}
+				}
+				
+				function callBack():void{
+					sureToBuild(event);
+				}
+			}
+
+			private function sureToBuild(event:Event):void{
+				var ui:BuildingTypeUI = BuildingTypeUI(event.target);
+				var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().getCityId();
+
+				log.debug("sendHandler() cityId={0} , position={1} , type={2}",cityId,this.position,ui.type);
+
+				ControllerFactory.getInstance().getBuildingController().consNewBuilding(cityId,this.position,ui.type,onBuildResponse);
+				PopupWindows.closeAll();
+			}
+			
+			private function onBuildResponse(event:CommonResponse):void {
+				if (!event.isSuccess()) {
+//					AlertWin.show(Lang.msg(event.errorMsg));
+					MyAlert.showError(event);
+				}
+			}
+			
+			/**
+			 * 获得可建筑类型的id数组
+			 */
+			private function getBuildingTypeIdArray():Array {
+				var availableBuildingArray:Array = new Array();
+				
+				if (this.position == BuildingConstant.WALL_POSITION) {
+					//新建城墙
+					availableBuildingArray.push(BuildingConstant.TYPE_WALL_BUILDING);					
+				} else {
+					//新建其他建筑					
+					var bm:CastleBuildingManager = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager;
+					var ary:Array = BuildingHelper.instance.castleBuildingTypeArray;
+					for (var i:int=0; i<ary.length; i++) {
+						var type:int=ary[i];
+						var baseBuilding:BaseBuilding=bm.getUniqueBuildingByType(type);
+						if (baseBuilding == null) {
+							if(type!=BuildingConstant.TYPE_FARM&&type!=BuildingConstant.TYPE_MINE_IRON&&type!=BuildingConstant.TYPE_SAWMILL&&type!=BuildingConstant.TYPE_QUARRY){
+								availableBuildingArray.push(type);
+							}
+						}
+					}
+				}
+				return availableBuildingArray;
+			}
+			
+			/**
+			 * 页面退出时被调用，停止页面内的计数器
+			 */
+			override public function destroy():void{
+				log.debug("stop()");
+				this.timer.stop();
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" right="10" bottom="10" top="32" verticalGap="1" styleName="mainWindowContentBG">
+		<ns1:MulHRule>
+		</ns1:MulHRule>
+		<mx:Tile id="typeUIContainer" 
+		horizontalScrollPolicy="off" 
+		paddingLeft="2" width="100%" height="100%" horizontalGap="11" verticalGap="3">
+	</mx:Tile>
+	</mx:VBox>
+</BaseFunctionWindow>

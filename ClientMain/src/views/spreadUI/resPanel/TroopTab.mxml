@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="272" height="153" 
+	xmlns:ns1="views.spreadUI.CastleInfo.*" 
+	xmlns:resPanel="views.spreadUI.resPanel.*" creationComplete="init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.message.EvtDispacther;
+			import roma.common.constants.TroopForConstants;
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_STATUS_CHANGE,heroStatusChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT,castleChange);
+				
+				function heroStatusChange():void{
+					refresh();
+				}
+				
+				function castleChange():void{
+					refresh();
+				}
+				
+				refresh();
+			}
+			
+			
+			public function refresh():void{
+				if(this.initialized){
+					for each(var ui:ArmyView in this.troopContainer.getChildren()){
+						ui.refresh();
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	 
+	<mx:Tile left="5" top="9" height="100" right="0" horizontalGap="3" verticalGap="2" id="troopContainer">
+		<resPanel:ArmyView troop="{TroopForConstants.T_TRIARII}"/>
+		<resPanel:ArmyView troop="{TroopForConstants.T_CAVALRY}"/>
+		<resPanel:ArmyView troop="{TroopForConstants.T_URBAN_COHORT}"/>
+		<resPanel:ArmyView troop="{TroopForConstants.T_SCOUT}"/>
+		<resPanel:ArmyView troop="{TroopForConstants.T_ARCHERS}"/>
+		<resPanel:ArmyView troop="{TroopForConstants.T_BALLISTAS}"/>
+		<resPanel:ArmyView troop="{TroopForConstants.T_ONAGERS}"/>
+	</mx:Tile>
+	<mx:HBox left="5" horizontalGap="3" bottom="8">
+		<resPanel:DefenceView fortType="{TroopForConstants.F_TRAPS}"/>
+		<resPanel:DefenceView fortType="{TroopForConstants.F_TOWER}"/>
+		<resPanel:DefenceView fortType="{TroopForConstants.F_FALLROCK}"/>
+	</mx:HBox>
+</mx:Canvas>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+	creationComplete="init()" horizontalGap="2" verticalGap="0">
+	<mx:Script>
+		<![CDATA[
+			public var num1:int;
+			public var num2:int;
+			[Bindable]
+			private var total:int;
+		
+			[Bindable]
+			private var _left:int;
+			
+			private var callBackFunction:Function;
+			
+			private function init():void {
+				if (total>0) {
+					this.refresh();
+				}
+			} 
+
+			public function inputData(num1:int , num2:int , callBack:Function):void {
+				this.callBackFunction = callBack;
+				this.num1 = num1;
+				this.num2 = num2;
+				this.total =  this.num1+this.num2;				
+				
+				if (this.initialized) {
+					this.refresh();
+				}
+			}
+			
+			private function refresh():void {
+				hSlider.maximum = this.num1;
+				hSlider.value = this.num1;
+				this.onHSilderChange();
+			}
+
+			private function onHSilderChange():void {
+				var old:int = this.num1;
+				this.num1 = int(this.hSlider.value); 
+				this.total=this.num2+int(this.hSlider.value);
+				
+				this.txt_num1.text = String(this.num1);
+				
+				if (old!=this.num1) {
+					this.callBackFunction.apply(this , [this.hSlider.maximum-this.hSlider.value , total]);
+				}
+				_left = this.hSlider.maximum - this.hSlider.value;	
+			}
+
+			private function onTextInputChange(event:Event):void {
+				var ui:TextInput = TextInput(event.target);
+				var n1:int = int(ui.text);
+				if (n1> this.hSlider.maximum) {
+					n1 = this.hSlider.maximum;
+				}
+				this.hSlider.value=n1;
+				this.onHSilderChange();
+			}
+			
+			private function toMax(max:Boolean):void {
+				if (max) {
+					this.hSlider.value = this.hSlider.maximum+this.num2;
+				} else {
+					this.hSlider.value = 0;
+				}
+				this.onHSilderChange();
+			}
+
+			private function onFocusIn(event:Event):void {
+				var ti:TextInput = TextInput(event.currentTarget);
+				ti.setSelection(0,ti.text.length);
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox verticalAlign="middle" horizontalGap ="0">
+		<mx:Label text="{_left}" textAlign="right"/>
+		<mx:HSlider id="hSlider" 
+			showDataTip="false"
+			liveDragging="true"
+			change="onHSilderChange()"
+		 	width="110" height="20"/>
+		 <mx:Label text="{int(this.hSlider.value)}" textAlign="left"/>	
+	</mx:HBox>	
+	<mx:Spacer height="5"/>
+	<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+		<mx:Spacer width="5"/>
+		<mx:HBox horizontalGap="0" verticalAlign="middle">
+			<mx:TextInput id="txt_num1"  
+				width="50"
+				restrict="0-9" 
+				change="onTextInputChange(event)"
+				focusIn="onFocusIn(event)"/>
+			<mx:VBox height="100%" verticalGap="0">
+				<mx:Button styleName="maxValueBtn" click="toMax(true)"/>
+				<mx:Button styleName="minValueBtn" click="toMax(false)"/>
+			</mx:VBox>
+		</mx:HBox>
+		<mx:Label text=">>"/>
+		<mx:Label text="{this.total}"/>
+	</mx:HBox>
+
+</mx:VBox>

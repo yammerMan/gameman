@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="200" height="18" backgroundColor="#FFFADB">
+	<mx:Script>
+		<![CDATA[
+			public var paintColor:uint=0x000000;
+			public function reSize(w:int,h:int):void{
+				this.width=w;
+				this.height=h;
+			}
+			
+			public function set progress(per:Number):void{
+				this.showBar.graphics.clear();
+				this.showBar.graphics.beginFill(paintColor);
+				this.showBar.graphics.drawRect(0,0,per*200,18);
+				this.showBar.graphics.endFill();
+			}
+		]]>
+	</mx:Script>
+	<mx:UIComponent x="0" y="0" id="showBar"/>
+</mx:Canvas>

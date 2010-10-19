@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	 title="{MultiLang.msg('public.label.playerInfo')}"  width="365" height="300" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.Mail;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.object.player.ItemResManager;
+			import views.windows.functionWins.ranking.RankingWin;
+			import roma.message.events.PlayerRelationChangeEvent;
+			import roma.common.valueObject.FriendRelationBean;
+			import mx.resources.ResourceManager;
+			import views.spreadUI.MyAlert;
+			import roma.logic.rule.GameRuleHelper;
+			import views.spreadUI.tips.PlayerCastleTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.message.events.ScoutPlayerChangeEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.valueObject.ScoutPlayerBean;
+			import mx.collections.ArrayCollection;
+			import roma.common.constants.PlayerConstant;
+			import roma.logic.GameContext;
+
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import views.windows.functionWins.mail.Mail;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.util.PopupWinManager;
+			
+			public static var instancePopup:PlayerInfoView = new PlayerInfoView();
+			[Bindable]
+			private var playerInfo:PlayerInfoDataBean;
+			[Bindable]
+			private var myPlayerInfo:PlayerInfoDataBean;
+			[Bindable]
+			private var tileName:String;
+			[Bindable]
+			private var logoSource:String;
+			[Bindable]
+			private var isSpy:Boolean=false;
+			
+			private var scoutPlayerDataBean:ScoutPlayerBean;
+			
+			private var playerCastleTip:PlayerCastleTip ;
+			
+			[Bindable]
+			private var canAddFriend:Boolean=true;
+			
+			[Bindable]
+			private var canAddBlock:Boolean=true;
+			
+			[Bindable]
+			private var enemyArray:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var friendsArray:ArrayCollection=new ArrayCollection();
+			private var isFromRank:Boolean=false;
+			private var agreeApply:Function;
+			private var refuseApply:Function;
+			[Bindable]
+			private var isFromAlliance:Boolean=false;
+
+
+			//查看是否能够添加好友，或者黑名单
+			private function checkAdmissionToAdd(event:PlayerRelationChangeEvent=null):void{
+				this.canAddFriend=true;
+				this.canAddBlock=true;
+				this.enemyArray.removeAll();
+				this.friendsArray.removeAll();
+				this.friendsArray=GameContext.instance.getPlayerObj().playerRelationManager.getFriendsList();
+				this.enemyArray=GameContext.instance.getPlayerObj().playerRelationManager.getBlocksList();
+				for each(var friend:FriendRelationBean in this.friendsArray){
+					if(this.playerInfo.playerName==friend.playerName){
+						this.canAddFriend=false;
+						break;
+					}
+				}
+				for each(var block:FriendRelationBean in this.enemyArray){
+					if(this.playerInfo.playerName==block.playerName){
+						this.canAddBlock=false;
+						break;
+					}
+				}
+				
+			}
+
+			private function init():void{
+				this.playerCastleTip = ToolTipContainer.instance.playerCastleTip;
+				
+				var maskSp:Sprite = new Sprite();
+				maskSp.graphics.beginFill(0,0);
+				maskSp.graphics.drawCircle(49,50,50);
+				maskSp.graphics.endFill();
+				this.logoImage.addChild(maskSp);
+				this.logoImage.mask = maskSp;
+				this.myPlayerInfo=GameContext.instance.getPlayerObj().getPlayerInfo();
+				EvtDispacther.instance.addEventListener(ScoutPlayerChangeEvent.SCOUTPLAYER_CHANGE,newScoutPlayerHandle);
+				EvtDispacther.instance.addEventListener(PlayerRelationChangeEvent.PLAYERRELATION_CHANGE,checkAdmissionToAdd);
+			}
+			
+			private function newScoutPlayerHandle(event:ScoutPlayerChangeEvent):void{
+				this.checkIsSpy();
+			}
+			
+			public static function show(data:Object,isFromRank:Boolean=false,isFromAlliance:Boolean=false,agreeApply:Function=null,refuseApply:Function=null):void {
+  			  	instancePopup.playerInfo=PlayerInfoDataBean(data);
+  				instancePopup.getTitleName();
+  				instancePopup.getLogo();
+  				instancePopup.checkIsSpy();
+  				instancePopup.isFromRank=isFromRank;
+  				instancePopup.checkAdmissionToAdd();
+  				instancePopup.isFromAlliance=isFromAlliance;
+  				instancePopup.agreeApply=agreeApply;
+  				instancePopup.refuseApply=refuseApply;
+  				
+  				if(instancePopup.playerCastleTip != null)
+  				instancePopup.playerCastleTip.visible = false;
+  				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,false);
+				}
+  			}
+  			
+  			private function getTitleName():void{
+  				this.tileName=MultiLang.getPlayerTitle(this.playerInfo.title);
+  			}
+  			
+  			private function getLogo():void{
+				if(playerInfo.logoUrl == null || playerInfo.logoUrl == ""){
+					this.logoSource =ImgManager.clazz("logo.unKnown.a1");
+				}else{
+					this.logoSource =ImgManager.clazz(playerInfo.logoUrl);
+				}
+  			}
+  			
+  			//增加名单
+			private function addHandle(relationType:int):void{
+				GameContext.instance.getPlayerObj().playerRelationManager.addOrUpdatePlayerRelation(playerInfo.playerName,relationType);
+			}
+			
+			//查看玩家城堡或者派遣间谍
+			private function checkOutPlayer():void{
+				if(isSpy){
+					GameContext.instance.getPlayerObj().scoutPlayerManager.getPlayerCastlesHandleFunction=getCastleHandle;
+					GameContext.instance.getPlayerObj().scoutPlayerManager.getPlayerCastles(this.playerInfo.id);
+				}else{	
+					checkCanSpy();	
+				}
+			}
+			
+			private function checkCanSpy():void{
+//				if (GameContext.instance.getPlayerObj().itemManager.getMaterialBeanById(PlayerConstant.SPY_ITEM) != null) {
+//					AlertWin.show(Lang.msg("myItems.sureToUseItem{0}",GameRuleHelper.instance.getItemRuleById(PlayerConstant.SPY_ITEM).name), sureToUse);
+//  				} else {
+//					AlertWin.show(Lang.msg("myItems.buyForUseItem{0}",GameRuleHelper.instance.getItemRuleById(PlayerConstant.SPY_ITEM).name), sureToBuy);
+//  				}
+				
+  				
+  				
+				ItemSelectSpeedUpWin.show(ItemResManager.spyItemArrayCollection,sureToBuy);
+  				function sureToUse(isSure:Boolean):void{
+  					if(isSure){
+  						GameContext.instance.getPlayerObj().scoutPlayerManager.sendSpy(playerInfo);		
+  					}
+  				}
+  				function sureToBuy(isSure:Boolean):void{
+					if(isSure){
+//						if(GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(PlayerConstant.SPY_ITEM)){
+							GameContext.instance.getPlayerObj().scoutPlayerManager.sendSpy(playerInfo);		
+//						}
+					}
+				}
+			}
+			
+			//获取到玩家城堡信息的action
+			public function getCastleHandle(castleArr:ArrayCollection):void{
+				playerCastleTip.show(castleArr,scoutPlayerDataBean);
+				playerCastleTip.x=682;
+				playerCastleTip.y=150;
+			}
+			
+			//查看玩家是否还在间谍状态
+			private function checkIsSpy():void{
+				this.scoutPlayerDataBean=null;
+				this.isSpy=false;
+				var arr:ArrayCollection=GameContext.instance.getPlayerObj().scoutPlayerManager.getScoutPlayersList();
+				if(arr.length>0){
+					for(var i:int=0;i<arr.length;i++){
+						var scoutPlayerDataBean:ScoutPlayerBean=ScoutPlayerBean(arr[i]);
+						if(this.playerInfo.id==scoutPlayerDataBean.playerId){
+							if((scoutPlayerDataBean.endTime+GameContext.instance.getTimeDis() - new Date().valueOf())>0){
+								this.isSpy=true;
+								this.scoutPlayerDataBean=scoutPlayerDataBean;
+								checkOutPlayer();
+							}
+						}
+					}
+				}		
+			}
+			
+			override public function destroy():void {
+				this.playerCastleTip.visible=false;
+				PopupWinManager.instance.removePopup();
+			}
+			
+			override protected function onCloseBtnClick():void {
+				destroy();
+			}
+			
+			private function writeEmail():void{
+				Mail.writeMailToPlayer(playerInfo.playerName,"",true);
+				PopupWinManager.instance.removePopup();
+			}
+			
+			private function allianceClickHandler(event:MouseEvent):void  {
+
+				switch(event.currentTarget){
+					case this.agreeBtn:
+						if(agreeApply!=null){
+							agreeApply.apply(this,[this.playerInfo.id]);
+						}
+					break;
+					
+					case this.refuseBtn:
+						if(refuseApply!=null){
+							refuseApply.apply(this,[this.playerInfo.id]);
+						}
+					break;
+
+					default:
+
+				}
+             }
+
+		]]>
+	</mx:Script>
+	<mx:Canvas height="132" right="14" left="14" top="35" styleName="mainWindowContentBG">
+		<mx:Canvas left="2" bottom="2" top="2" right="2" styleName="whiteBGwithBorder">
+			<mx:Canvas width="123" height="121" left="2" verticalCenter="0">
+				<mx:Image left="0" right="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0"/>
+				<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{this.logoSource}" id="logoImage" horizontalCenter="0" verticalCenter="0" width="102" height="102"/>
+			</mx:Canvas>
+			<mx:HBox left="128" horizontalGap="0" top="0" bottom="0" right="0">
+				<mx:VRule height="100%"/>
+				<mx:VBox right="0" horizontalAlign="center" left="128" verticalGap="0" top="0" bottom="0" height="100%" width="100%">
+					<mx:VBox verticalAlign="middle" height="100%" width="100%" horizontalAlign="center">
+						<mx:Label text="{playerInfo.playerName}" textAlign="center" styleName="titleBordLabel"/>
+					</mx:VBox>
+					<mx:HRule width="100%"/>
+					<mx:HBox width="100%" height="100%" horizontalGap="0">
+						<mx:VBox verticalGap="0" width="40%">
+							<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.ranking')}:" textAlign="right" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('info.player.title')}:" textAlign="right" width="100%"/>
+						</mx:VBox>
+						<mx:VRule height="100%"/>
+						<mx:VBox verticalGap="0" width="100%">
+							<mx:Label text="{playerInfo.leagueName}" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{playerInfo.rank}" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.tileName}" width="100%"/>
+						</mx:VBox>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	<mx:Canvas height="64" top="170" left="14" right="14" styleName="alphaBlackBG">
+		<mx:HBox horizontalAlign="center" horizontalGap="35" verticalAlign="middle" horizontalCenter="0" verticalCenter="0">
+
+			
+			<mx:VBox width="50%" verticalGap="3">
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('icon.populationSmall')}" updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{MultiLang.msg('label.population.current')}" width="16" height="16"/>
+					<mx:Label text="{playerInfo.population}" width="100%"/>
+				</mx:HBox>
+				
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('playerInfo.honor')}" updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{MultiLang.msg('label.horne')}"/>
+					<mx:Label text="{playerInfo.honor}" width="100%" />
+				</mx:HBox>		
+			</mx:VBox>
+			
+			<mx:VBox width="50%" verticalGap="3">
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('playerInfo.castle')}" updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{MultiLang.msg('info.player.castleCount')}"/>
+					<mx:Label text="{playerInfo.cityCount}" width="100%" />
+				</mx:HBox>
+				
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('playerInfo.prestige')}" updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{MultiLang.msg('public.label.prestige')}"/>
+					<mx:Label text="{playerInfo.prestiges}" width="100%" />
+				</mx:HBox>		
+			</mx:VBox>
+
+			
+		</mx:HBox>
+	</mx:Canvas>
+	<mx:VBox bottom="18" visible="{this.playerInfo.id==this.myPlayerInfo.id?false:true}" horizontalCenter="0" verticalGap="3">
+		<mx:HBox horizontalAlign="center" horizontalGap="3"  horizontalCenter="0" width="100%">
+			<mx:Button label="{MultiLang.msg('friendly.addFriends')}" width="110" click="addHandle(PlayerConstant.RELATION_FRIENDS)" visible="{this.canAddFriend}"/>
+			<mx:Button label="{MultiLang.msg('friendly.addBlock')}" width="110" click="addHandle(PlayerConstant.RELATION_BLOCKS)" visible="{this.canAddBlock}"/>
+			<mx:Button label="{MultiLang.msg('mail.button.write')}" click="this.writeEmail();" width="110"/>
+		</mx:HBox>
+		<mx:HBox horizontalAlign="right" width="100%" horizontalGap="3">
+			<mx:Button label="{MultiLang.msg('alliance.agree')}" width="110" click="allianceClickHandler(event)" visible="{this.isFromAlliance}" id="agreeBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.dissent')}" width="110" click="allianceClickHandler(event)" visible="{this.isFromAlliance}" id="refuseBtn"/>
+			<mx:Button label="{isSpy?MultiLang.msg('public.label.checkOut'):MultiLang.msg('playInfo.sentSpy')}" width="110" click="checkOutPlayer()" visible="{!isSpy}"/>
+		</mx:HBox>
+	</mx:VBox >
+	
+</functionWins:BasePopUpWindow>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow xmlns:buildings="views.windows.buildings.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*" 
+	xmlns:upgradWin="views.windows.buildings.townHall.*" width="820" height="100%" xmlns:ns2="views.windows.buildings.warehouse.*">
+	<mx:Script>
+		<![CDATA[
+			
+		]]>
+	</mx:Script>
+	<mx:Script source="WareHouseWin_.as"/>
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="btnHandler(event)" dataProvider="{this.buttonTitle}"/>
+		<ns1:MulHRule/>
+	</mx:VBox>
+	<mx:ViewStack id="myViewstack" bottom="0" left="0" right="0" top="25">
+		<ns2:WareHouseControlWin width="100%" height="100%" id="wareHouseControlWin" buildingObj="{this.buildingObj}"/>
+		<upgradWin:UpgradingWin width="100%" height="100%" id="upgradingWin" buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" xmlns:ns1="views.mainFrame.CastleInfo.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.rule.ForticationRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.TroopRule;
+			import roma.logic.object.castle.TFHelper;
+			import mx.events.IndexChangedEvent;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var iconClass:String;
+			
+			[Bindable]
+			private var troop_name:String;
+			
+			[Bindable]
+			private var rule:ForticationRule;
+			
+			[Bindable]
+			private var desc:String;
+			
+			public function setFortType(typeId:int):void {
+				this.iconClass = TFHelper.instance.getTfIcon(typeId);
+				this.rule = GameRuleHelper.instance.getForticationRule(typeId);
+				this.troop_name = TFHelper.instance.getTfName(typeId);
+				this.desc = TFHelper.instance.getTfSkillDesc(typeId);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox  left="5" right="5" kerning="true" horizontalAlign="center" top="5">
+		<mx:HBox width="100%" horizontalGap="5">
+			<mx:VBox>
+				<mx:Label text="{this.troop_name}" textAlign="center" width="100%"/>
+				<mx:Canvas  styleName="smallLogoBG" width="96" height="48">
+					<mx:Image source="{this.iconClass}"  id="imageField" top="3" left="3" bottom="3" right="3" scaleY="{42/46}" scaleX="{90/102}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				</mx:Canvas>
+			</mx:VBox>
+			<mx:Text kerning="true" width="100%" text="{this.desc}"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:HBox width="25%" horizontalGap="0">
+				<mx:Image source="{ImgManager.clazz('icon.life.prop')}" updateComplete="ImageHandle.onLoadComplete(event)">	
+				</mx:Image>
+				<mx:Label text="{this.rule.fortLife}" width="100%"/>
+			</mx:HBox>
+			<mx:HBox width="25%" horizontalGap="0">
+				<mx:Image source="{ImgManager.clazz('icon.defence.prop')}" updateComplete="ImageHandle.onLoadComplete(event)">	
+				</mx:Image>
+				<mx:Label text="{this.rule.fortDefence}" width="100%"/>
+			</mx:HBox>
+			<mx:HBox width="25%" horizontalGap="0">
+				<mx:Image source="{ImgManager.clazz('icon.attack.prop')}" updateComplete="ImageHandle.onLoadComplete(event)">	
+				</mx:Image>
+				<mx:Label text="{this.rule.fortAttack}" width="100%"/>
+			</mx:HBox>
+			<mx:HBox width="25%" horizontalGap="0">
+				<mx:Image source="{ImgManager.clazz('icon.damage.prop')}" updateComplete="ImageHandle.onLoadComplete(event)">	
+				</mx:Image>
+				<mx:Label text="{this.rule.dmgMin}-{this.rule.dmgMax}" width="100%"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:Spacer height="5"/>
+	</mx:VBox>
+</BaseTip>

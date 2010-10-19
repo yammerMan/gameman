@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns="view.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"  width="366" height="484" styleName="popUpWinBG" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ns1="views.spreadUI.*" creationComplete="init()">
+<mx:Script>
+	<![CDATA[
+		import views.BeginnerGuide;
+		import roma.message.EvtDispacther;
+		import roma.util.JavaScriptHelper;
+		import roma.common.valueObject.WorkerTrainningBean;
+		import roma.logic.object.tech.BaseTechObj;
+		import roma.logic.object.building.BaseBuilding;
+		import roma.message.events.PublicEvent;
+		import mx.core.Application;
+		import roma.util.FiltersUtil;
+		import roma.util.MultiLang;
+		import views.spreadUI.MyAlert;
+		import roma.common.valueObject.MaterialBean;
+		import roma.common.controller.shop.UseMaterialResultResponse;
+		import roma.message.events.GoodsSelectEvent;
+		import roma.logic.rule.GameRuleHelper;
+		import roma.logic.object.player.ItemResManager;
+		import roma.common.controller.CommonResponse;
+		import roma.common.action.ControllerFactory;
+		import roma.logic.GameContext;
+		import mx.logging.ILogger;
+		import mx.logging.Log;
+		import roma.util.PopupWinManager;
+		import views.MainContainer;
+		import roma.common.valueObject.ArchitectureBean;
+		import mx.collections.ArrayCollection;
+		import roma.util.CompCache;
+		import roma.logic.rule.ItemRule;
+		
+		public static const COIN_FORTECH_SPEEDUP:String ='coin.forTech.speedUp';
+		public static const COIN_FORBUILD_SPEEDUP:String = 'coin.forBuild.speedUp';
+		public static const COIN_FORWORKERTRAINNING_SPEEDUP:String = "coin.forworkerTrainning.speedUp";
+		public static const GOLD_AWARD_HERO:String = "goldsAwardHero";
+	
+		public static var instance:ItemSelectSpeedUpWin = new ItemSelectSpeedUpWin();
+
+		private static var itemArr:ArrayCollection;
+		private static var log:ILogger = Log.getLogger("views.mainFrame.speedUp.ItemSelectSpeedUpWin");
+	
+		private var cacheUI:CompCache = new CompCache(20);
+		private var cacheUI1:CompCache = new CompCache(2);
+		
+		private var itemIdArrayCollection:ArrayCollection; 
+		private var selectedItem:ItemRule;
+		private var onSelectHandleFunc:Function;
+		private var cancelFunc:Function;
+
+		public var speedUpType:String;
+		public var needCoin:int;
+		
+		private var _buildingObj:BaseBuilding;
+		private var _techObj:BaseTechObj;
+		private var _workerTrainningBean:WorkerTrainningBean;
+		private var _callBack:Function;
+		
+		public var goldsUi:GoldUI;                      // 增加英雄的黄金的奖励ui by fdc
+		
+		public static function show(itemIdArr:ArrayCollection , onSelectHandleFunc:Function=null, parent:DisplayObject = null,cancel:Function=null,callBack:Function =null ):void {
+			instance.onSelectHandleFunc = onSelectHandleFunc;
+			instance.itemIdArrayCollection = itemIdArr;
+			instance.cancelFunc= cancel;
+			instance._callBack = callBack;
+			
+			PopupWinManager.instance.addPopup(instance,true,parent);
+			instance.onInitialized();
+		}
+		
+		public function set buildingObj(b:BaseBuilding):void{
+			this._buildingObj = b;
+		}
+		
+		public function set techObj(t:BaseTechObj):void{
+			this._techObj = t;
+		}
+		
+		public function set bean(b:WorkerTrainningBean):void{
+			this._workerTrainningBean = b;
+		}
+		
+		private function init():void{
+			this.goldsUi = new GoldUI();
+			goldsUi.addEventListener(GoldUI.GOLD_AWARD,onGoldAward);
+		}
+		
+		private function getCoinUI():CoinUI{
+			this.cacheUI1.reset();
+			var ui:CoinUI =CoinUI(this.cacheUI1.getUI(CoinUI)); 
+			
+			if(this.speedUpType == COIN_FORBUILD_SPEEDUP){
+				ui.needTime = this._buildingObj.finishTime;
+			}else if(this.speedUpType == COIN_FORTECH_SPEEDUP){
+				if(_techObj != null)
+					ui.needTime = this._techObj.finishTime;
+			}else{
+				if(this._workerTrainningBean !=null)
+					ui.needTime = this._workerTrainningBean.endTime; 
+			}
+			
+			ui.speedUpType = this.speedUpType;
+			this.needCoin = ui.getNeedCoin();
+			
+			if(!ui.hasEventListener(PublicEvent.COMMON_EVENT)){
+				ui.addEventListener(PublicEvent.COMMON_EVENT,onCoinSpeedHandler);
+			}
+			return ui;
+		}
+		
+		public function onInitialized():void {
+			log.debug(this.className + " onInitialized()");
+			if (this.initialized) {
+				this.refresh();
+			}
+		}
+		
+		private function refresh():void {
+			this.itemContainer.removeAllChildren();
+			this.cacheUI.reset();
+			
+			if(this.speedUpType == COIN_FORBUILD_SPEEDUP || this.speedUpType == COIN_FORTECH_SPEEDUP || this.speedUpType == COIN_FORWORKERTRAINNING_SPEEDUP){
+				this.itemContainer.addChild(this.getCoinUI());
+			}
+ 			if(this.speedUpType == GOLD_AWARD_HERO){
+				this.itemContainer.addChild(this.goldsUi);
+			} 
+			for (var i:int=0; i<this.itemIdArrayCollection.length; i++) {
+				var itemId:String = String(itemIdArrayCollection.getItemAt(i));
+				var item:ItemRule = GameRuleHelper.instance.getItemRuleById(itemId);
+
+				if(item !=null){
+					var ui:ItemWin = this.cacheUI.getUI(ItemWin) as ItemWin;
+					ui.itemRule=item;
+					ui.itemBean=getMaterialBean(item.itemId);
+					this.itemContainer.addChild(ui);
+					ui.addEventListener(GoodsSelectEvent.GOODS_SELECT_NAME , onSelect);
+				} else {
+					log.warn("找不到物品{0}的定义", itemId);
+				}
+			}
+			PopupWinManager.instance.centerPopUp();
+		}		
+		
+		private function onGoldAward(event:PublicEvent):void{
+			if (this.onSelectHandleFunc!=null) {
+				onSelectHandleFunc.apply(this , [null]);
+				this.closeWin();
+			} 
+		}
+		
+		private function onCoinSpeedHandler(event:PublicEvent):void{
+			if(this.speedUpType == COIN_FORBUILD_SPEEDUP){
+				this._buildingObj.speedBuilding(null,closeWin);
+				log.debug("speedUp building by coin start");
+			}else if(this.speedUpType == COIN_FORTECH_SPEEDUP){
+				this._buildingObj.speedUpResearch(this._techObj.techType,null,closeWin);
+				log.debug("speedUp tech by coin start"+"(techType:)"+this._techObj.techType);
+			}else{
+				this._buildingObj.speedUpTrainning(null,closeWin);
+				log.debug("speedUp workerTrainning by coin start");
+			}
+		}
+		
+		private function onSelect(event:GoodsSelectEvent):void {
+			if(event.itemRule!=null){
+				log.debug( this.className + ".onSelect(" + event.itemRule.name  + ")");
+				if (this.onSelectHandleFunc!=null) {
+					//如果有回调函数，则回调
+					onSelectHandleFunc.apply(this , [event.itemRule]);
+					this.closeWin();
+				} else {
+					//如果没有回调函数，则直接使用
+					this.doSpeedUp(event.itemRule.itemId);
+				}
+			}else{
+				if (cancelFunc!=null) {
+					cancelFunc.apply(this);
+					this.closeWin();
+				}
+			}
+		}
+		
+		private function doSpeedUp(itemId:String):void {
+			ControllerFactory.getInstance().getShopController().usePlayerItem(GameContext.instance.getPlayerObj().getCurCastleObj().cityId,itemId,onUseItemBackHandle);
+		
+			function onUseItemBackHandle(event:UseMaterialResultResponse):void {
+				if (event.isSuccess()) {
+					if(_callBack !=null){
+						_callBack.apply(this);
+					}
+					closeWin();
+					var rule:ItemRule = GameRuleHelper.instance.getItemRuleById(itemId);
+					JavaScriptHelper.instance.addItemLog(1 , rule , itemId);
+				} else {
+					MyAlert.show(MyAlert.msg(event.errorMsg));
+				}
+			}
+		}
+		
+		private function getMaterialBean(itemId:String):MaterialBean {
+			var res:MaterialBean = null ;
+			for each(var bean:MaterialBean in GameContext.instance.getPlayerObj().itemManager.itemArray) {
+				if (bean.id == itemId) {
+					res = bean;
+				}
+			}
+			return res;
+		} 
+
+		private function closeWin():void {
+			this.getCoinUI().stopTimer();
+			if(this.speedUpType!=null){
+				this.speedUpType =null;
+			}
+			PopupWinManager.instance.removePopup();
+		} 
+	]]>
+</mx:Script>
+	<mx:VBox top="33" height="434" right="15" left="15" id="itemContainer"  horizontalScrollPolicy="off" verticalScrollPolicy="on" horizontalGap="1" verticalGap="1"/>
+	<mx:Button  click="closeWin()" styleName="closeBtn" top="5" right="25"/>
+	<ns1:TitleBar horizontalCenter="0" top="3" winTitle="{MultiLang.msg('myItems.pleaseSelect')}">
+	</ns1:TitleBar>
+</mx:Canvas>

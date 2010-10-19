@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="280" 
+	xmlns:ns1="views.spreadUI.troop.*"  xmlns:ns2="views.spreadUI.*" 
+	xmlns:wall="views.windows.buildings.wall.*" creationComplete="init()" xmlns:tech="views.spreadUI.tech.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.ManufactureQueue;
+			import roma.logic.rule.ruleCheck.TechCheck;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.rule.ruleCheck.ConditionCheck;
+			import roma.message.events.PublicEvent;
+			import views.spreadUI.troop.DestructPanel;
+			import roma.common.constants.TroopForConstants;
+			import roma.logic.object.building.impl.Wall;
+			import roma.logic.rule.ForticationRule;
+			import views.spreadUI.troop.TypeUI;
+			import roma.message.events.ProduceEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.ResponseEvtDispatcher;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.common.action.ControllerFactory;
+			import roma.data.ProduceResourceData;
+			import roma.util.MultiLang;
+			import roma.logic.object.castle.TFHelper;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.resource.ImgManager;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.rule.TroopRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.GameContext;
+			import roma.util.CompCache;
+			import mx.collections.ArrayCollection;
+			
+			public static var EVENT_PRODUCE_CANCEL:String = "cancel.fortication.produce";
+			public static var EVENT_PRODUCE_SPEED:String = "speed.fortication.produce";
+			public static var EVENT_DESTRUCT:String = "destruct.fortication";
+
+			
+			private static var log:ILogger = Log.getLogger("views.windows.building.wall.ForticationTypeList");
+
+			private var _fortAry:ArrayCollection = new ArrayCollection([TroopForConstants.F_TRAPS,TroopForConstants.F_TOWER,TroopForConstants.F_FALLROCK]);			
+			private var produceResourceData:ProduceResourceData = new ProduceResourceData();
+
+			private var cacheUi:CompCache = new CompCache(4);
+			private var cacheUi1:CompCache = new CompCache(20);
+
+			private var _curTypeId:int;
+			[Bindable]
+			private var _result:RuleCheckResult;
+			[Bindable]
+			private var _rule:ForticationRule;
+			[Bindable]
+			private var _funDesc:String;
+			[Bindable]
+			private var _produceMaxNum:int;
+			[Bindable]
+			private var _fortName:String;
+			[Bindable]			
+			private var _historyDesc:String;
+			
+			[Bindable]
+			private var dependConditionTxt:String;
+			[Bindable]
+			private var _totalSpace:int;
+			[Bindable]
+			private var _useSpace:int;
+			[Bindable]
+			private var leftSpace:int;
+		
+			[Bindable]
+			private var totalProduceTime:Number;
+			[Bindable]
+			private var waitingQueue:int;
+			[Bindable]
+			private var allowProduceQueue:int; 
+			[Bindable]
+			private var btnEnabeld:Boolean = false;
+			[Bindable]
+			private var produceQueueAry:ArrayCollection;
+			public var buildingObj:Wall;
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(EVENT_PRODUCE_CANCEL,cancelHandler);
+				EvtDispacther.instance.addEventListener(EVENT_PRODUCE_SPEED,speedUpHandler);
+				EvtDispacther.instance.addEventListener(EVENT_DESTRUCT,destructHandler);
+				EvtDispacther.instance.addEventListener(EvtDispacther.PRODUCE_UPDATE,onQueueUpdateResponse);
+				
+				this.initTypeUI();
+				this.setProduceQueueAry(this.buildingObj.castle.produceQueueManager.getProducesAry(this.buildingObj.position));
+			}
+							
+			/**获取兵种类型数组并初始化*/			
+			private function initTypeUI():void{
+				if(this._fortAry.length>0){
+					cacheUi.reset();
+					
+					for(var t:int=0;t<this._fortAry.length;t++){
+						var ui:TypeUI =TypeUI(cacheUi.getUI(TypeUI));
+						ui.typeId = this._fortAry.getItemAt(t) as int;
+						ui.buttonMode = true;
+						ui.useHandCursor = true;
+						ui.addEventListener(MouseEvent.MOUSE_DOWN,selectHandler)
+								
+						this.typeUiContainer.addChild(ui);					
+					}
+				}
+				
+				this.ruleCheck(int(_fortAry.getItemAt(0)));
+				this.typeUiContainer.getChildren()[0].setSelectedStyle();
+				this.buildBtn.selected = true;
+				
+				this.frameHandler();
+				this.addEventListener(Event.ENTER_FRAME,frameHandler);
+			}
+			
+			public function refresh():void{
+				this.buildingObj=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getWall();
+				this.setProduceQueueAry(this.buildingObj.castle.produceQueueManager.getProducesAry(this.buildingObj.position));
+				this.numStepper.refresh();
+				this.addListener();			
+			}
+			
+			private var count:int;	
+			private function frameHandler(event:Event= null):void{
+				count++;
+				if(count<20) return;
+				count =0;
+				
+				this.ruleCheck(this._curTypeId);
+				this.allowProduceQueue = ConditionCheck.instance.calcWaitQueue(this.buildingObj);
+				
+				if(FortDestructPanel.fortInstance !=null){
+					FortDestructPanel.fortInstance.updateCurResource();
+				}
+			}
+
+			/**选择城防类型*/
+			private function selectHandler(event:MouseEvent):void{
+				var id:int = TypeUI(event.currentTarget).typeId;
+
+				for each(var ui:TypeUI in this.typeUiContainer.getChildren()) {
+					if(ui.typeId == id){
+						ui.setSelectedStyle();
+					}else{
+						ui.setNormalStyle();
+					}
+				}		
+						
+				if(this._curTypeId!=id){
+					this.ruleCheck(id);
+				}
+			}
+			
+			/**获取城防规则 */
+			private function ruleCheck(id:int):void{
+				this._curTypeId = id;
+				this._funDesc = TFHelper.instance.getTfSkillDesc(id);
+				this._historyDesc = TFHelper.instance.getTfHistoryDsc(id);
+				this._rule = GameRuleHelper.instance.getForticationRule(id);
+				this._result = _rule.check();
+				this._fortName = TFHelper.instance.getTfName(this._rule.fortType);
+				
+				this.produceResourceData.ruleResult = this._result;
+				this._produceMaxNum = this.produceResourceData.calcFortMaxProduce(this.buildingObj.level,this._rule,this.produceQueueAry);
+				//城防空间计算
+				this._totalSpace = this.produceResourceData.getFortTotalSpace();
+				this._useSpace = this.produceResourceData.getFortUseSpace();
+				this.leftSpace = this.produceResourceData.getFortLeftSpace();
+				
+				this.dependConditionTxt ="";
+				this.dependConditionTxt =ConditionCheck.instance.checkBuildingLevel(this.buildingObj,null,this._rule);
+				this.dependConditionTxt +=ConditionCheck.instance.checkTechLevel(this._result);
+				this.btnEnabeld = this.checkProcuceConditon();
+
+				this.countDeplResource(this.numStepper.effectValue);
+			}
+			
+			/**当条件不满足的时候禁掉生产按钮*/
+			private function checkProcuceConditon():Boolean{
+				var ary:ArrayCollection = this._result.techDepenAry;
+				var b:Boolean;
+				
+				for each(var c:TechCheck in ary){
+					if(c.isMatch == false){
+						b = false;
+						break;
+					}else{
+						b = true;
+					}
+				}
+				return (this.buildingObj.level>=this._rule.buildingLevelRequest && b == true);
+			}
+			
+			/**需要消耗资源*/
+			private function countDeplResource(num:int):void{
+ 				if(num ==0) num =1;
+				this._result.food.dispReq   = String(num*int(this._result.food.dispReq));
+				this._result.wood.dispReq   = String(num*int(this._result.wood.dispReq));
+				this._result.iron.dispReq   = String(num*int(this._result.iron.dispReq));
+				this._result.stone.dispReq  = String(num*int(this._result.stone.dispReq));
+				this._result.golds.dispReq   = String(num*int(this._result.golds.dispReq));
+				this._result.needTime      *= num;
+			}
+		
+			/**生产*/
+			private function produceHandler():void{
+				//判断建造队列
+				if(this.produceQueueAry.length-this.allowProduceQueue>0){
+					MyAlert.show(MultiLang.msg('public.produceQueue.full'));
+					return;	
+				}
+				//判断条件限制				
+				if(!this._result.isMatch || this.buildingObj.level< this._rule.buildingLevelRequest){
+					MyAlert.show(MultiLang.msg('public.condition.lack'));
+					return;
+				}
+				//是否至少输入一个
+				if(this.numStepper.effectValue<=0){
+					MyAlert.show(MultiLang.msg('public.least.input.one',this._fortName));
+					return;
+				}
+				
+				log.debug("fortification produce")
+				this.buildingObj.produceFortification(this._curTypeId,this.numStepper.effectValue);
+			}
+				
+			/**取消生产*/
+			private function cancelHandler(event:ProduceEvent):void{
+				this.buildingObj.cancelFortificationProduce(event.bean.id);
+			}
+
+			/**加速生产*/
+			private function speedUpHandler(event:ProduceEvent):void{
+				log.debug("fortification speedup"+"(queue:)"+event.bean.id+"(itemId:)"+event.rule.itemId);
+				this.buildingObj.speedFortificationProduce(event.bean.id,event.rule.itemId);
+			}
+
+			/**拆除城防*/
+			private function destructHandler(event:ProduceEvent):void{
+				this.buildingObj.destructFortification(event.id,event.num,FortDestructPanel.fortInstance.removePopup);
+			}
+			
+			private function onQueueUpdateResponse(event:PublicEvent):void{
+				var queue:ManufactureQueue = ManufactureQueue(event.evtData);
+
+				if(queue.positionId == this.buildingObj.position){
+					this.setProduceQueueAry(queue.producesArray);
+				}
+			}
+			
+			private function setProduceQueueAry(queueAry:ArrayCollection):void{
+				this.produceQueueAry = queueAry;
+				this.waitingQueue = 0;
+				this.totalProduceTime =0;
+				
+				if (queueAry.length>0) {
+					//当前在生产的
+					this.curProduceUI.produceBean = queueAry[0];
+					this.totalProduceTime = queueAry[0].endTime;
+					this.curProduceUI.visible = true;
+				} else {
+					this.curProduceUI.visible = false;
+				}
+
+				queueContain.removeAllChildren();
+				this.cacheUi1.reset();
+				if (queueAry.length>1) {
+					this.waitingQueue = queueAry.length -1;
+
+					//处理队列中的
+		   			for(var i:int = 1; i<queueAry.length; i++){
+						var ui:FortificationQueueUI = this.cacheUi1.getUI(FortificationQueueUI) as FortificationQueueUI;
+						ui.produceBean = queueAry[i];
+						this.totalProduceTime += queueAry[i].costTime*1000;
+						queueContain.addChild(ui);
+					}
+				}
+			}
+
+			private function onMouseDown(event:MouseEvent):void{
+				this.setBtnUpState();
+				Button(event.target).selected = true;
+				
+				with(Button(event.target)){
+					if(id == "buildBtn"){
+						this.viewShow.selectedChild = this.buildCon;
+					}else if(id == "historyBtn"){
+						this.viewShow.selectedChild = this.historyCon;
+					}else{
+						this.viewShow.selectedChild = this.destuctCon;
+					}
+				}
+			}
+			
+			private function openDestructPanel():void{
+				FortDestructPanel.show(this._result,this._rule);
+			} 
+			
+			private function setBtnUpState():void{
+				this.buildBtn.selected = false;
+				this.historyBtn.selected = false;
+				this.destuctBtn.selected = false;
+			}
+			
+			public function removeListener():void{
+				this.timeLabel.closeTimer(); //
+				this.curProduceUI.destroy(); //
+				this.removeEventListener(Event.ENTER_FRAME,frameHandler);
+			}
+			
+			public function addListener():void{
+				if(!this.hasEventListener(Event.ENTER_FRAME))
+					this.addEventListener(Event.ENTER_FRAME,frameHandler);
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="193" height="240" left="0" top="0" styleName="subContentBG">
+		<mx:Label top="6" left="8" width="73" text="{MultiLang.msg('public.total.time')}:"/>
+		<ns2:LeftTimeLabel  id="timeLabel" width="55%" top="6" leftTime="{this.produceQueueAry.length>0?this.totalProduceTime:0}" right="4"/>
+		<mx:HRule width="90%" top="25" horizontalCenter="0" styleName="bufferBarVRule"/>
+		<mx:Label width="90%" top="28" text="{MultiLang.msg('public.production')}" horizontalCenter="0"/>
+		<wall:FortificationProduceUI id = "curProduceUI" left="6" top="48"/>
+		<mx:HRule width="90%" top="100" horizontalCenter="0" styleName="bufferBarVRule"/>
+		<mx:Label top="103" width="90%" horizontalCenter="0" text="{MultiLang.msg('public.waiting',this.waitingQueue,this.allowProduceQueue)}"/>
+		<mx:VBox id="queueContain" width="190" height="117" left="1" top="123" paddingTop="6" paddingLeft="6" horizontalScrollPolicy="off"/>
+	</mx:Canvas>
+	
+	<mx:VBox id="typeUiContainer" height="240" left="193" top="0" width="94" styleName="mainWindowContentBG"
+		 verticalGap="1"  paddingTop="1" paddingLeft="1">
+	</mx:VBox>
+	<mx:Canvas left="288" right="0" top="0" height="240" styleName="buildingInfoContentBG">
+		
+		<mx:HBox horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0" left="0">
+			<mx:Spacer width="5"/>
+			<mx:Label text="{this._fortName}"
+				paddingLeft="2" width="100%" selectable="false" styleName="titleBordLabel"/>
+			<mx:Button id="buildBtn" height="25" mouseDown="onMouseDown(event)" label="{MultiLang.msg('public.build')}" styleName="tabBtn"/>
+			<mx:Button id="historyBtn" height="25" mouseDown="onMouseDown(event)" label="{MultiLang.msg('public.datum')}" styleName="tabBtn"/>
+			<mx:Button id="destuctBtn" height="25" mouseDown="onMouseDown(event)" label="{MultiLang.msg('public.destuct')}" styleName="tabBtn"/>
+			<mx:Spacer width="5"/>
+		</mx:HBox>
+		
+		<mx:ViewStack top="25" id="viewShow" right="0" left="0" bottom="0">
+			<mx:Canvas id="buildCon"  width="100%" height="100%">
+				<mx:VBox verticalGap="1" left="20" verticalCenter="-20">
+					<mx:Label text="{MultiLang.msg('public.produce.conditionOfWall')}" styleName="titleBordLabel"/>
+					<tech:PublicConditionForm top="130" left="50" result="{this._result}" dependStr="{this.dependConditionTxt}" costTime="{this._result.needTime}"/>
+				</mx:VBox>
+				<mx:TextArea text="{MultiLang.msg('public.max.fort.amount')}:  {this._produceMaxNum}" editable="false" left="276" width="145" height="50" bottom="123" styleName="discritionTextArea">
+					
+				</mx:TextArea>
+				
+				<mx:Label text="{MultiLang.msg('public.amount')}" right="142" textAlign="right" verticalCenter="-20"/>
+				<mx:VBox verticalAlign="middle" horizontalGap="10" verticalCenter="-7" left="328" right="0">
+					<ns2:MyNumericStepper id="numStepper" maxValue="{this._produceMaxNum}" intValue="{0}" onInputDataChange="countDeplResource"/>
+					<mx:Button label="{MultiLang.msg('public.produce')}" click="produceHandler()" width="105" enabled="{this.btnEnabeld}"/>
+				</mx:VBox>
+			</mx:Canvas>
+	
+			<mx:Canvas id="historyCon" width="100%" height="100%">
+				<mx:VBox verticalGap="0" paddingLeft="8">
+					<mx:Label styleName="titleBordLabel" text="{MultiLang.msg('public.property')}"/>
+					<wall:FortPropForm fortRule ="{_rule}"/>
+					<mx:Label text="{MultiLang.msg('public.history')}:" styleName="titleBordLabel" left="10" top="10"/>
+					<mx:Text  width="100%" top="30" bottom="10" text="{this._historyDesc}"/>
+				</mx:VBox>
+			</mx:Canvas>	
+	
+			<mx:Canvas id="destuctCon" width="100%" height="100%">
+				<mx:Label horizontalCenter="0" text="{MultiLang.msg('public.destruct.desc',MultiLang.msg('public.destuct.lowercase'),MultiLang.msg('fortification.name.lowercase'))}" top="75"/>
+				<mx:Button label="{MultiLang.msg('public.destuct')}" width="150" click="openDestructPanel()" horizontalCenter="0" verticalCenter="0"/>
+			</mx:Canvas>	
+		</mx:ViewStack>
+	</mx:Canvas>
+	
+	<mx:HBox verticalAlign="middle" bottom="15" horizontalCenter="150" horizontalGap="25">
+		<mx:Label text="{MultiLang.msg('fort.total.space',this._totalSpace)}"/>
+		<mx:Label text="{MultiLang.msg('fort.used.space',this._useSpace)}"/>
+		<mx:Label text="{MultiLang.msg('fort.left.space',this.leftSpace)}"/>
+	</mx:HBox>
+</mx:Canvas>

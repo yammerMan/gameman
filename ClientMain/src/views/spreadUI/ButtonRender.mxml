@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Button xmlns:mx="http://www.adobe.com/2006/mxml" styleName="{styleType}" width="44" height="18">
+<mx:Script>
+	<![CDATA[
+		import roma.util.MultiLang;
+		[Bindable]
+		private var styleType:String="secondaryBtn";
+		
+		public function set heroTemperBtnLabel(i:int):void{
+			if(i == 0){
+				label = MultiLang.msg('hero.temper.btnLabel');
+				toolTip=null;
+			}else if(i == 1){
+				label = MultiLang.msg('shop.type.speedup');
+				toolTip=MultiLang.msg("hero.train.tip.speedUp");
+			}else if(i ==2){
+				label = MultiLang.msg('public.label.checkOut');
+				toolTip=null;
+			}else if(i == 3){
+				label = MultiLang.msg('public.label.cancel');
+				toolTip=MultiLang.msg("hero.train.tip.cancle");
+			}
+		}
+		
+		public function set btnLable(s:String):void{
+			label = s;
+		}
+	]]>
+</mx:Script>
+	
+</mx:Button>

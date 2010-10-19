@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Label xmlns:mx="http://www.adobe.com/2006/mxml" textAlign="left">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.common.valueObject.LetterBean;
+			import roma.common.constants.LetterConstant;
+			public function set myLabelStyle(type:int):void{
+				if(type == LetterConstant.HAS_READ){
+//					this.styleName ="goodNoticeLabel";
+					this.setStyle("fontWeight","normal");		
+				}
+				else if(type == LetterConstant.HASNT_READ){
+//					this.styleName = "NoticeLabel";
+					this.setStyle("fontWeight","bold");
+				}
+			}
+			
+			public function set systemLabelStyle(type:int):void{
+				if(type == 0){
+//					this.setStyle("color","0xff0000");	
+					this.styleName ="NoticeLabel";	
+				}
+				else if(type == 1){
+					this.styleName ="";		
+				}else if(type == 2){
+					this.styleName ="goodNoticeLabel";		
+				}
+			}
+			
+			public function set mailTitle(data:Object):void{
+				var mailBean:LetterBean=LetterBean(data);
+				if(mailBean.mailType==LetterConstant.MAIL_ALLIANCE_GROUP){
+					this.text=MultiLang.msg("mail.allianceGroupMailTitle")+" "+mailBean.title;
+					this.styleName="goodNoticeLabel";	
+				}else if(mailBean.sender==''){
+					this.text=MultiLang.msg("mail.systemMailTitle")+" "+mailBean.title;
+					this.styleName="systemNoticeLabel";	
+				}else{
+					this.text=mailBean.title;
+					this.styleName="";
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:Label>

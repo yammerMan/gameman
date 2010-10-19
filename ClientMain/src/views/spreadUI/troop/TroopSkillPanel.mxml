@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="104" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import mx.containers.VBox;
+			import mx.controls.Spacer;
+			import mx.controls.Text;
+			import roma.util.MultiLang;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.util.CompCache;
+			import mx.controls.Image;
+			import roma.resource.ImgManager;
+			import roma.common.constants.TroopForConstants;
+			import roma.logic.object.tech.BaseTechObj;
+			
+			private var _typeID:int;
+			private var skillMap:Dictionary = new Dictionary();
+			private var cacheUi:CompCache = new CompCache(10);
+			
+			private static var log:ILogger = Log.getLogger('views.spreadUI.troop.TroopSkillPanel');
+			
+			private var skillObjAry:Array = [{troop:TroopForConstants.T_ARCHERS,keyAry:[TroopSkillConstant.SCATTERING]}
+											,{troop:TroopForConstants.T_TRIARII,keyAry:[TroopSkillConstant.RESISTRUSH]}
+											,{troop:TroopForConstants.T_BALLISTAS,keyAry:[TroopSkillConstant.PERFORATION]}
+											,{troop:TroopForConstants.T_CAVALRY,keyAry:[TroopSkillConstant.RUSH,TroopSkillConstant.SWEEPARMY,TroopSkillConstant.SIDEINJURE]}
+											,{troop:TroopForConstants.T_ONAGERS,keyAry:[TroopSkillConstant.TOZT]}
+											,{troop:TroopForConstants.T_URBAN_COHORT,keyAry:[TroopSkillConstant.LONGRANGESTRIKE,TroopSkillConstant.TURTLEBACK]}
+											,{troop:TroopForConstants.T_SCOUT,keyAry:[MultiLang.msg('scout.func.desc')]}];
+			
+			private function init():void{
+				for each(var obj:Object in this.skillObjAry){
+					with(obj){
+						this.skillMap[troop] = keyAry;
+					}
+				}	
+				
+				this.refresh();
+			}
+			
+			public function set typeID(id:int):void{
+				this._typeID = id;
+
+				if(this.initialized){
+					this.refresh();
+				}
+			} 
+			
+			private function refresh():void{
+				var arr:Array = this.skillMap[this._typeID] as Array;
+				this.iconContainer.removeAllChildren();
+				
+				if(this._typeID == TroopForConstants.T_SCOUT){
+					this.addText(arr);
+					return;
+				}
+				
+				cacheUi.reset();
+				for(var i:int=0;i<arr.length;i++){
+					var ui:SkillIcon = SkillIcon(cacheUi.getUI(SkillIcon));
+					//去掉龟甲队形 
+					if(arr[i] != TroopSkillConstant.TURTLEBACK){
+						 ui.skillType = arr[i];
+						 this.iconContainer.addChild(ui);
+					}
+				}				
+			}
+			
+			private function addText(ary:Array):void{
+				var txt:Text = new Text();
+				txt.width =400;
+				txt.height =94;
+				txt.text = ary[0];
+				var box:VBox=new VBox();
+				var space:Spacer=new Spacer();
+				space.height=10;
+				box.addChild(space);
+				box.addChild(txt);
+				this.iconContainer.addChild(box);
+//				this.iconContainer.addChild(txt);
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox id="iconContainer" verticalCenter="0" left="0"/>
+</mx:Canvas>

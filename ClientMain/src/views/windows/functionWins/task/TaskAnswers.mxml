@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.util.CompCache;
+			import mx.collections.ArrayCollection;
+			
+			private static var SINGLE_SELECT:int = 0;
+			private static var MUL_SELETE:int = 1;
+			private var answerArr:ArrayCollection = new ArrayCollection();
+			
+			private var singleAnswerCache:CompCache = new CompCache(5);
+			private var mulAnswerCache:CompCache = new CompCache(5);
+			
+			private function initClass():void{
+				for(var bean:* in answerArr){
+					if(bean)
+				}
+			}
+			
+			private function onSubmit():void{
+				
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button label="{MultiLang.msg('public.label.sure')}" click="onSubmit()"/>
+</mx:Canvas>

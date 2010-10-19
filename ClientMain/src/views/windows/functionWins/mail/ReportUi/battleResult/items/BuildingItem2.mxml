@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="120" height="65">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.logic.object.castle.TFHelper;
+			import roma.resource.ImgManager;
+			import mx.utils.ObjectUtil;
+			import mx.utils.ObjectProxy;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var buildingObj:ObjectProxy = new ObjectProxy();
+			[Bindable]
+			private var iconClass:Class;
+			[Bindable]
+			private var buildingName:String = "";
+			
+			public function set building(o:Object):void{
+				this.buildingObj = new ObjectProxy(o);
+				iconClass = BuildingHelper.instance.getLogoClass(buildingObj.type)
+				buildingName = BuildingHelper.instance.getName(buildingObj.type);
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalGap="2">
+		<mx:Canvas width="80" height="40" styleName="resourceBG" >
+			<mx:Image source="{iconClass}" width="74" height="34" left="4" top="4" right="4" bottom="4" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<mx:Text text="{buildingName}: {buildingObj.level}"/>
+	</mx:VBox>
+</mx:Canvas>

@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" label="宗主国信息" height="100%" styleName="subContentBG" xmlns:diplomacy="views.windows.functionWins.diplomacy.*"
+	xmlns:spreadUI="views.spreadUI.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.castle.ResourceStaticResponse;
+			import mx.events.ItemClickEvent;
+			import roma.logic.object.player.OtherArmyObj;
+			import mx.collections.ArrayCollection;
+			import views.spreadUI.MyAlert;
+			import mx.utils.ObjectProxy;
+			import roma.common.controller.castle.ConquestResourceResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.constants.CityConstant;
+			import roma.common.valueObject.RelatedCastleTimeBean;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.valueObject.RelatedCastleBean;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			public var checkOutLabel:String = MultiLang.msg('public.label.checkOut');
+			
+			[Bindable]
+			private var catalogArr:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var leaderCityBean:RelatedCastleTimeBean;
+			[Bindable]
+			private var castleObj:CastleObj;
+			[Bindable]
+			private var resourceObj:ObjectProxy = new ObjectProxy();
+			[Bindable]
+			private var troopSeizeArr:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var applyAssalArr:ArrayCollection;
+			
+			public var checkOutApply:Function;
+			
+			private function init():void{
+				catalogArr.addItem(MultiLang.msg("diplomacy.vassal.label"));
+				catalogArr.addItem(MultiLang.msg("diplomacy.troops.situation.label"));
+			}
+			
+			public function set leaderCity(obj:RelatedCastleTimeBean):void{
+				leaderCityBean = obj;
+				//this.refresh();
+			}
+			
+			public function refresh(c:CastleObj):void{
+				if(this.initialized){
+					myTitle.selectedIndex=0;
+					myViewStack.selectedIndex=0;
+				}
+				
+				
+				castleObj = c;
+				if(castleObj == null)
+				castleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+				setResource();
+				
+				if(leaderCityBean == null)return;
+				troopSeizeArr.removeAll();
+				var arr:Array = GameContext.instance.getPlayerObj().otherArmyManager.otherArmyList;
+				for each(var a:OtherArmyObj in arr){
+					if(a.bean.cityId == leaderCityBean.castle.cityId && castleObj.idField == a.bean.targetFieldId){
+						troopSeizeArr.addItem(a);
+					}
+				}
+			}
+						
+			private function setResource():void{
+				this.castleObj.buildingManager.getTownHall().getResourceStatics(callback);
+				function callback(e:ResourceStaticResponse):void{
+					resourceObj['food'] =-Math.round(e.foodBean.originalProduce*CityConstant.RESOURCE_PER_TO_HOST_CASTLE/100);
+					resourceObj['wood']=-Math.round(e.woodBean.originalProduce*CityConstant.RESOURCE_PER_TO_HOST_CASTLE/100);
+					resourceObj['stone']=-Math.round(e.stoneBean.originalProduce*CityConstant.RESOURCE_PER_TO_HOST_CASTLE/100);
+					resourceObj['iron']=-Math.round(e.ironBean.originalProduce*CityConstant.RESOURCE_PER_TO_HOST_CASTLE/100);
+				}
+			}
+			
+			public function checkOutApplyAssal(data:Object):void{
+				if(checkOutApply!=null){
+					checkOutApply.apply(this,[data]);
+				}
+			}
+			
+			private function catalogTbClick(event:ItemClickEvent):void{
+				this.myViewStack.selectedIndex=event.index;
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="whiteBGwithBorder" top="10" left="12" right="12" height="138" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:VBox width="100%" height="100%" verticalGap="0">
+			<mx:HBox width="100%" height="22">
+				<mx:Label text="{MultiLang.msg('diplomacy.conquest.leaderCity.label')}: " width="25%" textAlign="right"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{leaderCityBean.castle.castleName}" width="25%"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{MultiLang.msg('townHall.coordinate')}: " width="25%" textAlign="right"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{GameContext.getFieldPostionString(leaderCityBean.castle.fieldId)}" width="25%"/>
+			</mx:HBox>
+			<mx:HRule width="100%"/>
+			<mx:HBox width="100%" height="22">
+				<mx:Label text="{MultiLang.msg('public.label.lord')}: " width="25%" textAlign="right"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{leaderCityBean.castle.playerName}" width="25%"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{MultiLang.msg('public.label.alliance')}: " width="25%" textAlign="right"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{leaderCityBean.castle.leagueName}" width="25%"/>
+			</mx:HBox >
+			<mx:HRule width="100%"/>
+			<mx:HBox width="100%" height="22">
+				<mx:Label text="{MultiLang.msg('diplomacy.conquest.cityLev.label')}: " width="25%" textAlign="right"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{leaderCityBean.castle.castleLevel}" width="25%"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{MultiLang.msg('diplomacy.conquest.time.label')}: " width="25%" textAlign="right"/>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{GameContext.toLocalTimeStr(leaderCityBean.time)}" width="25%"/>
+			</mx:HBox>
+			<mx:HRule width="100%"/>
+			<mx:Label width="100%" text="{MultiLang.msg('diplomacy.vassal.addition.label')}: " styleName="titleBordLabel"/>
+			<mx:HRule width="100%"/>
+			<mx:HBox width="100%" height="22">
+				<mx:Canvas width="25%" height="100%">
+					<mx:Image source="{ImgManager.clazz('icon.food')}" horizontalCenter="0" verticalCenter="0"/>
+				</mx:Canvas>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{resourceObj.food}" width="25%" styleName="chatTradePlayer"/>
+				<mx:VRule height="100%"/>
+				<mx:Canvas width="25%" height="100%">
+					<mx:Image source="{ImgManager.clazz('icon.stone')}" horizontalCenter="0" verticalCenter="0"/>
+				</mx:Canvas>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{resourceObj.stone}" width="25%" styleName="chatTradePlayer"/>
+			</mx:HBox>
+			<mx:HRule width="100%"/>
+			<mx:HBox width="100%" height="22">
+				<mx:Canvas width="25%" height="100%">
+					<mx:Image source="{ImgManager.clazz('icon.wood')}" horizontalCenter="0" verticalCenter="0"/>
+				</mx:Canvas>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{resourceObj.wood}" width="25%" styleName="chatTradePlayer"/>
+				<mx:VRule height="100%"/>
+				<mx:Canvas width="25%" height="100%">
+					<mx:Image source="{ImgManager.clazz('icon.iron')}" horizontalCenter="0" verticalCenter="0"/>
+				</mx:Canvas>
+				<mx:VRule height="100%"/>
+				<mx:Label text="{resourceObj.iron}" width="25%" styleName="chatTradePlayer"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+	
+	<mx:ToggleButtonBar styleName="titleToggleButtonBar" dataProvider="{catalogArr}" itemClick="{catalogTbClick(event)}" top="153" left="12" id="myTitle">
+	</mx:ToggleButtonBar>
+	<mx:ViewStack top="175" left="12" right="12" bottom="12" id="myViewStack">
+		<mx:Canvas width="100%" height="100%" styleName="mainWindowContentBG"  label="附庸申请列表">
+			<mx:DataGrid dataProvider="{applyAssalArr}" top="0" width="100%" bottom="0" 
+				borderStyle="none" resizableColumns="false" draggableColumns="false"  sortableColumns="false" selectable="false">
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('market.city')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:Label text="{data.castleStr}" />
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('diplomacy.applyCity.label')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel cityStr="{data.relatedCityBean.castle}"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.time')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel timeStr="{data.relatedCityBean.time}"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox horizontalAlign="center" verticalAlign="middle" width="100%" height="100%">
+									<spreadUI:ButtonRender styleName="buttonRender" btnLable="{outerDocument.checkOutLabel}" width="44" height="18" click="{outerDocument.checkOutApplyAssal(data)}"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%" styleName="BuildingAlphaWindow"  label="驻军概况">
+			<mx:Canvas top="10" left="10" right="10" bottom="10" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:TileList id="heroContainer" dataProvider="{troopSeizeArr}" horizontalScrollPolicy="off" width="100%" height="95"
+				 selectable="false" useRollOver="false" borderStyle="none" backgroundAlpha="0" >
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:VBox width="100%" verticalGap="1" paddingTop="0">
+								<diplomacy:heroItem bean="{data}" />
+								<mx:HRule width="420" bottom="0"/>
+							</mx:VBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+			</mx:Canvas>
+		</mx:Canvas>
+	</mx:ViewStack>
+</mx:Canvas>

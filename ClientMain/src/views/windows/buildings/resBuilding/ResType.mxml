@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="133" height="114" styleName="BuildingAlphaWindow" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.rule.ItemRule;
+			import views.windows.functionWins.mail.bean.ResourceType;
+			import roma.message.events.MsgEvent;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.ResourceObj;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.message.events.PublicEvent;
+			import roma.message.EvtDispacther;
+			import roma.util.ClientUtil;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.WorkerTrainningBean;
+			import roma.util.FiltersUtil;
+			import roma.util.MultiLang;
+			import views.spreadUI.tech.WorkerHelper;
+		
+			[Bindable]
+			private var typeName:String;
+			[Bindable]
+			private var _typeIcon:String;
+			[Bindable]
+			private var _worker:ResourceObj;
+			[Bindable]
+			private var _leftTimeStr:String;
+			[Bindable]
+			private var _bean:WorkerTrainningBean;
+			[Bindable]
+			private var _levelIcon:Class;
+			[Bindable]
+			private var _obj:BaseBuilding;
+			[Bindable]
+			private var _townResourceManager:CastleResourceManager;
+			[Bindable]
+			public var _resTypeName:String;
+			[Bindable]
+			private var trainingPeople:int;
+			
+			private var _type:int;
+			private var _resType:int;
+			private var _leftTime:Number;
+			private var _progressBarWidth:int = 94;
+
+			public var fun:Function;
+			
+			public function set type(t:int):void{
+				_type = t;
+			}
+			
+			public function get type():int{
+				return _type;
+			}
+			
+			public function set resType(r:int):void{
+				_resType = r;
+			}
+			
+			public function get resType():int{
+				return _resType;
+			}
+			
+			public function refresh():void{
+				if(this.initialized){
+					_obj = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(resType);
+					_levelIcon=BuildingHelper.instance.getDiffLevelIcon(_obj.level);
+
+					this.updateWorker();
+
+					this.container.visible = false;
+					this.progressBar.width =0;
+					this.trainingPeople=0;
+				}
+			}
+			
+			public function set bean(b:WorkerTrainningBean):void{
+				_bean = b;
+				if(_bean!=null)
+					this.trainingPeople=_bean.count;
+			}
+
+			public function get bean():WorkerTrainningBean{
+				return _bean;
+			}
+			
+			public function setNomalStyle():void{
+				this.styleName = "BuildingAlphaWindow";
+			}
+			
+			public function setSelectedStyle():void{
+				this.styleName = "techIconBG";
+			}
+			
+			private function init():void{
+				typeName = WorkerHelper.instance.getWorkerUnitName(_type);
+				_resTypeName=WorkerHelper.instance.getResourceName(_type);
+				_typeIcon = WorkerHelper.instance.getWorkerIcon(_type);
+				_townResourceManager=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+				refresh();
+				
+				imgContaner.addEventListener(MouseEvent.MOUSE_DOWN,downHandler);
+			}
+			
+			public function realTimeUpdate():void{
+				if(_bean!=null){
+					var now:Number = new Date().valueOf();
+					var diff:Number = GameContext.instance.getTimeDis();	
+					
+											
+					_leftTime = (_bean.endTime-now+diff)/1000;
+
+					if(_leftTime>=0){
+						_leftTimeStr = MultiLang.timeFormatToString(_leftTime);
+
+						this.container.visible = true;
+						this.progressBar.width = (_bean.needTime-(_bean.endTime - now +diff)/1000)/_bean.needTime*_progressBarWidth;
+						this.trainingPeople=_bean.count;
+					}else{
+						trace("训练已经结束，但服务端还没有更新"+"\t"+"leftTime"+"\t"+_leftTime);
+					}
+				}else{
+					this.container.visible = false;
+					this.progressBar.width =0;
+					this.trainingPeople=0;
+				}	
+			}
+			
+			public function updateWorker():void{
+				if(this.fun !=null)
+					_worker = this.fun(_type);
+			}
+			
+			private function downHandler(evt:MouseEvent):void{
+				this.dispatchEvent(new MsgEvent(ResourceList.RESTYP_CLICK,_resType))
+			}
+
+			private function speedUpWorkerTrainning():void{
+//				MsgDispacther.instance.dispatchEvent(new CommonEvent(ResourceList.WORKER_SPEEDUP));
+				openSpeedUpPanel();
+			}
+			
+			private function cancelWorkerTrainning():void{
+				EvtDispacther.instance.dispatchEvent(new PublicEvent(ResourceList.WORKER_CANCEL));
+			}
+			
+			/**打开加速面板 */
+			private function openSpeedUpPanel():void{
+				ItemSelectSpeedUpWin.instance.buildingObj = this._obj;
+				ItemSelectSpeedUpWin.instance.bean = this._bean;
+				ItemSelectSpeedUpWin.instance.speedUpType = ItemSelectSpeedUpWin.COIN_FORWORKERTRAINNING_SPEEDUP;
+				ItemSelectSpeedUpWin.show(ItemResManager.speedWorkerItemArrayCollection,speedUpTrainning);
+			}
+
+			/**加速工人训练*/
+			private function speedUpTrainning(rule:ItemRule):void{
+				this._obj.speedUpTrainning(rule);
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="102" height="96" horizontalCenter="0" verticalCenter="0" styleName="bigBuildingLogo" id="imgContaner">
+		<mx:Image  horizontalCenter="0" verticalCenter="0" source="{_typeIcon}" scaleY="{88/82}" scaleX="{94/96}"
+			updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<!--<mx:Canvas width="26" height="30" right="3" top="3">
+			<mx:Image  source="{ImgManager.clazz('level.background')}" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event);"/>
+			<mx:Label text="{_obj.level}" styleName="LvLabel" top="1" left="0" right="0" textAlign="center"/>
+		</mx:Canvas>-->
+	</mx:Canvas>
+	
+	<mx:Canvas id="container" styleName="blackBG" alpha="0.8" width="94" height="40" bottom="12" horizontalCenter="0">
+		<mx:Canvas width="94" height="15" horizontalCenter="0" verticalScrollPolicy="off" horizontalScrollPolicy="off" top="0">
+			<mx:Canvas id="progressBg" width="94" height="14" styleName="progressBarBG" verticalCenter="0" horizontalCenter="0"/>
+			<mx:Canvas  id="progressBar" width="90" height="10" styleName="progressBar" verticalCenter="0" left="2"/>
+			<mx:Label id="numPercent" text="{_leftTimeStr}"  styleName="titleLevelLabel" fontSize="10" filters="{[FiltersUtil.glowFilter]}" verticalCenter="0" horizontalCenter="0"/>
+		</mx:Canvas>
+	
+		<mx:HBox horizontalCenter="0" bottom="5" width="100%" horizontalGap="1" horizontalAlign="center" verticalAlign="middle" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Button x="10" y="70" height="18" styleName="buildingNowSpeedUpBtn" label="{MultiLang.msg('public.label.speed')}" textAlign="center" click="speedUpWorkerTrainning()"/>
+			<mx:Button x="83" y="70" height="18"  width="18" styleName="dakCancleBtn" click="cancelWorkerTrainning()"/>
+		</mx:HBox>
+	</mx:Canvas>	
+
+	<mx:Label text="{typeName}" top="12" left="20" styleName="LvLabel" filters="{[FiltersUtil.glowFilter]}" fontSize="11" mouseEnabled="false" enabled="false" disabledColor="#FFFFFF"/>
+	<mx:HBox top="27" left="20" horizontalGap="0">
+		<mx:Label text="{_worker.worker}" styleName="LvLabel" filters="{[FiltersUtil.glowFilter]}" fontFamily="Tahoma" fontSize="11" mouseEnabled="false" enabled="false" disabledColor="#FFFFFF"/>
+		<mx:Label text="+{this.trainingPeople}" styleName="LvLabel" filters="{[FiltersUtil.glowFilter]}" fontFamily="Tahoma" fontSize="11" mouseEnabled="false" enabled="false" disabledColor="#41f516" visible="{this.trainingPeople>0?true:false}"/>
+	</mx:HBox>
+</mx:Canvas>

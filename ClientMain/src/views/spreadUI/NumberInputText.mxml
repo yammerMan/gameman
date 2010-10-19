@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:TextInput width="90" id="numberInput" focusOut="textFormat()" restrict="0-9" textAlign="center" verticalCenter="0" horizontalCenter="0" text="{this.textNumber}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.StringUtil;
+			
+			[Bindable]
+			private var textNumber:String="0";
+			
+			private var maxLimit:int=0;
+			
+			
+			
+			private function textFormat():void{
+				var char:String=StringUtil.trim(numberInput.text);
+				if(char==""){
+					numberInput.text="0";
+				}else{
+					if(int(char)>this.maxLimit&&this.maxLimit!=0){
+						numberInput.text=String(this.maxLimit);
+					}else if(int(char)<0){
+						numberInput.text="0";
+					}
+				}
+			}
+			
+			public function get text():int{
+				var res:int = int(this.numberInput.text);
+				if (res<0) {
+					res = 0;
+				} else if (this.maxLimit!=0 && res> this.maxLimit) {
+					res = this.maxLimit;
+				}
+				return res;
+			}
+			
+			public function set text(str:int):void{
+				this.textNumber="";
+				this.textNumber=String(str);
+			}
+			
+			public function set maxLimitValue(max:int):void{
+				this.maxLimit=max;
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

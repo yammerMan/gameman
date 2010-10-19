@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:spreadUI="views.spreadUI.*"  xmlns:alliance="views.windows.functionWins.alliance.*" creationComplete="init()" click="clickThisWinHandle()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.alliance.SelfAllianceInfoResponse;
+			import roma.logic.CaesaryConfig;
+			import roma.message.events.ChatCallEvent;
+			import roma.message.events.AllianceHandleEvent;
+			import roma.logic.rule.AllianceRule;
+			import roma.logic.rule.GameRuleHelper;
+			import views.windows.functionWins.ranking.RankingWin;
+			import mx.events.ListEvent;
+			import roma.common.valueObject.AllianceRelationBean;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.constants.AllianceConstant;
+			import roma.resource.LogoData;
+			import roma.message.EvtDispacther;
+			import views.windows.functionWins.alliance.outOfAlliance.OutAllianceWin;
+			import views.PopupWindows;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.util.PopupWinManager;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import mx.events.ItemClickEvent;
+			import roma.common.controller.alliance.AllianceRelactionResponse;
+			import roma.common.action.ControllerFactory;
+			[Bindable]
+			private var catalogArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var allianceObj:AllianceInfoDataBean;                                            // 联盟的信息
+
+			[Bindable]
+			private var allianceRight:int;                                                       // 联盟官职
+			
+			[Bindable]
+			private var nextAllianceRule:AllianceRule;
+			
+			[Bindable]
+			private var mapSource:*;
+			/**
+			 * 联盟公告
+			 */
+			 [Bindable]
+			private var allianceNote:String;
+			/**
+			 * 联盟描述
+			 */
+			 [Bindable]
+			private var allianceDesc:String;
+			/**
+			 * 论坛地址
+			 */
+			 [Bindable]
+			private var allianceUrl:String;
+			
+			
+			
+			[Bindable]
+			private var isModifying:Boolean = false;
+			[Bindable]
+			private var relationInShowArr:ArrayCollection = new ArrayCollection();              // 正在显示的联盟关系数组
+			private var relationArr:ArrayCollection = new ArrayCollection();                    // 联盟关系数组
+			[Bindable]
+			private var friendsArr:ArrayCollection=new ArrayCollection();//友好联盟
+			[Bindable]
+			private var enemyArr:ArrayCollection=new ArrayCollection();//敌对联盟
+			
+			
+			[Bindable]
+			private var curPage:int =0;
+			[Bindable]
+			private var totalPage:int = 0;
+			private var pageSize:int=10;
+			
+			[Bindable]
+			private var topLogoSource:*;
+			
+			[Bindable]
+			private var middleLogoSource:*;
+			
+			[Bindable]
+			private var bottomLogoSource:*;
+			
+			[Bindable]
+			private var allianceManagerShow:Boolean=false;
+			
+			public var sentGroupEmail:Function;
+			
+			public var allianceView:Function;
+			
+			public var allianceInviteView:Function;
+			
+			private var isShowMenu:Boolean=false;
+			
+			[Bindable]
+			private var canLevelUp:Boolean=false;
+			
+			
+			private function clickThisWinHandle():void{
+				if(this.allianceManagerShow==true&&this.isShowMenu==true){
+					this.isShowMenu=false;
+				}else{
+					this.allianceManagerShow=this.isShowMenu=false;
+				}
+			}
+			
+			
+			//发送群邮件
+			private function toSentGroupEmail():void {
+				if (this.sentGroupEmail!=null ) {
+						this.sentGroupEmail.apply(this);
+				} 
+			}
+			
+			//邀请玩家进入联盟
+			private function invitePlayer():void{
+				if (this.allianceView!=null ) {
+						this.allianceView.apply(this);
+				} 
+			}
+			
+			//处理联盟申请和邀请
+			private function toAllianceInviteView():void{
+				if (this.allianceInviteView!=null ) {
+						this.allianceInviteView.apply(this);
+				} 
+			}
+			
+			public function refresh():void{
+				this.allianceVS.selectedIndex=this.myTitle.selectedIndex=0;
+				this.allianceManagerShow=false;
+				this.getLeagueInfo();
+				this.allianceBaseInfo.selectedIndex=0;
+				this.pronunciamentoBtn.selected=true;
+				this.describeBtn.selected=false;
+				this.enemyBtn.selected=false;
+				this.friendsBtn.selected=true;
+				this.relationInShowArr=this.friendsArr;
+			}
+			
+			
+			//请求获取联盟信息
+			private function getLeagueInfo():void{
+				ControllerFactory.getInstance().getAllianceController().getSelfAllianceInfo(onGetAllianceInfoDataBean,false);
+			}
+			
+			private function init():void{
+//				ControllerFactory.getInstance().getAllianceController().getLeagueInfo(onGetAllianceInfoDataBean);
+//				ControllerFactory.getInstance().getAllianceController().getLeagueRalation(onGetAllianceRelation);   //联盟关系需要有转 页 
+				allianceRight = GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight;
+				catalogArr.addItem({label:MultiLang.msg('alliance.allianceInfo'),toolTip:MultiLang.msg("alliance.mainTitle.allianceInfo.tip")});
+				catalogArr.addItem({label:MultiLang.msg('alliance.membership'),toolTip:MultiLang.msg("alliance.mainTitle.member.tip")});
+				catalogArr.addItem({label:MultiLang.msg('alliance.warReports'),toolTip:MultiLang.msg("alliance.mainTitle.warReports.tip")});
+				catalogArr.addItem({label:MultiLang.msg('alliance.event'),toolTip:MultiLang.msg("alliance.mainTitle.event.tip")});
+				catalogArr.addItem({label:MultiLang.msg('alliance.warehouse'),toolTip:MultiLang.msg("alliance.mainTitle.warehouse.tip")});
+				
+//				catalogArr.addItem(Lang.msg('alliance.allianceInfo'));
+//				catalogArr.addItem(Lang.msg('alliance.member'));
+//				catalogArr.addItem(Lang.msg('alliance.warReports'));
+//				catalogArr.addItem(Lang.msg('alliance.event'));
+//				catalogArr.addItem(Lang.msg('alliance.warehouse'));
+				EvtDispacther.instance.addEventListener(AllianceHandleEvent.EVENT_NAME_LOGOCHANGE,logoChangeHandle);
+				EvtDispacther.instance.addEventListener(AllianceHandleEvent.EVENT_NAME_RELATIONCHANGE,getLeagueRelation);
+				EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_INFO_UPDATE_EVENT,allianceRightUpdateHandle);
+//				if(allianceRight>1){
+//					catalogArr.addItem(Lang.msg('alliance.groupSend'));
+//				}else if(allianceRight <=1 && catalogArr.length >=5){
+//					catalogArr.removeItemAt(4);
+//				}
+			}
+			
+			private function allianceRightUpdateHandle(event:Event):void{
+				this.allianceRight=GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight;
+			}
+			
+			//logo修改的处理
+			private function logoChangeHandle(event:AllianceHandleEvent):void{
+				this.getLeagueInfo();
+			}
+			
+			
+			/**
+			 * 关闭窗口
+			 */ 
+			private function onCloseWin():void{
+				PopupWinManager.instance.removePopup(this);
+			}
+			
+			/**
+			 * 获得联盟信息
+			 */ 
+			private function onGetAllianceInfoDataBean(event:SelfAllianceInfoResponse):void{
+				if(event.isSuccess()){
+					AllianceHelper.instance.allianceObj=event.leagueInfo;
+					allianceObj = AllianceHelper.instance.allianceObj;
+					nextAllianceRule=GameRuleHelper.instance.getLeagueRule(allianceObj.allianceLev+1);
+					this.checkCanLevelUp();
+					if(allianceObj!=null){
+						allianceNote=event.leagueInfo.leagueNote;
+						allianceDesc=event.leagueInfo.introduce;
+						allianceUrl=event.leagueInfo.allianceUrl;
+						this.getImage();
+					}
+					ControllerFactory.getInstance().getAllianceController().getAllianceRalation(onGetAllianceRelation,false);   //联盟关系需要有转 页 				
+				}
+			}
+			
+			//获取联盟关系
+			private function getLeagueRelation(event:AllianceHandleEvent):void{
+				ControllerFactory.getInstance().getAllianceController().getAllianceRalation(onGetAllianceRelation,false);   //联盟关系需要有转 页 		
+			}
+			
+			
+			/**
+			 * 联盟关系的响应
+			 */ 
+			private function onGetAllianceRelation(event:AllianceRelactionResponse):void{
+				if(event.isSuccess()){
+					this.relationInShowArr.removeAll();
+		 			this.relationArr=event.allianceRelationsArray;
+		 			this.assortAlliance();
+//		 			if(this.relationArr.length>0){
+//		 				this.curPage=1;
+//		 				this.totalPage=Math.ceil(this.relationArr.length/this.pageSize);
+//		 				this.showData(this.curPage);
+//		 			}else{
+//		 				this.curPage=this.totalPage=0;
+//		 			}
+		 		}
+			}
+			
+			private function assortAlliance():void{
+				this.friendsArr.removeAll();
+				this.enemyArr.removeAll();
+				if(this.relationArr.length>0){
+					for each(var bean:AllianceRelationBean in this.relationArr){
+						if(bean.relationType==AllianceConstant.ALLIANCE_RELATION_FRIENDLY){
+							this.friendsArr.addItem(bean);
+						}else if(bean.relationType==AllianceConstant.ALLIANCE_RELATION_HOSTILE){
+							this.enemyArr.addItem(bean);
+						}
+					}
+				}
+				AllianceHelper.instance.enemyArr=this.enemyArr;
+				AllianceHelper.instance.friendsArr=this.friendsArr;
+			}
+			
+			private function catalogTbClick(event:ItemClickEvent):void{
+				if(GameContext.instance.getPlayerObj().getPlayerInfo().leagueName != null){
+					this.clickThisWinHandle();
+					if(ToggleButtonBar(event.target).selectedIndex == allianceVS.selectedIndex){
+						return;
+					}
+					switch(ToggleButtonBar(event.target).selectedIndex){
+						case 0:
+							allianceVS.selectedIndex = 0;
+							this.refresh();
+						break;
+						case 1:
+							allianceVS.selectedIndex = 1;
+							allianceMemberList.refresh();
+						break;
+						case 2:
+							allianceVS.selectedIndex = 2;
+							allianceWarRepotsList.refresh();
+						break;
+						case 3:
+							allianceVS.selectedIndex = 3;
+							allianceEventList.refresh();
+						break;
+						case 4:
+							allianceVS.selectedIndex = 4;
+							allainceWarehouse.refresh();
+							break;
+					}
+				}else{
+					EvtDispacther.instance.eventDispatch(OutAllianceWin.WINDOW_SHOW);
+				}	
+			}
+			
+			
+			
+			private function onAddAlliance():void{
+				AddAlliance.instance.show();
+			}
+			
+			private function onRelationItemClick(event:ListEvent):void{
+				AllianceInfoView.show(AllianceRelationBean(event.itemRenderer.data).allianceId);
+			}
+			public function showAllianceWinHandle(id:int):void{
+				AllianceInfoView.show(id);
+			}
+			
+			private function turnPage(p:int):void{
+				var tp:int = curPage+p;
+				if(tp>0 && tp<totalPage){
+					curPage = tp;
+					showData(curPage);
+				}
+//				ControllerFactory.getInstance().getAllianceController().getLeagueRalation(onGetAllianceRelation);
+			}
+			private function showData(page:int):void{
+				this.relationInShowArr.removeAll();
+				if(this.relationArr.length>0){
+					var end:int=page*this.pageSize>this.relationArr.length?this.relationArr.length:page*this.pageSize;
+					for(var i:int=(page-1)*this.pageSize;i<end;i++){
+						this.relationInShowArr.addItem(this.relationArr[i]);
+					}	
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void{
+				this.setBtnUpState();
+				
+				Button(event.target).selected = true;
+				if(allianceObj!=null){
+					with(Button(event.target)){
+						if(id == "pronunciamentoBtn"){
+							this.allianceBaseInfo.selectedIndex=0;
+						}else if(id == "describeBtn"){
+							this.allianceBaseInfo.selectedIndex=1;
+						}else if(id == "forumBtn"){
+							this.allianceBaseInfo.selectedIndex=2;
+						}else{
+							this.allianceBaseInfo.selectedIndex=0;
+						}
+					}
+				}
+			}
+			
+			private function onRelationMouseOver(event:MouseEvent):void{
+				this.enemyBtn.selected=false;
+				this.friendsBtn.selected=false;
+				Button(event.target).selected = true;
+				if(allianceObj!=null){
+					with(Button(event.target)){
+						if(id == "friendsBtn"){
+							this.relationInShowArr=this.friendsArr;
+						}else if(id == "enemyBtn"){
+							this.relationInShowArr=this.enemyArr;
+						}
+					}
+				}
+			}
+			
+
+			private function setBtnUpState():void{
+				this.pronunciamentoBtn.selected = false;
+				this.describeBtn.selected = false;
+				this.forumBtn.selected = false;
+			}
+			
+			//获取联盟logo
+			private function getImage():void{
+				if(this.allianceObj!=null){
+					var logoCode:int=this.allianceObj.logoCode;
+					var topIndex:int=logoCode>>16;
+					var middleIndex:int=logoCode<<16>>24;
+					var bottomIndex:int=logoCode<<24>>24;
+					
+					this.topLogoSource=LogoData(ImgManager.instance.getLeagueTopLogos()[topIndex]).source;
+					this.middleLogoSource=LogoData(ImgManager.instance.getLeagueMiddleLogos()[middleIndex]).source;
+					this.bottomLogoSource=LogoData(ImgManager.instance.getLeagueBottomLogos()[bottomIndex]).source;
+					if(this.topLogoSource==null){
+						this.topLogoSource=LogoData(ImgManager.instance.getLeagueTopLogos()[0]).source;
+					}
+					if(this.middleLogoSource==null){
+						this.middleLogoSource=LogoData(ImgManager.instance.getLeagueMiddleLogos()[0]).source;
+					}
+					if(this.bottomLogoSource==null){
+						this.bottomLogoSource=LogoData(ImgManager.instance.getLeagueBottomLogos()[0]).source;
+					}
+				}	
+			}
+			
+			//修改联盟信息
+			private function modifyAllianceInfo():void{
+				ModifyAllianceInfoWin.show(this.allianceDesc,this.allianceNote,this.submitmodifyAllianceInfo,false);
+			}
+			private function submitmodifyAllianceInfo(note:String,desc:String):void{
+				ControllerFactory.getInstance().getAllianceManagementController().setLeagueInfo(desc,note,this.allianceObj.allianceUrl,this.allianceObj.limitPrestige,callback);
+//				ControllerFactory.getInstance().getAllianceManagementController().setAllianceInfo(this.allianceObj.name,desc,note,this.allianceObj.limitPrestige,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						allianceNote=note;
+						allianceDesc=desc;
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			//辞职
+			private function resign():void{
+				if(allianceRight==AllianceConstant.ALLIANCE_TITLE_OFFICER||allianceRight==AllianceConstant.ALLIANCE_TITLE_ELDER||allianceRight==AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF){
+					MyAlert.show(MultiLang.msg("alliance.resign.submitTip"),sureToresign);
+				}else{
+					MyAlert.show(MultiLang.msg("alliance.cannotResign"));
+				}
+				
+				function sureToresign(_true:Boolean):void{
+					if(_true){
+						ControllerFactory.getInstance().getAllianceManagementController().resign(callback);
+					}
+				}
+				
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight=AllianceConstant.ALLIANCE_TITLE_MEMBER;
+						allianceRight = GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight;
+						allianceMemberList.refresh();
+						
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			//退出联盟
+			private function quit():void{
+				if(allianceRight==AllianceConstant.ALLIANCE_TITLE_MEMBER){
+					MyAlert.show(MultiLang.msg("alliance.quit.submitTip"),sureToLeave);
+				}else{
+					MyAlert.show(MultiLang.msg("alliance.cannotQuit"));
+				}
+				
+				function sureToLeave(_true:Boolean):void{
+					if(_true){
+						ControllerFactory.getInstance().getAllianceManagementController().quit(callback);
+					}
+				}
+				
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						PopupWindows.closeAll();
+						var str:String=MultiLang.msg("alliance.event.resignEvent",AllianceHelper.instance.getLeagueLevelName(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight),GameContext.instance.getPlayerObj().getPlayerInfo().playerName);
+						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,str));
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight=AllianceConstant.ALLIANCE_TITLE_NOALLIANCE;
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceLogo=0;
+						GameContext.instance.getPlayerObj().getPlayerInfo().leagueName=null;
+						
+					}else{
+						MyAlert.showError(event);
+					}
+					
+				}
+			}
+			
+			
+			//解散联盟
+			private function disband():void{
+				MyAlert.show(MultiLang.msg('alliance.disband.tip'),doDisband);
+				function doDisband(_true:Boolean):void{
+					if(_true){
+						//需要做能否解散的判断
+						if(allianceObj.members==1){
+							ControllerFactory.getInstance().getAllianceManagementController().quit(callback);
+						}else{
+							MyAlert.show(MultiLang.msg('alliance.cannotDisband'));
+						}
+					}
+				}
+				
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight=AllianceConstant.ALLIANCE_TITLE_MEMBER;
+						GameContext.instance.getPlayerObj().getPlayerInfo().leagueName=null;
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceLogo=0;
+						PopupWindows.closeAll();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			private function gotoAllianceWin():void{
+				var data:Object=new Object();
+				data.winId=1
+				PopupWindows.openFuncWin(RankingWin.WINDOW_SHOW,data,true);
+			}
+			
+			//邀请玩家进入联盟
+			private function invitePlayerToAlliance():void{
+				InviteToAllianceWin.show(false);
+			}
+			//判断能否升级联盟
+			private function checkCanLevelUp():void{
+				this.canLevelUp=false;
+				if(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight>=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF&&allianceObj.allianceLev<AllianceConstant.ALLIANCE_LEVEL_FINAL_LEVEL){
+					this.canLevelUp=true;
+				}
+			}
+			
+			//修改会徽
+			private function midifyLogo():void{
+				AllianceLogoDesignWin.show(this.allianceObj,false);
+			}
+			
+			//联盟升级
+			private function reachLevel():void{
+//				AllianceUpdateWin.show(this.allianceObj,false);
+				this.allianceVS.selectedChild=this.allainceWarehouse;
+//				if(allianceObj.food>=this.nextAllianceRule.food&&allianceObj.wood>=this.nextAllianceRule.wood&&allianceObj.stone>=this.nextAllianceRule.stone&&allianceObj.iron>=this.nextAllianceRule.iron&&allianceObj.golds>=this.nextAllianceRule.golds){
+//					ControllerFactory.getInstance().getAllianceController().reachLevel(callback);
+//				}else{
+//					AlertWin.show(Lang.msg("alliance.resourceIsnotEnough"));
+//				}
+//				function callback(event:CommonResponse):void{
+//					if(event.isSuccess()){
+//					}else{
+//						AlertWin.showError(event);
+//					}
+//						
+//				}
+			}
+		]]>
+	</mx:Script>
+	
+	<spreadUI:MulHRule left="12" right="12" top="53"/>
+	<mx:ViewStack id="allianceVS" left="12" right="12" top="32" bottom="0">
+		<mx:Canvas id="allianceInfo" width="100%" height="100%">
+			<mx:Canvas id="allianceMes" top="25" height="140" width="280" left="0" styleName="alphaBlackBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Canvas height="121" left="10" verticalCenter="0" width="123" toolTip="{MultiLang.msg('alliance.logo.tip')}">
+					<mx:Image left="0" right="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0"/>
+					<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.bottomLogoSource}" width="102" height="102" id="bottomLogoImage"/>
+					<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.middleLogoSource}" width="102" height="102" id="middleLogoImage"/>
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{this.topLogoSource}" width="102" height="102" verticalCenter="0"  horizontalCenter="0" id="topLogoImage"/>
+				</mx:Canvas>
+				<mx:VBox height="121" verticalGap="-1" verticalCenter="0" left="137" right="5" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Label id="leagueName" text="{allianceObj.name}" width="100%" styleName="titleBigBordLabel" textAlign="center" toolTip="{MultiLang.msg('alliance.title.name.tip')}"/>
+					<mx:HBox width="100%" horizontalGap="0">
+						<mx:Label text="{MultiLang.msg('alliance.leader')}: " width="60" textAlign="right" toolTip="{MultiLang.msg('alliance.title.leader.tip')}"/>
+						<mx:Label id="allianceLeader" text="{allianceObj.leader}" width="100%" />	
+					</mx:HBox>
+					<mx:HRule width="90%" />
+					<mx:HBox width="100%" horizontalGap="0">
+						<mx:Label text="{MultiLang.msg('alliance.member')}: " width="60" textAlign="right" toolTip="{MultiLang.msg('alliance.title.member.tip')}"/>
+						<mx:Label id="allianceMembers" text="{allianceObj.members}" width="100%"/>	
+					</mx:HBox>
+					<mx:HRule width="90%" />
+					<mx:HBox width="100%" horizontalGap="0">
+						<mx:Label text="{MultiLang.msg('public.label.level')}: " width="60" textAlign="right" toolTip="{MultiLang.msg('alliance.title.level.tip')}"/>
+						<mx:Label id="allianceLevel" text="{allianceObj.allianceLev}" width="100%"/>	
+					</mx:HBox>
+					<mx:HRule width="90%" />
+					<mx:HBox width="100%" horizontalGap="0">
+						<mx:Label text="{MultiLang.msg('ranking.label.ranking')}: " width="60" textAlign="right" toolTip="{MultiLang.msg('alliance.title.ranking.tip')}"/>
+						<mx:Label id="allianceRanking" text="{allianceObj.rank}" width="100%"/>	
+					</mx:HBox>
+					<mx:HRule width="90%" />
+					<mx:HBox width="100%" horizontalGap="0">
+						<mx:Label text="{MultiLang.msg('label.horne')}: " width="60" textAlign="right" toolTip="{MultiLang.msg('alliance.title.horne.tip')}"/>
+						<mx:Label id="allianceHonor" text="{allianceObj.totalHonor}" width="100%"/>	
+					</mx:HBox>
+					<mx:HRule width="90%" />
+				</mx:VBox>
+			</mx:Canvas>
+			<mx:Canvas id="allianceDescView" top="170" width="280" bottom="35" left="2" styleName="mainWindowContentBG">
+				<mx:HBox left="0" horizontalGap="0" top="0" styleName="tecTitleBG" right="0" height="23">
+					<mx:Spacer width="10"/>
+					<mx:Button id="pronunciamentoBtn" height="23" mouseOver="onMouseOver(event)" label="{MultiLang.msg('public.label.pronunciamento')}" styleName="tabBtn" toolTip="{MultiLang.msg('alliance.pronunciamento.tip')}"/>
+					<mx:Button id="describeBtn" height="23" mouseOver="onMouseOver(event)" label="{MultiLang.msg('public.label.intro')}" styleName="tabBtn" toolTip="{MultiLang.msg('alliance.intro.tip')}"/>
+					<mx:Button id="forumBtn" height="23" mouseOver="onMouseOver(event)" label="{MultiLang.msg('alliance.forum')}" styleName="tabBtn" visible="false" includeInLayout="false"/>
+				</mx:HBox>
+				<mx:ViewStack id="allianceBaseInfo" left="1" right="1" top="24" bottom="0">
+					<mx:Canvas width="100%" height="100%">
+						<mx:TextArea  text="{this.allianceDesc}" editable="{isModifying}" width="100%" height="100%" id="noteText"/>
+					</mx:Canvas>
+					<mx:Canvas width="100%" height="100%">
+						<mx:TextArea  text="{this.allianceNote}" editable="{isModifying}" width="100%" height="100%" id="decText"/>
+					</mx:Canvas>
+					<mx:Canvas width="100%" height="100%">
+						<mx:TextArea  text="{this.allianceUrl}" editable="{isModifying}" width="100%" height="100%" id="urlText"/>
+					</mx:Canvas>
+				</mx:ViewStack>
+				
+			</mx:Canvas>
+			
+			
+			<mx:Canvas id="allianceRelations" top="25" width="220" right="1" bottom="35" styleName="mainWindowContentBG">
+				<mx:HBox left="0" horizontalGap="0" top="0" styleName="tecTitleBG" right="0" height="23">
+					<mx:Spacer width="10"/>
+					<mx:Button id="friendsBtn" height="23" mouseOver="onRelationMouseOver(event)" label="{MultiLang.msg('alliance.relationship.friend')}" styleName="tabBtn" toolTip="{MultiLang.msg('alliance.relationship.friend.tip')}"/>
+					<mx:Button id="enemyBtn" height="23" mouseOver="onRelationMouseOver(event)" label="{MultiLang.msg('alliance.relationship.enemy')}" styleName="tabBtn" toolTip="{MultiLang.msg('alliance.relationship.enemy.tip')}"/>
+				</mx:HBox>
+				<mx:DataGrid top="24" rowHeight="22" bottom="0" left="0" right="0" dataProvider="{this.relationInShowArr}" itemClick="onRelationItemClick(event)" textAlign="center" showHeaders="false" id="relationDG" borderStyle="none">
+					<mx:columns>
+						<mx:DataGridColumn dataField="leagueName" headerText="">
+							<mx:itemRenderer>
+								<mx:Component>
+									<mx:HBox left="5" right="5" height="22" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+										<mx:Script>
+											<![CDATA[
+												import roma.util.MultiLang;
+												import roma.common.constants.AllianceConstant;
+											]]>
+										</mx:Script>
+										<mx:Spacer width="5"/>
+										<mx:Label width="100%" text="{data.leagueName}" color="{data.relationType==AllianceConstant.ALLIANCE_RELATION_FRIENDLY?0x1751b5:0xef4416}" textAlign="left"/>
+										<mx:Button label="{MultiLang.msg('public.label.checkOut')}" click="outerDocument.showAllianceWinHandle(data.allianceId)" styleName="secondaryBtn" height="18"/>
+										<mx:Spacer width="5"/>
+									</mx:HBox>
+								</mx:Component>
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+					</mx:columns>
+				</mx:DataGrid>
+				
+				<!--mx:HBox bottom="0" horizontalCenter="0" visible="{totalPage>0?true:false}" includeInLayout="{totalPage>0?true:false}"-->
+				<mx:HBox bottom="0" horizontalCenter="0" visible="false" includeInLayout="false">
+					<mx:Button id="preBtn" click="{turnPage(-1)}" styleName="previousBtn"/>
+					<mx:Text id="pageNum" text="{curPage}/{totalPage}"/>
+					<mx:Button id="nextBtn" click="{turnPage(1)}" styleName="nextBtn"/>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:Canvas id="alliancePosInWorld" top="25" left="284" bottom="35" styleName="mainWindowContentBG" right="222">
+				<mx:Canvas top="3" styleName="mainWindowContentBG" left="3" bottom="3" right="3">
+					<mx:Image left="1" top="1" source="{ImgManager.clazz('map.mapOutLine.img')}" updateComplete="ImageHandle.onLoadComplete(event)" right="1" bottom="1" id="mapImage" scaleX="{277/550}" scaleY="{277/550}"/>
+				</mx:Canvas>
+			</mx:Canvas>
+			<mx:HBox right="1" bottom="11" horizontalGap="3" width="165" horizontalAlign="center">
+				<mx:Button label="{MultiLang.msg('alliance.allianceListView')}" width="50%" click="this.gotoAllianceWin()"/>
+			</mx:HBox>
+		</mx:Canvas>
+		<alliance:AllianceMemberList id="allianceMemberList" width="100%" allianceView="toAllianceInviteView" getLeagueInfoBean="{this.allianceObj}"/>
+		<alliance:AllianceWarReports id="allianceWarRepotsList" width="100%"/>
+		<alliance:AllianceUpdateList id="allianceEventList" width="100%"/>
+		<alliance:AllianceWarehouse id="allainceWarehouse" width="100%" getLeagueInfoBean="{this.allianceObj}"/>
+	</mx:ViewStack>
+	<mx:Button label="{MultiLang.msg('alliance.manage')}" right="15" top="30" click="this.allianceManagerShow=true;this.isShowMenu=true;"/>
+	<mx:Canvas styleName="baseTooltip" visible="{this.allianceManagerShow}" id="allianceManage" top="56" right="12">
+		<mx:VBox top="10" bottom="10" left="10" right="10" verticalGap="2">
+			<mx:Button id="modifyBtn" label="{MultiLang.msg('alliance.changeInfo')}" toolTip="{MultiLang.msg('alliance.changeInfo.tip')}" click="modifyAllianceInfo()" visible="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_ELDER}" includeInLayout="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_ELDER}" width="100%" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.addAlliance')}" toolTip="{MultiLang.msg('alliance.soldiership.tip')}" click="onAddAlliance()" visible="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF}" includeInLayout="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF}" width="100%" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.invite')}" toolTip="{MultiLang.msg('alliance.voice.tip')}" click="invitePlayerToAlliance()" width="100%" visible="{allianceRight>=AllianceConstant.ALLIANCE_TITLE_MEMBER}" includeInLayout="{allianceRight>=AllianceConstant.ALLIANCE_TITLE_MEMBER}" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.label.allianceUpdate')}" toolTip="{MultiLang.msg('alliance.title.level.tip')}" width="100%" click="reachLevel()" visible="{this.canLevelUp}" includeInLayout="{this.canLevelUp}" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.popedomList')}" toolTip="{MultiLang.msg('alliance.popedomList.tip')}" width="100%" click="AlliancePopedomView.show(false)" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.emailGroundSent')}" toolTip="{MultiLang.msg('alliance.emailGroundSent.tip')}" width="100%" click="toSentGroupEmail()" visible="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_ELDER}" includeInLayout="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_ELDER}" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.modifyLogo')}" toolTip="{MultiLang.msg('alliance.modifyLogo.tip')}" width="100%"   click="midifyLogo()" visible="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF}" includeInLayout="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF}" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.demission')}" toolTip="{MultiLang.msg('alliance.demission.tip')}" width="100%" click="resign()"  visible="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_OFFICER}" includeInLayout="{allianceRight >=AllianceConstant.ALLIANCE_TITLE_OFFICER}" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.quit')}" toolTip="{MultiLang.msg('alliance.quit.tip')}" width="100%" click="quit()" styleName="chatPureColorBtn"/>
+			<mx:Button label="{MultiLang.msg('alliance.disbandAlliance')}" toolTip="{MultiLang.msg('alliance.disbandAlliance.tip')}" width="100%" click="disband()" visible="{allianceRight==AllianceConstant.ALLIANCE_TITLE_CHIEF}" includeInLayout="{allianceRight==AllianceConstant.ALLIANCE_TITLE_CHIEF}" styleName="chatPureColorBtn"/>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:ToggleButtonBar styleName="titleToggleButtonBar" dataProvider="{catalogArr}" itemClick="{catalogTbClick(event)}" top="31" left="11" id="myTitle">
+	</mx:ToggleButtonBar>
+</mx:Canvas>

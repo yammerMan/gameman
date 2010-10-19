@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="320" height="66" xmlns:speedUp="views.spreadUI.speedUp.*" 
+	styleName="mainWindowContentBG" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.hero.HeroObj;
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import roma.message.events.PublicEvent;
+			import roma.util.PopupWinManager;
+			import roma.common.valueObject.HeroManBean;
+			import roma.resource.ImgManager;
+			import roma.logic.object.castle.CastleObj;
+			import roma.logic.GameContext;
+			
+			public static var GOLD_AWARD:String = "goldsAward";
+			[Bindable]
+			private var curCastle:CastleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+			[Bindable]
+			public var curHero:HeroObj; 
+			
+			private function init():void{
+				curCastle = GameContext.instance.getPlayerObj().getCurCastleObj();
+			}
+			
+			private function getAwardGold():void{
+				var c:int = curCastle.resourceManager.golds.curAmount;
+				if(c<curHero.heroInfo.level*100){
+					PopupWinManager.instance.removePopup();
+					MyAlert.show(MultiLang.msg('public.gold.lack'));
+					return;
+				}
+				this.dispatchEvent(new PublicEvent(GOLD_AWARD));	
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox horizontalGap="0" horizontalCenter="0" top="-2" verticalAlign="middle">
+		<mx:Label text="{MultiLang.msg('public.label.amount')}:" color="0x000000"/>
+		<mx:Label text="{Math.round(curCastle.resourceManager.golds.curAmount)}"/>
+		<mx:Spacer width="2"/>
+		<mx:Image source="{ImgManager.clazz('icon.gold')}"/>
+	</mx:HBox>
+	<mx:Canvas width="100%" height="42" bottom="2" horizontalCenter="0" styleName="BuildingAlphaWindow" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Text selectable="false" height="100%" htmlText="{MultiLang.msg('hero.awardGold{0}',curHero.heroInfo.level*100)}" paddingLeft="3" paddingTop="5" right="85" left="10"/>
+		<mx:Button id="useGoldBtn" width="78" height="25" verticalCenter="0" right="5" label="{MultiLang.msg('hero.reward')}" fontSize="14" fontWeight="bold" click="getAwardGold()"/>
+	</mx:Canvas>
+</mx:Canvas>

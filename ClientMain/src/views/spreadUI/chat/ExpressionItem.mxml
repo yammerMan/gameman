@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="20" height="20" borderStyle="solid">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.chat.ExpressionHelper;
+			import roma.logic.object.chat.ExpressionBean;
+			
+			[Bindable]
+			public var expreBean:ExpressionBean;
+		]]>
+	</mx:Script>
+	<mx:Image source="{ExpressionHelper.getExpreIcon(expreBean.id)}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+</mx:Canvas>

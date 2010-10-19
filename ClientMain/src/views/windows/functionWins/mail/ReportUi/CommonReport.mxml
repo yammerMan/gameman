@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="refreshClass()" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.*" xmlns:ReportUi="views.windows.functionWins.mail.ReportUi.*">
+	<mx:Script source="commonReport_.as" />
+	<mx:Canvas styleName="mainWindowContentBG" height="25" width="100%">
+		<mx:Label text="{timeStr+', '+reportTitle}" left="12" right="12" textAlign="left" top="0" />
+	</mx:Canvas>
+	<mx:Canvas styleName="alphaBlackBG" left="0" right="0" top="27" bottom="31" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:ViewStack id="commonReportVS" top="12" bottom="12" left="12" right="12" >
+			<ReportUi:TradeReport />
+			<ReportUi:TransportReport />
+			<ReportUi:UprisingReport />
+			<ReportUi:HeroEscapeReport />
+			<ReportUi:TroopDieReport />
+			<ReportUi:TroopsMovementReport />
+			<ReportUi:AniScout />
+			<ReportUi:HeroTemperReport />
+			<ReportUi:ConquestReport />
+		</mx:ViewStack>
+	</mx:Canvas>
+</mx:Canvas>

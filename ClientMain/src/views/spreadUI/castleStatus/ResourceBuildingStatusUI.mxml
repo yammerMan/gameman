@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="140" height="30" xmlns:ui="views.spreadUI.specialContainer.*" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.WorkerConstant;
+			import roma.logic.rule.ItemRule;
+			import views.windows.buildings.resBuilding.ResourceList;
+			import roma.message.events.PublicEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.valueObject.WorkerTrainningBean;
+			import views.spreadUI.tips.BaseTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.CommonTooltip;
+			import roma.util.ImageHandle;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.object.player.ItemResManager;
+			import roma.common.constants.BuildingConstant;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.resource.ImgManager;
+			import mx.controls.Image;
+			import roma.util.BufferHandle;
+			import roma.logic.GameContext;
+			import roma.util.ClientUtil;
+			import roma.util.MultiLang;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.common.valueObject.ArchitectureBean;
+
+			[Bindable]
+			private var buildingObj:BaseBuilding;
+			[Bindable]
+			private var remainTimeStr:String;
+			
+			[Bindable]
+			private var _bean:WorkerTrainningBean;
+			
+			private var progressBarWidth:int = 28;
+			private var speedUpBtn:SpeedUpButton=new SpeedUpButton();
+
+			public function set bean(b:WorkerTrainningBean):void{
+				_bean = b;
+			}
+
+			public function get bean():WorkerTrainningBean{
+				return _bean;
+			}
+
+
+
+			private function init():void{
+				this.speedUpBtn.x=120;
+				this.speedUpBtn.y=6;
+				this.speedUpBtn.addEventListener(MouseEvent.CLICK,speedUpHandle);
+				this.addChild(this.speedUpBtn);
+			}
+			
+			
+			private function speedUpHandle(event:MouseEvent):void{
+//				MsgDispacther.instance.dispatchEvent(new CommonEvent(ResourceList.WORKER_SPEEDUP));
+				openSpeedUpPanel();
+			}
+			
+			public function setBuildingObj(obj:BaseBuilding):void {
+				this.buildingObj = obj;
+				this.remainingTime(); 
+			}
+
+			public function remainingTime():void {
+				if(_bean!=null){
+					var now:Number = new Date().valueOf();
+					var diff:Number = GameContext.instance.getTimeDis();	
+					this.remainTimeStr = MultiLang.timeFormatToString((_bean.endTime-now+diff)/1000);
+				}
+        	}
+        	
+        	/* 打开加速面板 */
+			private function openSpeedUpPanel():void{
+				switch(this._bean.type){
+					case WorkerConstant.FARMER_WORKER_TYPE:
+						this.buildingObj=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_FARM);
+					break;
+					case WorkerConstant.STONEMASON_WORKER_TYPE:
+						this.buildingObj=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_QUARRY);
+					break;
+					case WorkerConstant.WOODCUTTER_WORKER_TYPE:
+						this.buildingObj=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_SAWMILL);
+					break;
+					case WorkerConstant.MINER_WORKER_TYPE:
+						this.buildingObj=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MINE_IRON);
+					break;
+					default:
+				}
+				ItemSelectSpeedUpWin.instance.buildingObj = this.buildingObj;
+				ItemSelectSpeedUpWin.instance.bean = this._bean;
+				ItemSelectSpeedUpWin.instance.speedUpType = ItemSelectSpeedUpWin.COIN_FORWORKERTRAINNING_SPEEDUP;
+				ItemSelectSpeedUpWin.show(ItemResManager.speedWorkerItemArrayCollection,speedUpTrainning);
+			}
+
+			/* 加速工人训练*/
+			private function speedUpTrainning(rule:ItemRule):void{
+				this.buildingObj.speedUpTrainning(rule);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:VBox left="20" top="0" verticalGap="-6">
+		<mx:Label  text="{MultiLang.msg('worker.creatSeat')}" 
+			styleName="buildingSituationLabel" 
+			filters="{[FiltersUtil.glowFilter]}" />
+		<mx:Label text="{this.remainTimeStr}" styleName="samllstyleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+	</mx:VBox>
+	<!--mx:Button styleName="buildingSpeedUpBtn" right="2" verticalCenter="0" 
+		click="{this.buildingObj.speedUp();}" toolTip="{Lang.msg('public.label.speed')}"/-->
+	<mx:UIComponent id="progressBg" width="30" height="3" bottom="2" left="3"/>
+	<mx:UIComponent id="progressBar" width="28" height="1" bottom="3" left="4"/>
+	<mx:Image left="2" verticalCenter="0" source="{ImgManager.clazz('resource.workerIcon')}"
+		updateComplete="ImageHandle.onLoadComplete(event)"/>
+</mx:Canvas>

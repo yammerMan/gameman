@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseWin xmlns="views.windows.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:campDak="views.windows.buildings.campDak.*" 
+	xmlns:campWall="views.windows.buildings.campWall.*" 
+	xmlns:campGeneralTent="views.windows.buildings.campGeneralTent.*" 
+	xmlns:campWareHouse="views.windows.buildings.campWareHouse.*" 
+	xmlns:barracks="views.windows.buildings.barracks.*" 
+	xmlns:academy="views.windows.buildings.academy.*" 
+	xmlns:dak="views.windows.buildings.dak.*" 
+	xmlns:herosMansion="views.windows.buildings.herosMansion.*" 
+	xmlns:tavern="views.windows.buildings.tavern.*" 
+	xmlns:house="views.windows.buildings.house.*" 
+	xmlns:militaryInstitute="views.windows.buildings.militaryInstitute.*" 
+	xmlns:market="views.windows.buildings.market.*" 
+	xmlns:townHall="views.windows.buildings.townHall.*" 
+	xmlns:stable="views.windows.buildings.stable.*" 
+	xmlns:wall="views.windows.buildings.wall.*" 
+	xmlns:warehouse="views.windows.buildings.warehouse.*" 
+	xmlns:workshop="views.windows.buildings.workshop.*" 
+	xmlns:temple="views.windows.buildings.temple.*" 
+	xmlns:trainningField="views.windows.buildings.trainningField.*"
+	xmlns:resPanel="views.windows.buildings.resBuilding.*"
+	xmlns:amphitheater="views.windows.buildings.amphitheater.*"
+	width="820" height="410" creationComplete="init()" 
+	styleName="buildingInfoBG" xmlns:buildings="views.windows.buildings.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.util.ImageHandle;
+			import roma.util.FiltersUtil;
+			import roma.resource.ImgManager;
+		]]>
+	</mx:Script>
+	
+	<mx:Script source="BuildingInfoWindow_.as"/>
+		
+	<mx:Canvas height="105" horizontalScrollPolicy="off" verticalScrollPolicy="off" left="0" right="0" top="0">
+		
+		<mx:HBox horizontalAlign="center" verticalAlign="bottom" horizontalCenter="0" horizontalGap="3" top="19"
+			label="建筑名称">
+			<mx:Label text="{this.typeName}" 
+				width="200" height="25"
+				textAlign="center"
+				styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+		</mx:HBox>
+
+		<mx:Canvas label="建筑图标" 
+			width="140" height="56" 
+			top="49" left="35" 
+			verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Image source="{ImgManager.clazz('background.buildingIconBg')}" right="1" y="1" 
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Image source="{ImgManager.clazz('background.buildingIconBg')}" rotation="180" left="18" y="52"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Canvas  styleName="bigBuildingLogo" right="15" bottom="0" top="0" left="15"
+				mouseOut="this.commonTooltip.onMouseOut()"
+				mouseOver="this.commonTooltip.setTip(this.buildingDes);this.commonTooltip.onMouseOver(event)"
+				mouseMove="this.commonTooltip.onMouseMove(event)">
+				<mx:Image source="{this.buildingIcon}" id="imageField" 
+					top="4" left="4" 
+					scaleY="{48/46}" scaleX="{102/102}"
+					updateComplete="ImageHandle.onLoadComplete(event)" bottom="4" right="4"/>
+			</mx:Canvas> 
+			<mx:Canvas width="26" height="30" right="13" top="0">
+				<mx:Image  source="{this.levelIcon}" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event);"/>
+				<mx:Label text="{this.buildingObj.level}" styleName="LvLabel" top="1" left="0" right="0" textAlign="center"/>
+			</mx:Canvas>
+		</mx:Canvas>
+		
+		<mx:ViewStack id="curCan2" right="48" top="55" width="111" height="45">
+			<mx:Canvas  id="upgradeCan" height="100%" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Button  id="upgradeBtn" height="100%" width="111"
+					click="onFunctionOperate(event)"
+					enabled="{this.upgradeBtnEnable}"
+					mouseOut="this.conditionTooptip.onMouseOut()"
+					mouseOver="this.onMouseOverBtnUpgrand(event)"
+					mouseMove="this.conditionTooptip.onMouseMove(event)"
+					label="{MultiLang.msg('public.label.upgrade')}" styleName="commonBigSizeBtn" toolTip="{this.buildingObj.level==BuildingConstant.HIGHEST_LEVEL?MultiLang.msg('building.buildingMaxLevel'):null}"/>
+			</mx:Canvas>
+			<mx:Canvas id="speedCan" height="100%" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Button id="speedBtn" width="111" height="100%" 
+					click="onFunctionOperate(event)"
+					enabled="{this.btnSpeedupEnable}"
+					mouseOut="this.conditionTooptip.onMouseOut()"
+					mouseOver="this.onMouseOverBtnUpgrand(event)"
+					mouseMove="this.conditionTooptip.onMouseMove(event)"
+					label="{MultiLang.msg('public.label.speed')}"  styleName="commonBigSizeBtn"/>
+			</mx:Canvas>
+		</mx:ViewStack>
+		<mx:Canvas width="475" height="45" styleName="textInputBG" top="55" left="180" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:ViewStack id="curCan1" height="40" left="0" verticalCenter="0" width="40">
+				<mx:Canvas id="cancelCan" horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%">
+					<mx:Button id="cancelBtn"  click="onFunctionOperate(event)"
+						styleName="cancleIconBtn" horizontalCenter="0" verticalCenter="0" toolTip="{MultiLang.msg('public.label.cancel')}"/>
+				</mx:Canvas>
+				<mx:Canvas id="destructCan" horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%">
+					<mx:Button id="destructBtn"  click="onFunctionOperate(event)"
+						visible="{this.destructBtnVisible}"
+						mouseOut="this.conditionTooptip.onMouseOut()"
+						mouseOver="this.onMouseOverBtnDegrand(event)"
+						mouseMove="this.conditionTooptip.onMouseMove(event)"
+					    styleName="desctructBtn" horizontalCenter="0" verticalCenter="0"/>
+				</mx:Canvas>						
+			</mx:ViewStack>
+			<mx:Text htmlText="{this.buildingFunctionDescShort}"
+				styleName="buildingInfoDisText" left="40" top="-1" right="0" selectable="false" height="33"
+				mouseOut="this.commonTooltip.onMouseOut()"
+				mouseOver="this.commonTooltip.setTip(this.buildingFunctionDesc);this.commonTooltip.onMouseOver(event)"
+				mouseMove="this.commonTooltip.onMouseMove(event)" leading="-1" paddingTop="0"/>
+			<mx:HBox visible="{this.isConstructing}" left="40" bottom="-2" horizontalGap="0">
+				<mx:Label text="{this.buildingObj.buildingStatusStr}"/>
+				<mx:Label text="{this.finishTimeStr}"/>
+				<mx:Label text="{this.remainTimeStr}"/>
+			</mx:HBox>
+		</mx:Canvas>
+		<mx:Button click="onCloseWin()" styleName="closeBtn" right="37" top="28"/>
+	</mx:Canvas>
+	
+	<mx:ViewStack id="currentBuildingWin" left="33" right="33" bottom="0" top="107">
+	
+		<!--*********************储存建筑*********************-->
+		<!--房子-->
+		<house:HouseWin id="houseWin" width="100%" height="100%"/>
+		<!--仓库-->
+		<warehouse:WareHouseWin id="wareHouseWin" width="100%" height="100%"/>
+
+		<!--*********************兵营、马厩、工作坊公用同一界面*********************-->
+		<buildings:BaseTroopWindow id="troopWindow" width="100%" height="100%"/>
+		
+		<!--*********************学院、研究所同一调用界面*********************-->
+		<buildings:BaseTechWindow id="techWindow" width="100%" height="100%"/>
+		
+		<!--*********************其它建筑*********************-->
+		<!--官府-->
+		<townHall:TownHallWin id="townHallWin" width="100%" height="100%"/>
+		<!--城墙-->
+		<wall:WallWin id="wallWin" width="100%" height="100%"/>
+		<!--驿站-->
+		<dak:DakWin id="dakWin" width="100%" height="100%"/>
+		<!--角斗场-->
+		<amphitheater:AmphitheaterWin id="amphitheaterWin" width="100%" height="100%"/>
+		<!--神庙-->
+		<temple:TempleWin id="templeWin" width="100%" height="100%"/>
+		<!--市场-->
+		<market:MarketWin id="marketWin" width="100%" height="100%"/>
+		<!--校场-->
+		<trainningField:TrainningFieldWin id="trainningFieldWin" width="100%" height="100%"/>
+		<!--资源统一面板-->
+		<resPanel:ResUnityWin id="resUnityWin" width="100%" height="100%"/>
+	</mx:ViewStack>
+</BaseWin>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ns1="views.spreadUI.*"
+	click="doUse()" doubleClick="turntableShow()" doubleClickEnabled="true"
+	width="183" height="97" styleName="BuildingAlphaWindow" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.common.constants.ItemConstant;
+			import views.windows.functionWins.turntable.Turntable;
+			import roma.message.events.UseItemEvent;
+			import roma.message.EvtDispacther;
+			import roma.util.ImageHandle;
+			import roma.logic.RomaConstants;
+			import mx.collections.ArrayCollection;
+			import roma.util.PopupWinManager;
+			import roma.common.controller.shop.UseMaterialResultResponse;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.MyAlert;
+			import roma.logic.rule.GameRuleHelper;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.ItemRule;
+			
+			[Bindable]
+			private var rule:ItemRule 
+			
+			[Bindable]
+			private var itemBean:ItemEnlargeBean;
+			
+			private var itemDescTooptip:ItemDescTooptip = ToolTipContainer.instance.itemDescTooptip;
+			
+			[Bindable]
+			private var isNew:Boolean;
+			
+			public function getItemId():String {
+				return this.itemBean.id;
+			}
+			
+			public function setBean(bean:ItemEnlargeBean):void {
+				this.itemBean = bean;
+				this.isNew=false;
+				if(this.itemBean!=null){
+					this.rule = GameRuleHelper.instance.getItemRuleById(bean.id);
+					this.imageField.filters=judgeCanOpen()?null:[FiltersUtil.darkColorMatrixFilter];
+//					trace("物品：：："+this.rule.name+"&&Price"+this.rule.price+"&&Tpye"+this.rule.itemType+"\n");
+					this.visible=true;
+					this.isNew=this.itemBean.isNew&&!this.itemBean.isOverView;
+				}else{
+					this.visible=false;
+				}
+			}
+		
+			//双击显示轮盘系统
+			private function turntableShow():void{
+				if(this.itemBean.id == ItemConstant.ROLETTE_ITEM){
+					ItemUseWin.instance.visible = false;
+					Turntable.getInstance().show(true);
+				}
+			}
+			
+			private function doUse():void {
+				if(!judgeCanOpen()){
+					MyAlert.show(MultiLang.msg("package.useTip.newPlayer",int(rule.itemId.slice(rule.itemId.lastIndexOf(".")+1,rule.itemId.length)),rule.name));
+					return;
+				}
+				
+//				if(rule.itemId.slice(0,rule.itemId.length-2)=="player.box.present"){
+//				}
+				EvtDispacther.instance.dispatchEvent(new UseItemEvent(UseItemEvent.EVENT_NAME,this.itemBean))
+			}
+			
+			private function judgeCanOpen():Boolean{
+				var canDo:Boolean=true;
+				if(rule.itemId.slice(0,rule.itemId.lastIndexOf("."))=="player.box.present"&&int(rule.itemId.slice(rule.itemId.lastIndexOf(".")+1,rule.itemId.length))<11){
+					if(GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getTownHall().level<int(rule.itemId.slice(rule.itemId.lastIndexOf(".")+1,rule.itemId.length))){
+						canDo=false;
+					}
+				}
+				return canDo;
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event);
+			}
+		]]>
+	</mx:Script>
+	<mx:Label
+		text="{this.rule.name}" textAlign="center" bottom="2" horizontalCenter="0" styleName="titleNameLabel"/>
+	<mx:Canvas  styleName="bigBuildingLogo" 
+		mouseOver="onMouseOver(event)" 
+		mouseOut="this.itemDescTooptip.onMouseOut()" 
+		mouseMove="this.itemDescTooptip.onMouseMove(event)" width="140" height="68" bottom="21" horizontalCenter="0">
+			<mx:Image source="{this.rule.itemIcon}"  id="imageField" top="4" left="4" scaleY="{60/67}" scaleX="{132/150}" updateComplete="ImageHandle.onLoadComplete(event)" bottom="4" right="4"/>
+		</mx:Canvas>
+	<mx:Canvas mouseChildren="false" right="12" top="6">
+		<mx:Image source="{ImgManager.clazz('item.countBG.icon')}" right="0" top="0" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Label  text="{this.itemBean!=null?this.itemBean.count:'0'}" styleName="titleLevelLabel" right="0" top="5" textAlign="center" width="30"/>
+	</mx:Canvas>
+	<!--ns1:NewItemMark x="0" y="0" includeInLayout="{isNew}" visible="{isNew}">
+	</ns1:NewItemMark-->
+</mx:Canvas>

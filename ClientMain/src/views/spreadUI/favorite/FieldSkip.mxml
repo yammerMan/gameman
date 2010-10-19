@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="325" height="29" 
+	cacheAsBitmap="true"
+	creationComplete="init()" 
+	styleName="mapJumpBgCanvas">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.CommonTooltip;
+			import roma.logic.object.castle.CastleObj;
+			import roma.message.events.FieldSelectEvent;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			import views.mainFrame.ChatPanel;
+			import views.mainFrame.ToggleButton;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.FieldCollectBean;
+			import roma.message.events.MsgEvent;
+			import roma.message.EvtDispacther;
+		
+			[Bindable]
+			private var fieldRemark:String;
+			
+			[Bindable]
+			private var fieldX:int;
+			
+			[Bindable]
+			private var fieldY:int;
+			
+			private var isShow:Boolean;
+			
+			private var commonTip:CommonTooltip;
+			
+			public static var instance:FieldSkip = new FieldSkip();
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(FieldFavorite.FAVORITE_FIELD_SELECT,fieldSelectHandler);
+				EvtDispacther.instance.addEventListener(FieldSelectEvent.FIELD_COLLECT_CHANGE,fieldSelectHandle);
+				EvtDispacther.instance.addEventListener(FieldFavorite.UPDATE_COLLECT,updateHandler);
+				commonTip=ToolTipContainer.instance.commonTooltip;
+				setCollectCoor();
+			}
+			
+			private function setCollectCoor():void{
+				var favoriteArray:ArrayCollection = GameContext.instance.getPlayerObj().favoriteManager.favoriteArray;
+				if(favoriteArray.length>0){
+					var bean:FieldCollectBean = favoriteArray.getItemAt(0) as FieldCollectBean; 
+					this.fieldRemark = bean.remark;
+					this.fieldX = int(bean.fieldId/10000);
+					this.fieldY = int(bean.fieldId%10000);
+				}else{
+					this.fieldRemark = "";
+					var idField:int = GameContext.instance.getPlayerObj().getCurCastleObj().idField;
+					this.fieldX = idField/10000;
+					this.fieldY = idField%10000;
+				}
+			}
+			
+			private function updateHandler(event:Event):void{
+				setCollectCoor();
+			}
+			
+			private function fieldSelectHandle(evnet:FieldSelectEvent):void{
+				this.fieldRemark = evnet.fieldCollectBean.remark;
+				this.fieldX = int(evnet.fieldCollectBean.fieldId/10000);
+				this.fieldY = int(evnet.fieldCollectBean.fieldId%10000);
+			}
+
+			/* 收藏夹野地选择 */
+			private function fieldSelectHandler(event:MsgEvent):void{
+				var bean:FieldCollectBean = event.data as FieldCollectBean;
+				this.fieldRemark = bean.remark;
+				this.fieldX = int(bean.fieldId/10000);
+				this.fieldY = int(bean.fieldId%10000);
+	
+				DiamondWorldMap2.instance.goPoint(this.fieldX,this.fieldY);
+			}
+			
+			public function set value(b:Boolean):void{
+				this.isShow = b;
+			}
+			
+			public function setCoordinate($x:int,$y:int):void{
+				this.fieldX = $x;
+				this.fieldY = $y;			
+			}
+			
+			private function popupFavotite():void{
+				if(!isShow){
+					FieldFavorite.show();
+					FieldFavorite.instance.x =340;
+					FieldFavorite.instance.y =413-FieldFavorite.instance.height;
+					this.isShow = true;
+				}else{
+					this.isShow = false;
+					FieldFavorite.instance.removePopup();
+				}
+			}
+			
+			private function gotoCenterPoint():void{
+				var gotoX:int = int(this.x_input.text);
+				var gotoY:int = int(this.y_input.text);
+				
+				if(this.fieldX != gotoX || this.fieldY != gotoY){
+					this.fieldRemark = "";
+				}
+
+				DiamondWorldMap2.instance.goPoint(int(this.x_input.text),int(this.y_input.text));
+			}
+			
+			private function copyCoordinate():void{
+				var coordinateStr:String = "["+this.x_input.text+","+this.y_input.text+ "]";
+				ChatPanel.instance.chatTextInput.text+= coordinateStr;
+			} 
+			
+			private function onFocus(obj:TextInput):void {
+				obj.setSelection(0, obj.text.length);
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox verticalCenter="0" width="100%" horizontalGap="2" horizontalAlign="center" verticalAlign="middle">
+		<mx:Button id="copyCoordBtn" width="20" styleName="collectionCoordinateBtn" click="copyCoordinate()" buttonMode="true" useHandCursor="true" toolTip="{MultiLang.msg('favorite.copyCoord')}"/>
+		<mx:Button width="120" click="popupFavotite()" styleName="collectionComboBtn" label="{this.fieldRemark}" fontStyle="normal" fontWeight="normal" buttonMode="true" useHandCursor="true" mouseOver="this.commonTip.setTip(MultiLang.msg('favorites.btnTip.selectChoice'));this.commonTip.onMouseOver(event);" mouseOut="this.commonTip.onMouseOut();"/>
+		<mx:HBox horizontalGap="2" horizontalAlign="center" verticalAlign="middle">
+			<mx:Label text="X" textAlign="center" width="15" fontWeight="bold"/>
+			<mx:TextInput id="x_input" width="35" maxChars="3" restrict="0-9"
+				focusIn="this.onFocus(this.x_input)"
+				enter="this.gotoCenterPoint()"
+				tabIndex="1" 
+				text="{this.fieldX}" mouseOver="this.commonTip.setTip(MultiLang.msg('favorites.tip.inputAdd'));this.commonTip.onMouseOver(event);" mouseOut="this.commonTip.onMouseOut();"/>
+			<mx:Label text="Y" textAlign="center" width="15" fontWeight="bold"/>
+			<mx:TextInput id="y_input" width="35" maxChars="3" restrict="0-9" 
+				focusIn="this.onFocus(this.y_input)"
+				tabIndex="2" 
+				enter="this.gotoCenterPoint()" 
+				text="{this.fieldY}" mouseOver="this.commonTip.setTip(MultiLang.msg('favorites.tip.inputAdd'));this.commonTip.onMouseOver(event);" mouseOut="this.commonTip.onMouseOut();"/>
+			<mx:Button  label="{MultiLang.msg('favorite.goto')}" width="60" click="gotoCenterPoint()" right="27" top="135" fontWeight="normal" buttonMode="true" useHandCursor="true" mouseOver="this.commonTip.setTip(MultiLang.msg('favorites.btnTip.jump'));this.commonTip.onMouseOver(event);" mouseOut="this.commonTip.onMouseOut();"/>
+		</mx:HBox>
+	</mx:HBox>
+</mx:Canvas>

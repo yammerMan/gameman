@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="subContentBG" 
+	verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%" height="100%" 
+	xmlns:military="views.windows.functionWins.military.*" xmlns:army="views.spreadUI.army.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HerosMansionWin;
+			import views.windows.functionWins.hero.HeroHelper;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			import roma.logic.object.castle.ConquestManager;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import views.windows.functionWins.military.HeroData;
+			import views.windows.functionWins.military.AssignTroopWin;
+			import views.PopupWindows;
+			import roma.common.constants.HeroManConstants;
+			import roma.logic.object.castle.BattleHelper;
+			import mx.events.ListEvent;
+			import roma.data.MapTileData;
+			import roma.common.constants.BattleConstants;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			import roma.logic.object.hero.HeroObj;
+			
+			[Bindable]
+			private var curHero:HeroObj;
+			private var curCastleObj:CastleObj;
+			[Bindable]
+			private var missionTypeArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var mapTileData:MapTileData;
+			[Bindable]
+			private var missionTypeComTip:String;
+			
+			private var misstionTypeBackFun:Function;
+			
+			public function setHero(h:HeroObj):void{
+				curHero = h;
+			}
+			
+			public function setMapTileData(m:MapTileData,fun:Function=null):void{
+				this.curCastleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+				mapTileData = m;
+				setMissionType(mapTileData);
+				checkCurMissonType(mapTileData.missionType);
+				this.misstionTypeBackFun = fun;
+			}
+			
+			public function getBeanMissionType():int{
+				return this.missionTypeCom.selectedItem.data;
+			}
+			
+			private function checkCurMissonType(t:int):void{
+				for(var i:int=0;i<missionTypeArr.length;i++){
+					if (t == missionTypeArr[i].data){
+						missionTypeCom.selectedIndex=i;
+						break;
+					}
+				}
+			}
+			
+			/**
+			 * 查看可以选择什么行动
+			 */ 
+			private function setMissionType(data:MapTileData):void{
+				trace("this.mapTileData.isCastle: "+this.mapTileData.isCastle);
+				missionTypeArr.removeAll();
+				if(data.isNpc){
+					if(MapDataByteArray.instance.isTrainNpcCastle(this.mapTileData.fieldX,this.mapTileData.fieldY)){
+						missionTypeArr.addItem({label:MultiLang.msg("military.mission.manoeuvre"),data:BattleConstants.ARMY_MISSION_TRAINNING});
+						missionTypeComTip=MultiLang.msg("trainingRoomWin.synopsisContent");
+					}else if(MapDataByteArray.instance.isRatterNpcCastle(this.mapTileData.fieldX,this.mapTileData.fieldY)){
+						missionTypeArr.addItem({label:MultiLang.msg("military.mission.quell"),data:BattleConstants.ARMY_MISSION_TRAINNING});
+						missionTypeComTip=MultiLang.msg("trainingRoomWin.quellContent");
+					}
+					return;
+				}
+				if(data.canAttack){
+					if(data.isCastle){
+						if(!curCastleObj.conquestManager.isVassalByFieldId(GameContext.getFieldId(data.fieldX,data.fieldY)))
+						missionTypeArr.addItem({label:MultiLang.msg("diplomacy.conquest.label"),data:BattleConstants.ARMY_MISSION_CONQUEST});
+					}else{
+						missionTypeArr.addItem({label:MultiLang.msg('military.mission.attack'),data:BattleConstants.ARMY_MISSION_ATTACK});
+					}
+					if(!curCastleObj.conquestManager.isVassalByFieldId(GameContext.getFieldId(data.fieldX,data.fieldY)))
+					missionTypeArr.addItem({label:MultiLang.msg("military.mission.loot"),data:BattleConstants.ARMY_MISSION_LOOT});
+				}
+				if(data.canReinforce){
+					missionTypeArr.addItem({label:MultiLang.msg("military.mission.reinforce"),data:BattleConstants.ARMY_MISSION_REINFORCE});
+				}
+			}
+			
+		private function onMisstionTypeChange(event:ListEvent):void {
+			missionTypeComTip = BattleHelper.getMissionString(missionTypeCom.selectedItem.data);
+			if(this.misstionTypeBackFun != null){
+				this.misstionTypeBackFun.call(this,missionTypeCom.selectedItem.data);
+			}
+		}
+		
+		private function onAssignBtnClick():void {
+			//PopupWindows.openFuncWin(AssignTroopWin.WINDOW_SHOW , new HeroData(curHero,false),true);
+			HeroHelper.instance.curSelectHero=curHero;
+			PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW_WEAVE,curHero);
+		}
+		]]>
+	</mx:Script>
+	
+	<military:HeroLogoUI hero="{curHero}" label="英雄头像" top="20" left="25"/>
+	<army:HeroArmyUI hero="{curHero}" label="兵种" left="25" top="70"/>
+
+	<mx:HBox label="任务类型" horizontalGap="2" right="30" top="70" verticalAlign="middle">
+		<mx:Label text="{MultiLang.msg('task.label.task')}:" styleName="titleBordLabel"/>
+		<mx:ComboBox id="missionTypeCom" width="100" dataProvider="{missionTypeArr}" change="onMisstionTypeChange(event)" enabled="{mapTileData.isJoin?false:true}" 
+			toolTip="{missionTypeComTip}"/>
+	</mx:HBox>
+	<mx:Button label="{MultiLang.msg('hero.distribution')}" id="assignTroopBtn" click="onAssignBtnClick()" 
+		enabled="{curHero!=null}" right="30" bottom="30"/>
+	<mx:VBox left="125" top="20" verticalGap="3">
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.politics')}: " width="50" textAlign="right"/>
+			<mx:Label text="{curHero.politics + curHero.politicsBuffAdd}" width="50" 
+				textAlign="left" styleName="titleLable"/>
+			<mx:Spacer width="5"/>
+			<mx:Label text="{MultiLang.msg('hero.attack')}: " width="50" textAlign="right"/>
+			<mx:Label text="{curHero.powers + curHero.powersBuffAdd}" width="50" 
+				textAlign="left" styleName="titleLable"/>
+			<mx:Spacer width="5"/>
+			<mx:Label text="{MultiLang.msg('hero.defence')}: " width="50" textAlign="right"/>
+			<mx:Label text="{curHero.defend + curHero.defendBuffAdd}" width="50" 
+				textAlign="left" styleName="titleLable"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.physical')}: " width="50"/>
+			<mx:Label width="50" text="{curHero.heroInfo.strengthPoint}/{Math.min((curHero.heroInfo.level+HeroManConstants.STRENGTH_POINT_FOR_LEVEL_ONE_HERO-1),HeroManConstants.MAX_HERO_STRENGTH_POINT)}"  styleName="titleLable"/>
+			<mx:Spacer width="5"/>
+			<mx:Label text="{MultiLang.msg('hero.leadership')}: " textAlign="right"/>
+			<mx:Label text="{curHero.troopStrength}/{curHero.leadership}" width="120" 
+				textAlign="left" styleName="titleLable"/>
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>
+

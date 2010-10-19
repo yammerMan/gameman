@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="272" height="153" 
+	xmlns:ns1="views.spreadUI.tips.*"
+	xmlns:ns2="views.spreadUI.CastleInfo.*" 
+	xmlns:resPanel="views.spreadUI.resPanel.*" verticalScrollPolicy="off"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import roma.util.CompCache;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.HeroManager;
+			import roma.message.EvtDispacther;
+		
+			private var heroManager:HeroManager;
+			
+			[Bindable]
+			private var heroArr:ArrayCollection = new ArrayCollection();
+			
+			/** 城堡的英雄数是不定数的 **/
+//			private var cacheUi:CompCache = new CompCache(30);
+		
+			private function init():void {
+				this.setCastle();
+
+				var onCurCastleChange:Function = function(event:Event):void {
+					setCastle();
+				}
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT, onCurCastleChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_NUM_CHUANGE, onCurCastleChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_SORT_CHANGE, onCurCastleChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_STATUS_CHANGE, onCurCastleChange);
+			}
+			
+			private function setCastle():void {
+				this.heroManager = GameContext.instance.getPlayerObj().getCurCastleObj().heroManager;
+				this.heroArr = heroManager.heroArray;
+				/* cacheUi.reset();
+				this.tileContainer.removeAllChildren();
+				
+				for (var i:int=0; i<heroManager.heroArray.length; i++) {
+					var ui:HeroView = this.cacheUi.getUI(HeroView) as HeroView;
+					ui.setHeroObj(heroManager.heroArray[i]);
+					this.tileContainer.addChild(ui);
+				} */
+			}
+		]]>
+	</mx:Script>
+	<!--mx:Tile top="11" left="5" right="0" bottom="10" verticalGap="2" horizontalGap="2" id="tileContainer"/-->
+	<mx:TileList dataProvider="{heroArr}" width="255" height="130" columnCount="3" backgroundAlpha="0" selectable="false" useRollOver="false" 
+		borderStyle="none" verticalCenter="0" horizontalCenter="0">
+		<mx:itemRenderer>
+			<mx:Component>
+				<resPanel:HeroView heroObj="{data}" />
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:TileList>
+</mx:Canvas>

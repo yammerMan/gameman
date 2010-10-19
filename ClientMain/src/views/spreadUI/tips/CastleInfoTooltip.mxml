@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="250" height="140">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.AllianceConstant;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.SimpleMapCastleBean;
+			import views.mainModules.map.diamond2.DiamondMapTile2;
+
+			[Bindable]
+			private var cityName:String;
+			[Bindable]
+			private var castleAdd:String;
+			[Bindable]
+			private var palyerName:String;
+			[Bindable]
+			private var playerPrestige:Number;
+			[Bindable]
+			private var alliance:String;	
+			[Bindable]
+			private var distance:Number;
+			[Bindable]
+			private var relation:int;
+			
+			public function setMapTile(tile:DiamondMapTile2):void{
+				var bean:SimpleMapCastleBean = tile.getMapCityBean();
+				
+				if(bean ==null)
+					return;
+				this.castleAdd=	"["+tile.getFieldX()+","+tile.getFieldY()+"]";		
+				this.cityName = bean.castleName;
+				this.palyerName = bean.playerName;
+				this.playerPrestige = bean.prestiges;
+				this.distance = GameContext.instance.getPlayerObj().getCurCastleObj().getDistanceToField(tile.getFieldX(),tile.getFieldY());
+				this.relation=bean.relation;
+				if(bean.leagueName !=null){
+					this.alliance = bean.leagueName;
+				}else{
+					this.alliance = MultiLang.msg('world.castle.not.alliance');
+				}
+			}
+		]]>
+	</mx:Script>
+
+	<mx:VBox left="10" top="10" right="10" bottom="10" verticalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:HBox width="230" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Label  styleName="playerTipAdd" text="{castleAdd}" width="85"/>
+			<mx:Spacer width="5"/>
+			<mx:Label  text="{MultiLang.msg('world.castle.distance',distance.toFixed(0))}" styleName="playerTipDistence" width="90"/>
+		</mx:HBox>
+		<mx:Label  styleName="{this.relation==AllianceConstant.ALLIANCE_RELATION_HOSTILE?'playerTipCityNameEnemy':'playerTipCityName'}" text="{cityName}" width="230"/>
+		<mx:HBox horizontalGap="2" width="230" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:VBox verticalGap="0" width="250">
+				<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<mx:Label text="{MultiLang.msg('public.label.lord')}:" textAlign="right" width="60"/>
+					<mx:Label text="{palyerName}" styleName="{this.relation==AllianceConstant.ALLIANCE_RELATION_HOSTILE?'playerTipPlayerNameEnemy':'playerTipPlayerName'}" width="100%"/>
+				</mx:HBox>
+				<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="60"/>
+					<mx:Label text="{alliance}" styleName="{this.relation==AllianceConstant.ALLIANCE_RELATION_HOSTILE?'playerTipPlayerNameEnemy':'playerTipPlayerName'}" width="100%"/>
+				</mx:HBox>
+				<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<mx:Label text="{MultiLang.msg('public.label.prestige')}:" textAlign="right" width="60"/>
+					<mx:Label text="{playerPrestige}" styleName="playerTipHonor" width="100%"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:HBox>
+	</mx:VBox>
+</BaseTip>

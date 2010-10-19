@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"  creationComplete="init()" toolTip="{btnTip}">
+	<mx:Script>
+		<![CDATA[
+			import views.mainModules.map.smallMap.SmallMap;
+			import roma.message.events.PublicEvent;
+			import views.spreadUI.castleIcon.CastleLogoWin;
+			import roma.util.FiltersUtil;
+			import roma.util.MultiLang;
+			import views.PopupWindows;
+			import roma.message.events.WindowSwitchEvent;
+			import views.mainModules.town.Town;
+			import roma.message.EvtDispacther;
+			
+			public var isTown:Boolean;
+			[Bindable]
+			private var btnTip:String;
+						
+			public static var instance:ToggleButton;
+						
+			private function init():void{
+				btnSwitch.selectedChild = townBtnCon;
+				this.isTown = true;
+				instance = this;
+				this.btnTip=MultiLang.msg("label.btnTip.city");
+			}
+			
+			public function switchHandler(toTown:Boolean):void{
+				if (toTown){
+					btnSwitch.selectedChild = mapBtnCon;
+					CastleFrame.instance.switchModule(false);
+					this.isTown = false;
+					this.btnTip=MultiLang.msg("label.btnTip.map");
+					EvtDispacther.instance.dispatchEvent(new PublicEvent(SmallMap.IS_SMALL_MAP_BTN_SHOW,true));
+				}else{
+					btnSwitch.selectedChild = townBtnCon;
+					CastleFrame.instance.switchModule(true);
+					this.isTown = true;
+					this.btnTip=MultiLang.msg("label.btnTip.city");
+					EvtDispacther.instance.dispatchEvent(new PublicEvent(SmallMap.IS_SMALL_MAP_BTN_SHOW,false));
+				}
+				
+				PopupWindows.closeAll();
+				EvtDispacther.sendEvent(CastleLogoWin.CASTLE_MAGNIFIER_SHOW);
+			}
+		]]>
+	</mx:Script>
+
+	<mx:ViewStack width="100%" height="100%" id="btnSwitch">
+		<mx:Canvas id="townBtnCon">
+			<mx:Button click="switchHandler(true)" styleName="mapChangeBtn"/>
+			<mx:Label width="55" height="25" horizontalCenter="0" verticalCenter="0"
+				filters="{[FiltersUtil.glowFilter]}"
+				textAlign="center"
+				styleName="titleLabel"
+				mouseEnabled="false" mouseChildren="false"
+				text="{MultiLang.msg('label.map')}"/> 
+		</mx:Canvas>
+		<mx:Canvas id="mapBtnCon">
+			<mx:Button click="switchHandler(false)" styleName="cityChangeBtn"/>
+			<mx:Label width="55" height="25" horizontalCenter="0" verticalCenter="0"
+				filters="{[FiltersUtil.glowFilter]}"
+				textAlign="center"
+				styleName="titleLabel"
+				mouseEnabled="false" mouseChildren="false"
+				text="{MultiLang.msg('label.city')}"/> 
+		</mx:Canvas>
+	</mx:ViewStack>
+</mx:VBox>

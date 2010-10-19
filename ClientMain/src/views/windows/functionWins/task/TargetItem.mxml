@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="22" verticalAlign="middle" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var targetTxt:String = "";
+			[Bindable]
+			private var targetBean:TargetBean;
+			
+			public function set item(data:Object):void{
+				targetBean = data as TargetBean;
+				var finishLabel:String = "<b><font color='#5f8c00'>"+MultiLang.msg('task.label.finish')+"</font></b>";
+				var unFinishLabel:String = "<b><font color='#ff0000'>"+MultiLang.msg('task.label.unfinish')+"</font></b>";
+				var finishTxt:String = targetBean.finish?finishLabel:unFinishLabel;
+				targetTxt = targetBean.targetContent+"  "+finishTxt;
+				targetSignImg.source = ImgManager.clazz("quest.targetSign.icon");
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Image id="targetSignImg" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Text id="targetText" htmlText="{targetTxt}" styleName="{targetBean.finish?'taskDoneLabel':'taskCommonLabel'}"/>
+	<!--mx:Label text="{finishTxt}" styleName="{targetBean.finish?'goodNoticeLabel':'NoticeLabel'}"/-->
+</mx:HBox>

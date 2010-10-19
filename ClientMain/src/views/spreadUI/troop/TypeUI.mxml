@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="90" height="73" styleName="BuildingAlphaWindow" 
+    verticalScrollPolicy="off"
+    horizontalScrollPolicy="off"
+    mouseChildren="false"
+	mouseOver="this.onMouseOver(event)" 
+	mouseMove="this.onMouseMove(event)" 
+	mouseOut="this.onMouseOut()">
+	<mx:Script>
+		<![CDATA[
+			import roma.message.events.MsgEvent;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.tips.FortPropTooltip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import mx.skins.halo.ToolTipBorder;
+			import views.spreadUI.tips.TroopPropTooltip;
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.PairValueBean;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.rule.ForticationRule;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.rule.TroopRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.object.castle.TFHelper;
+		
+			private var _typeId:int;
+			
+			private var _buildingObj:BaseBuilding;
+			
+			[Bindable]
+			private var _name:String;
+			[Bindable]
+			private var _icon:String;
+			
+			[Bindable]
+			private var valueBean:PairValueBean;
+			
+			[Bindable]
+			private var isSeleted:Boolean=false;
+
+			private var emptyAry:Array = [];
+			private var filterAry:Array =[new ColorMatrixFilter([0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0, 0, 0, 1, 0])];
+			
+			private var troopPropTooltip:TroopPropTooltip = ToolTipContainer.instance.troopPropToolTip;
+			private var fortPropTooltip:FortPropTooltip = ToolTipContainer.instance.fortPropTooltip;
+			
+			public function set typeId(t:int):void{
+				this._typeId = t;
+				this._name = TFHelper.instance.getTfName(this._typeId);
+				this._icon = TFHelper.instance.getTfIcon(this._typeId);
+				this.numberUpdate();
+			
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT,castleChange);
+			}
+			
+			private function castleChange(evt:MsgEvent):void{
+				this.numberUpdate();
+			}
+			
+			public function get typeId():int{
+				return this._typeId;
+			}
+			
+			public function set buildingObj(obj:BaseBuilding):void{
+				this._buildingObj =obj;
+			}
+			
+			public function setNormalStyle():void{
+				this.styleName = "BuildingAlphaWindow";
+				this.isSeleted=false;
+			}
+			
+			public function setSelectedStyle():void{
+				this.styleName = "techIconBG";
+				this.isSeleted=true;
+			}
+			
+			public function numberUpdate():void {
+				if (this._typeId<10) {
+					this.valueBean = GameContext.instance.getPlayerObj().getCurCastleObj().troopManager.getTroopByTypeId(this._typeId);
+				} else {
+					this.valueBean = GameContext.instance.getPlayerObj().getCurCastleObj().troopManager.getFortificationByTypeId(this._typeId);
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void{
+				if(_typeId<10){
+					this.troopPropTooltip.troopRule = GameRuleHelper.instance.getTroopRule(this._typeId);
+					this.troopPropTooltip.onMouseOver(event);
+				}else{
+					this.fortPropTooltip.fortRule = GameRuleHelper.instance.getForticationRule(this._typeId);
+					this.fortPropTooltip.onMouseOver(event);
+				}
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				if(this._typeId<10){
+					this.troopPropTooltip.onMouseMove(event);
+				}else{
+					this.fortPropTooltip.onMouseMove(event);
+				}
+			}
+			
+			private function onMouseOut():void{
+				if(this._typeId<10){
+					this.troopPropTooltip.onMouseOut();
+				}else{
+					this.fortPropTooltip.onMouseOut();
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas  styleName="smallLogoBG" width="80" height="40" horizontalCenter="0" top="5">
+		<mx:Image source="{this._icon}"  id="iconCon" bottom="3" right="3" scaleY="{34/46}" scaleX="{74/102}" updateComplete="ImageHandle.onLoadComplete(event)" top="3" left="3"/>
+	</mx:Canvas>
+	<mx:Canvas width="74" height="12" styleName="blackBG" alpha="0.8" horizontalCenter="0" verticalCenter="0">
+	</mx:Canvas>
+	<mx:TextArea text="{this._name}" horizontalCenter="0" bottom="2" width="80" textAlign="center" styleName="{isSeleted?'armyNameSelectLabel':'armyNameNormalLabel'}" 
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off" leading="-3" paddingTop="18"/>
+	<mx:Label text="{this.valueBean.value}"
+	  styleName="armyNameSelectLabel"  enabled="false" filters="{[FiltersUtil.glowFilter]}" textAlign="right" width="74" horizontalCenter="0" verticalCenter="0"/>
+</mx:Canvas>

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow 
+	xmlns:buildings="views.windows.buildings.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns2="views.spreadUI.*" 
+	xmlns:upgradWin="views.windows.buildings.townHall.*" 
+	xmlns:ns1="views.windows.buildings.market.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.military.GoingToWarWin;
+			import views.spreadUI.tips.BaseTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.CommonTooltip;
+			import roma.data.BuildingData;
+			import roma.data.MapTileData;
+			import roma.message.events.MarketEvent;
+			import roma.common.constants.TradeConstant;
+			import roma.common.valueObject.MarketBusinessBean;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import roma.util.MultiLang;
+			import roma.logic.object.building.impl.Market;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.GameContext;
+			import roma.message.events.WindowSwitchEvent;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.trade.SearchTradeResponse;
+			import roma.common.constants.ResourceConstant;
+			import mx.events.ItemClickEvent;
+			import mx.formatters.SwitchSymbolFormatter;
+			import roma.common.action.ControllerFactory;
+			import mx.collections.ArrayCollection;
+			
+			public static const WINDOW_SHOW:String = "marketWin.show";
+			[Bindable]
+			private var buttonTitle:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var buyItemResouceArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var sellResouceArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var searchRes:int = ResourceConstant.TYPE_FOOD;
+			private var tradeObj:TradeObj = new TradeObj();
+			
+			[Bindable]
+			public var labelBuy:String = MultiLang.msg("public.label.offer");
+			[Bindable]
+			public var labelSell:String = MultiLang.msg("public.label.bid");
+
+			[Bindable]
+			private var subSelectedStr:String; 
+			[Bindable]
+			private static var PENDING_VIEW:String = "pendingView";
+			[Bindable]
+			private static var TRADE_VIEW:String = "tradeView";
+			[Bindable]
+			private static var PUBLISH_VIEW:String = "publishView";
+			
+			private var selectEvent:ItemClickEvent;
+			private var commonTip:CommonTooltip=ToolTipContainer.instance.commonTooltip;
+			
+			private function init():void{
+				this.buttonTitle.addItem({label:MultiLang.msg("market.resourceTrade")});
+				this.buttonTitle.addItem({label:MultiLang.msg("market.transport"),toolTip:MultiLang.msg("market.tip.transport")});
+				this.buttonTitle.addItem({label:MultiLang.msg("upgradingWin.upgradeRequest")});
+			}
+			
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				var tile:MapTileData = MapTileData(BuildingData(this.winData).data);
+				tradeObj.casetleId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				tradeObj.resType = searchRes;
+				if (tile!=null) {
+					this.tbButtonBar.selectedIndex=1;
+					this.myViewstack.selectedIndex=1;
+					this.transportWin.mapTileData = tile;
+					this.transportWin.refresh();
+				} else {
+					if(selectEvent != null){
+						this.onItemClick(selectEvent);
+					}
+					else{
+						this.onItemClick(null);
+					}
+				}
+			}
+			
+			override public function update():void{
+				if(this.initialized){
+					if(this.buildingObj.level<1){
+						this.tbButtonBar.selectedIndex = this.buttonTitle.length-1;
+						this.myViewstack.selectedChild = this.upgradingWin;
+						this.tbButtonBar.enabled = false;
+					}else{
+						if(!this.tbButtonBar.enabled){
+							this.tbButtonBar.enabled = true;
+						}
+					}
+				}
+			}
+			
+			/**
+			 * 界面隐藏调用，停止当前窗体一切相关动画等
+			 */ 
+			override public function destroy():void{
+			}
+			
+			private function refreshTrade():void {
+				myTradeComp.refresh();
+				myTransingTradeComp.refresh();
+				createNewTradeWin.refresh();
+				if(subSelectedStr == null){
+					subSelectedStr = PENDING_VIEW;
+				}
+				ControllerFactory.getInstance().getTradeController().findTrades(searchRes,findTradesResponse,false);
+			}
+			
+			private function onItemClick(event:ItemClickEvent):void{
+				if(event == null){
+					tbButtonBar.selectedIndex = 0;
+					myViewstack.selectedIndex = 0;
+					refreshTrade();
+					return;
+				}
+				switch(event.index){
+					case 0:
+						myViewstack.selectedIndex = 0;
+						refreshTrade();
+					break;
+					case 1:
+						myViewstack.selectedIndex = 1;
+						transportWin.refresh();
+					break;
+					case 2:
+						myViewstack.selectedIndex = 2;
+						upgradingWin.refresh();
+					break;
+
+				}
+				selectEvent = event;
+			}
+			
+			
+			/**
+			 * 点击资源的更新
+			 */ 
+			private function resourceClick(event:MouseEvent):void{
+				switch(event.currentTarget){
+					case foodTile:
+						searchRes = ResourceConstant.TYPE_FOOD;
+					break;
+					case woodTile:
+						searchRes = ResourceConstant.TYPE_WOOD;
+					break;
+					case stoneTile:
+						searchRes = ResourceConstant.RESOURCE_TYPE_STONES;
+					break;
+					case ironTile:
+						searchRes = ResourceConstant.TYPE_IRON;
+					break;
+				}
+				this.tradeObj.resType = searchRes;
+				if(searchRes != -1){
+					refreshTrade();
+					createNewTradeWin.refresh(tradeObj);
+				} 
+			}
+			
+			private function addTrade(event:MouseEvent):void{
+				subSelectedStr = PUBLISH_VIEW;
+ 				if(event.target == buyItemBtn){
+ 					tradeObj.tradeType = TradeConstant.BUSINESS_TYPE_BUY;
+ 					if(sellResouceArr.length >0)
+ 					tradeObj.price = MarketBusinessBean(sellResouceArr[sellResouceArr.length-1]).price;
+				}
+				else if(event.target == sellBtn){
+					tradeObj.tradeType = TradeConstant.BUSINESS_TYPE_SELL;
+					if(buyItemResouceArr.length >0)
+					tradeObj.price = MarketBusinessBean(buyItemResouceArr[0]).price;
+				}
+				createNewTradeWin.refresh(tradeObj);
+			}
+			
+			private function onSubBtnClick(event:MouseEvent):void{
+				Button(event.target).selected = true;
+				switch(event.target){
+					case pendingBtn:
+						this.subSelectedStr = PENDING_VIEW;
+					break;
+					case tradingBtn:
+						this.subSelectedStr = TRADE_VIEW;
+					break;
+					case publishBtn:
+						this.subSelectedStr = PUBLISH_VIEW;
+						createNewTradeWin.refresh(tradeObj);
+					break;
+				}
+			}
+			
+			/**
+			 * 指定挂单搜索响应
+			 */ 
+			private function findTradesResponse(event:SearchTradeResponse):void{
+				if(event.isSuccess()){
+					buyItemResouceArr.removeAll();
+					sellResouceArr.removeAll();
+					buyItemResouceArr = event.buysArray;
+					sellResouceArr = event.sellersArray;
+					
+					sortArray(event.sellersArray,"price",true);
+					sortArray(event.buysArray,"price",true);
+				}
+			}
+			
+	        /**
+			 * 子界面返回，（挂单成功后，刷新列表）
+			 */ 
+			private function subCallResponse(str:String):void{
+				if(str == NewTransactWin.NEW_PENDING){
+					ControllerFactory.getInstance().getTradeController().findTrades(searchRes,findTradesResponse);
+				}
+			}
+	        
+	       	/**
+	       	 * 对列表的排序
+	       	 */ 
+	        private function sortArray(arr:ArrayCollection,str:String,type:Boolean = false):void{
+		    	var data:SortField = new SortField();
+		        var sort:Sort = new Sort();
+		        data.descending = type;
+		        data.name = str;
+		        data.numeric = true;
+		        sort.fields = [data];
+		        arr.sort = sort;
+		        arr.refresh();
+	        }
+	        
+	        private function onMouseOutTip():void {
+				this.commonTip.onMouseOut();
+			}
+			private function onMouseOverTip(tt:BaseTip, event:MouseEvent):void {
+				tt.onMouseOver(event);
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar textIndent="0" letterSpacing="0" horizontalGap="1" dataProvider="{buttonTitle}" styleName="titleToggleButtonBar" itemClick="onItemClick(event)" id="tbButtonBar" />
+		<ns2:MulHRule width="100%" left="0">
+		</ns2:MulHRule>
+	</mx:VBox>
+	<mx:ViewStack id="myViewstack" bottom="0" left="0" right="0" top="28">
+		<mx:Canvas width="100%" height="100%" id="marketPart" label="资源交易">
+			<mx:Canvas id="myTraceWin" width="431" right="0" top="0" bottom="39" styleName="mainWindowContentBG">
+				<mx:HBox horizontalGap="0" top="0" paddingLeft="5" verticalAlign="middle" styleName="tecTitleBG" right="0" left="0">
+					<mx:Button id="pendingBtn" height="25" click="onSubBtnClick(event)" label="{MultiLang.msg('market.pendingOrders')}" selected="{subSelectedStr == PENDING_VIEW}" styleName="tabBtn"
+						mouseOver="this.commonTip.setTip(MultiLang.msg('market.tip.postOrderBtn'));this.onMouseOverTip(this.commonTip ,event);" mouseOut="this.onMouseOutTip()"/>
+					<mx:Button id="tradingBtn" height="25" click="onSubBtnClick(event)" label="{MultiLang.msg('market.tradingStatus')}" selected="{subSelectedStr == TRADE_VIEW}" styleName="tabBtn"
+						mouseOver="this.commonTip.setTip(MultiLang.msg('market.tip.tradingStatusBtn'));this.onMouseOverTip(this.commonTip ,event);" mouseOut="this.onMouseOutTip()"/>
+					<mx:Button id="publishBtn" height="25" click="onSubBtnClick(event)" label="{MultiLang.msg('market.postTrade')}" selected="{subSelectedStr == PUBLISH_VIEW}" styleName="tabBtn" 
+						mouseOver="this.commonTip.setTip(MultiLang.msg('market.tip.postTradeBtn'));this.onMouseOverTip(this.commonTip ,event);" mouseOut="this.onMouseOutTip()"/>
+				</mx:HBox>
+				<ns1:TradeUI label="我的挂单" width="100%" id="myTradeComp" top="25" bottom="0" visible="{subSelectedStr == PENDING_VIEW}"/>
+				<ns1:TransingTradeUI label="成交的交易" width="100%" id="myTransingTradeComp" top="25" bottom="0" visible="{subSelectedStr == TRADE_VIEW}"/>
+				<ns1:NewTransactWin label="建立挂单" id="createNewTradeWin" width="100%" top="25" bottom="0" visible="{subSelectedStr == PUBLISH_VIEW}"/>
+			</mx:Canvas>
+			
+			<mx:Canvas width="59" left="0"  bottom="39" top="0" styleName="mainWindowContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:VBox width="59" height="100%" left="0" paddingTop="1" paddingLeft="1" verticalGap="1" label="资源按钮">
+					<ns1:ResourceTile width="55" height="47" id="foodTile" click="resourceClick(event)" resourceBean="{new ResourceItemBean(ResourceConstant.TYPE_FOOD)}" selected="{searchRes == ResourceConstant.TYPE_FOOD}"/>
+					<ns1:ResourceTile width="55" height="47" id="woodTile" click="resourceClick(event)" resourceBean="{new ResourceItemBean(ResourceConstant.TYPE_WOOD)}" selected="{searchRes == ResourceConstant.TYPE_WOOD}"/>
+					<ns1:ResourceTile width="55" height="47" id="stoneTile" click="resourceClick(event)" resourceBean="{new ResourceItemBean(ResourceConstant.RESOURCE_TYPE_STONES)}" selected="{searchRes == ResourceConstant.RESOURCE_TYPE_STONES}"/>
+					<ns1:ResourceTile width="55" height="47" id="ironTile" click="resourceClick(event)" resourceBean="{new ResourceItemBean(ResourceConstant.TYPE_IRON)}" selected="{searchRes == ResourceConstant.TYPE_IRON}"/>
+				</mx:VBox>
+			</mx:Canvas>
+			
+			<mx:VBox width="260" top="0" bottom="39" left="61" verticalGap="2" label="资源显示">
+				<mx:DataGrid x="0" y="41" width="100%" dataProvider="{sellResouceArr}" height="128" headerHeight="22" rowHeight="21"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center"
+					mouseOver="this.commonTip.setTip(MultiLang.msg('market.tip.offerArea'));this.onMouseOverTip(this.commonTip ,event);" mouseOut="this.onMouseOutTip()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:columns>
+						<mx:DataGridColumn headerText="{MultiLang.msg('market.auction')}" dataField="" width="50" textAlign="center">
+							<mx:itemRenderer>
+								<mx:Component>
+									<mx:Text text="{outerDocument.labelSell}" />
+								</mx:Component>
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="{MultiLang.msg('market.amount')}" dataField="amounts" width="120" textAlign="center"/>
+						<mx:DataGridColumn headerText="{MultiLang.msg('market.price')}" dataField="price" textAlign="left"/>
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:DataGrid height="106" width="100%" 
+					rowHeight="21" dataProvider="{buyItemResouceArr}"
+					showHeaders="false" editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center"
+					mouseOver="this.commonTip.setTip(MultiLang.msg('market.tip.bidArea'));this.onMouseOverTip(this.commonTip ,event);" mouseOut="this.onMouseOutTip()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:columns>
+						<mx:DataGridColumn headerText="{MultiLang.msg('market.status')}" width="50" textAlign="center" dataField="">
+							<mx:itemRenderer>
+								<mx:Component>
+									<mx:Text text="{outerDocument.labelBuy}" />
+								</mx:Component>
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="{MultiLang.msg('market.amount')}" dataField="amounts" width="120" textAlign="center"/>
+						<mx:DataGridColumn headerText="{MultiLang.msg('market.price')}" dataField="price" textAlign="left"/>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:VBox>
+			<mx:Button id="sellBtn" label="{MultiLang.msg('market.sell')}" bottom="125" left="275" width="44" height="18" styleName="shopForBuyBtn" click="addTrade(event)" paddingLeft="0" paddingRight="0"/>
+			<mx:Button id="buyItemBtn" label="{MultiLang.msg('market.buy')}" top="108" left="274" width="44" height="18" styleName="shopForBuyBtn" click="addTrade(event)" paddingLeft="0" paddingRight="0"/>
+			<mx:Button id="refreshBtn" label="{MultiLang.msg('market.refresh')}" bottom="15" left="130" width="100" click="refreshTrade()"
+				mouseOver="this.commonTip.setTip(MultiLang.msg('market.tip.refreshBtn'));this.onMouseOverTip(this.commonTip ,event);" mouseOut="this.onMouseOutTip()"/>
+		</mx:Canvas>
+		
+		<ns1:TransportWin id="transportWin" width="100%" height="100%" label="运输"/>
+		<upgradWin:UpgradingWin width="100%" height="100%" id="upgradingWin" buildingObj="{this.buildingObj}" label="升级条件"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="98" height="65">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.tech.TechHelper;
+			import roma.util.MultiLang;
+			import mx.utils.ObjectProxy;
+			[Bindable]
+			private var techObj:ObjectProxy = new ObjectProxy();
+			[Bindable]
+			private var iconClass:String;
+			[Bindable]
+			private var techName:String="";
+			
+			public function set tech(t:Object):void{
+				this.techObj = new ObjectProxy(t);
+				iconClass = TechHelper.instance.getTechIcon(techObj.techType);
+				techName = TechHelper.instance.getTechName(techObj.techType);
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalGap="2">
+		<mx:Canvas width="80" height="40" styleName="resourceBG" >
+			<mx:Image source="{iconClass}" width="74" height="34" left="4" top="4" right="4" bottom="4"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<mx:Text text="{techName}: {techObj.level}"/>
+	</mx:VBox>
+</mx:Canvas>

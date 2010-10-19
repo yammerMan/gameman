@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="80" height="65" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.TFHelper;
+			private var type:int = -1;
+			[Bindable]
+			private var iconClass:String;
+			[Bindable]
+			private var typeName:String = "";
+			[Bindable]
+			public var count:int = 0;
+			
+			public function set defenderType(t:int):void{
+				this.type = t;
+				typeName = TFHelper.instance.getTfName(t);
+				iconClass = TFHelper.instance.getTfIcon(t);
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox horizontalAlign="center" width="100%" height="100%" verticalGap="2">
+		<mx:Canvas width="80" height="40" styleName="resourceBG" >
+			<mx:Image source="{iconClass}" width="74" height="34" left="4" top="4" right="4" bottom="4" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<mx:Text text="{typeName+' '+count}" textAlign="center" width="80"/>
+	</mx:VBox>
+</mx:Canvas>

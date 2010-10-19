@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="280" 
+	xmlns:ui="views.sprendUI.*" 
+	xmlns:ns2="views.windows.buildings.militaryInstitute.*" 
+	xmlns:spreadUI="views.spreadUI.*" 
+	xmlns:tips="views.spreadUI.tips.*" 
+	xmlns:tech="views.spreadUI.tech.*" 
+	creationComplete="init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.tech.TechHelper;
+			import views.spreadUI.tips.CommonTooltip;
+			import roma.common.constants.TechConstant;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.TechConditionTooltip;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.rule.ruleCheck.ConditionCheck;
+			import views.spreadUI.tips.ConditionColorLabel;
+			import roma.logic.rule.ruleCheck.BuildingDependsCheck;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.rule.TechRule;
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import roma.common.action.ControllerFactory;
+			import roma.common.controller.CommonResponse;
+			import views.spreadUI.tech.TechResearchUI;
+			import mx.collections.ArrayCollection;
+			import views.windows.buildings.BaseTechWindow;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.object.tech.BaseTechObj;
+			import roma.logic.object.building.impl.Academy;
+			import roma.message.events.PublicEvent;
+			import roma.message.EvtDispacther;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.util.CompCache;
+			import roma.logic.GameContext;
+			import roma.logic.object.player.TechManager;
+			
+			public static var TECH_RESEARCH:String ="tech.startResearch";
+			public static var TECH_SPEEDUP:String ="tech.speedUp";
+			public static var TECH_CANCEL:String ="tech.cancel";
+
+			private static var log:ILogger = Log.getLogger("views.spreadUI.tech.TechTypeList");
+			
+			private var cache1:CompCache = new CompCache(10);
+			
+			[Bindable]
+			private var curTechObj:BaseTechObj;
+			[Bindable]
+			private var curTechRule:TechRule;
+			[Bindable]
+			private var ruleResult:RuleCheckResult;
+			[Bindable]
+			private var dependBuildingStr:String;
+			[Bindable]
+			public var buildingObj:BaseBuilding;
+
+			private var isResearchTechType:int;
+			private var isMath:Boolean;
+			private var isResearching:Boolean;
+			
+			private var techConditionTooltip:TechConditionTooltip = ToolTipContainer.instance.techConditionTooltip;
+			private var commonTooltip:CommonTooltip= ToolTipContainer.instance.commonTooltip;
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(TECH_SPEEDUP,speedUpItemSelected);
+				EvtDispacther.instance.addEventListener(TECH_CANCEL,cancelTechReserch);
+
+				this.addEventListener(Event.ENTER_FRAME,frameHandler);
+			}
+
+			public function initTechUi(ary:ArrayCollection):void{
+				this.cache1.reset();
+
+				this.isResearching = false;
+
+				this.techContainer.removeAllChildren();
+				for(var i:int =0;i<ary.length;i++){
+					var techUI:TechResearchUI = TechResearchUI(this.cache1.getUI(TechResearchUI));
+						techUI.buttonMode = true;
+						techUI.useHandCursor = true;
+						techUI.setTechObj(GameContext.instance.getPlayerObj().techManager.getTechObjById(int(ary.getItemAt(i))));
+						techUI.addEventListener(MouseEvent.MOUSE_DOWN,sendHandler);
+//						techUI.addEventListener(MouseEvent.MOUSE_OVER,onOverHandler);
+//						techUI.addEventListener(MouseEvent.MOUSE_MOVE,onMoveHandler);
+//						techUI.addEventListener(MouseEvent.MOUSE_OUT,onOutHandler);
+						//取消扎营技巧
+						if(techUI.getObj().techType != TechConstant.ENCAMPMENT){
+							this.techContainer.addChild(techUI);
+						}
+				}
+
+				this.curTechObj = GameContext.instance.getPlayerObj().techManager.getTechObjById(int(ary.getItemAt(0)));
+			}
+			
+			private var count:int=0;
+			private function frameHandler(event:Event):void{
+				count++;
+				if(count<20) return;
+				count =0;
+				
+				this.isResearching = false;
+				for each(var ui:TechResearchUI in this.techContainer.getChildren()){
+					ui.startResearchCheck();
+					//判断研究的科技是否属于当前城
+ 					if(ui.isResearching){
+						this.isResearchTechType = ui.getObj().techType;
+						this.isResearching = true;
+					}
+
+					//当研究的科技不属于当前城的时候，只禁掉在研究的科技
+					if(ui.isOtherResearching){
+						ui.btnEnabled = false;
+					}
+				}
+
+				//当当前城有科技研究的时候，禁掉所有按钮
+				if(this.isResearching){
+					for each(var ui1:TechResearchUI in this.techContainer.getChildren()){
+						ui1.btnEnabled = false;
+					}
+				}
+								
+				this.resultCheck();
+			}
+			
+			/* 检查下一级科技规则*/
+			private function resultCheck():void{
+				var rule:TechRule = this.curTechObj.getNextTechRule();
+				if(rule !=null){
+					this.ruleResult = rule.check();
+				}
+			}
+
+			/* 选择科技类型对象 */			
+			private function sendHandler(event:MouseEvent):void{
+				var obj:BaseTechObj = TechResearchUI(event.currentTarget).getObj();
+
+				this.curTechObj = obj;
+				this.isResearchTechType = this.curTechObj.techType;
+				
+				this.resultCheck();
+				this.techResearch();
+			}
+		
+			private function onOverHandler(event:MouseEvent):void{
+				var obj:BaseTechObj = TechResearchUI(event.currentTarget).getObj();
+
+				this.curTechObj = obj;
+				this.isResearchTechType = this.curTechObj.techType;
+
+				this.resultCheck();
+				if(obj.level<10){
+					this.techConditionTooltip.setData(this.curTechObj,this.ruleResult);
+					this.techConditionTooltip.onMouseOver(event);
+				}else{
+					var dis:String=MultiLang.msg('tech.level.max');
+					dis+="\n\n"+TechHelper.instance.getFuncEffect(this.curTechObj.techType,this.curTechObj.level);
+					this.commonTooltip.setTip(dis);
+					this.commonTooltip.onMouseOver(event);
+				}
+			}
+
+			private function onMoveHandler(event:MouseEvent):void{
+ 				if(this.techConditionTooltip.getVisible()){
+					this.techConditionTooltip.setData(this.curTechObj,this.ruleResult);
+					this.techConditionTooltip.onMouseMove(event);
+				}
+				if(this.commonTooltip.getVisible()){
+					this.commonTooltip.onMouseMove(event);
+				}
+			}
+			
+			private function onOutHandler(event:MouseEvent):void{
+				if(this.curTechObj.level<10){
+					this.techConditionTooltip.onMouseOut();
+				}else{
+					this.commonTooltip.onMouseOut();
+				}
+			}			
+
+			/*科技研究 */			
+			private function techResearch():void{
+				//当前科技在研究
+				if(this.curTechObj.startResearching){
+					return;
+				}
+				//当前有科技研究
+				if(this.isResearching){
+					return;
+				}
+				//最大10级
+				if(this.curTechObj.level>=10){
+					return;
+				}
+				//科技条件不够
+				if(!this.ruleResult.isMatch){
+					return;
+				}
+				
+				log.debug("techResearch: "+this.curTechObj.techType);
+				this.buildingObj.startResearch(this.curTechObj.techType);
+			}
+			
+			/*取消科技研究 */
+			private function cancelTechReserch(event:PublicEvent):void{
+				log.debug("cancelTechReserch: "+this.isResearchTechType);
+				this.buildingObj.cancelTechResearch(this.isResearchTechType);
+			}
+			
+			/*加速物品选择*/
+			private function speedUpItemSelected(event:PublicEvent):void{
+				ItemSelectSpeedUpWin.instance.techObj = BaseTechObj(event.evtData);
+				ItemSelectSpeedUpWin.instance.buildingObj = this.buildingObj;
+				ItemSelectSpeedUpWin.instance.speedUpType = ItemSelectSpeedUpWin.COIN_FORTECH_SPEEDUP;
+				ItemSelectSpeedUpWin.show(ItemResManager.speedTechItemArrayCollection,speedTechReserch);
+			}
+			
+			/*加速科技研究 */
+			private function speedTechReserch(rule:ItemRule=null):void{
+				if(rule !=null){
+					log.debug("(techType:)"+this.isResearchTechType+"(itemId:)"+rule.itemId);
+					this.buildingObj.speedUpResearch(this.isResearchTechType,rule.itemId);
+				}
+			}
+			
+			public function addListener():void{
+				if(!this.hasEventListener(Event.ENTER_FRAME)){
+					this.addEventListener(Event.ENTER_FRAME,frameHandler);
+				}
+			}
+			
+			public function removeListener():void{
+				this.removeEventListener(Event.ENTER_FRAME,frameHandler);
+			}			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas top="3" styleName="subContentBG" height="251" left="0" right="0">
+		<mx:Tile id="techContainer"  horizontalGap="20" verticalGap="10" paddingTop="10" paddingLeft="25"
+			 left="26" top="20" right="0" bottom="20"/>
+	</mx:Canvas>
+</mx:Canvas>

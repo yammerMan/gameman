@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*" title="{MultiLang.msg('myItems.useItem')}"  setPopUp="false"
+	width="365" height="268">
+		<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.EquipValueBean;
+			import views.windows.functionWins.hero.EquipHelper;
+			import views.spreadUI.tips.EquipDescTooptip;
+			import roma.common.valueObject.EquipBean;
+			import roma.logic.CaesaryConfig;
+			import views.spreadUI.SecondSubmitWin;
+			import views.spreadUI.speedUp.ItemWin;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.util.JavaScriptHelper;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemOrigintip;
+			import roma.util.ImageHandle;
+			import roma.util.FiltersUtil;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.util.PopupWinManager;
+			import roma.logic.rule.ItemRule;
+			[Bindable]
+  			private var rule:EquipBean;
+  			[Bindable]
+  			private var equip:EquipValueBean;
+  			
+			private var itemDescTooptip:EquipDescTooptip = ToolTipContainer.instance.equipDescTooptip;
+  			
+  			
+  			
+  			
+  			
+  			
+  			
+
+  			public function show(rule:EquipBean):void {
+  				
+  				this.rule = rule;
+  				this.equip=EquipHelper.instance.getPlayerEquipBeanById(this.rule.type);
+  			}
+  			
+  			private function showItemOrigin(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event);
+			}
+			
+			
+		]]>
+	</mx:Script>
+		<mx:Canvas left="15" top="35" bottom="42" right="15" styleName="alphaBlackBG">
+			<!-- 物品描述-->
+			<mx:Canvas width="183" height="101" top="10" left="3">
+				<mx:Canvas  styleName="bigBuildingLogo"  left="12" top="3" width="160" height="77" mouseOver="showItemOrigin(event)" 
+					mouseOut="this.itemDescTooptip.onMouseOut()" 
+					mouseMove="this.itemDescTooptip.onMouseMove(event)">
+					<mx:Image source="{this.rule.iconUrl}"  id="imageField" updateComplete="ImageHandle.onLoadComplete(event)" 
+						scaleY="{67/67}" scaleX="{150/150}" left="5" top="5" right="5" bottom="5"/>
+				</mx:Canvas>
+			</mx:Canvas>
+			<mx:TextArea text="{this.rule.funcDesc}"
+				 left="12" right="12" top="100" textAlign="left" editable="false" styleName="discritionWithBorderTextArea" bottom="12"/>
+			<!-- 输入框 -->			 
+			
+			<!-- 确认购买 -->			 
+			<mx:VBox right="12" top="10" verticalGap="3" width="140" horizontalAlign="right">
+				<!--mx:Label text="{this.rule.name}"
+					width="100%" textAlign="center"/-->
+				<mx:Text text="{this.rule.name}"
+					width="100%" textAlign="center" styleName="specialNoticeLabel"/>
+				<mx:HBox horizontalGap="0" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:VBox height="100%" verticalGap="3">
+						<mx:Label text="{MultiLang.msg('public.label.amount')}" />
+					</mx:VBox>
+					<mx:VBox height="100%" verticalGap="3">
+						<mx:Label text="{this.equip.value}"/>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
+			
+		</mx:Canvas>
+</functionWins:BasePopUpWindow>

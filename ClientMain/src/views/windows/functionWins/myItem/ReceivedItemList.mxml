@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*"
+	title="{MultiLang.msg('myItems.receivedItem.winTitle')}"
+	 setPopUp="false"
+	 kerning="true" creationComplete="init()" width="346" height="325">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.common.valueObject.MaterialBean;
+			import roma.util.CompCache;
+			import roma.util.PopupWinManager;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			
+			private var cacheUi:CompCache = new CompCache(30);
+			
+			private var beanArray:ArrayCollection;
+			
+			private var initJudge:Boolean=false;//初始化完成的判断
+			private var hVap:int=2;
+			private var vVap:int=2;
+			private var containerWidth:int=63;
+			private var containerHeight:int=63;
+			private var maxRow:int=7;
+			private var timer:Timer=new Timer(1000,1);
+			
+			
+			public function setBeanArray(array:ArrayCollection):void {
+				this.beanArray = array;
+			}
+			
+			private function init():void{
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE,initUiJudgement);
+			}
+			
+			private function initUiJudgement(event:TimerEvent):void{
+				if(this.initJudge==true){
+					this.initJudge=false;
+					timer.stop();
+					if(this.beanArray!=null){
+						this.visible=true;
+					}
+				}
+			}
+			
+			override public function refresh():void {
+				this.visible=false;
+				if(!timer.running){
+					timer.start();
+				}
+				this.initJudge=false;
+				this.uiList.removeAllChildren();
+				cacheUi.reset();
+				for each(var bean:MaterialBean in beanArray) {
+					var ui:ReceivedItemUi = this.cacheUi.getUI(ReceivedItemUi) as ReceivedItemUi;
+					ui.setBean(bean);
+					this.uiList.addChild(ui);
+				}
+				this.uiList.height=setTileSize(beanArray.length);
+				this.width=beanArray.length>15?346:328;
+				this.initJudge=true;
+			}
+			
+			private function setTileSize(total:int):int{
+				if(total<16){
+					return 273;
+				}else{
+					return (Math.ceil(total/3)-5)*55+273;
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas left="15" top="35" bottom="17" horizontalScrollPolicy="off" right="15">
+		<mx:Tile id="uiList"  verticalGap="7" horizontalGap="2" horizontalAlign="center" 
+			styleName="ItemCatcherTile" paddingLeft="3" paddingRight="3" paddingTop="3" 
+			 verticalScrollPolicy="off" horizontalScrollPolicy="off"
+			paddingBottom="3" left="0" top="0" height="273" width="298">
+		
+		</mx:Tile>
+	</mx:Canvas>
+	
+</functionWins:BasePopUpWindow>

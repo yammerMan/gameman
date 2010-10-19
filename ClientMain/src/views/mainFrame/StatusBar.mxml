@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" height="28" creationComplete="init()" borderStyle="none">
+	<!--顶部状态栏-->
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.task.TaskManager;
+			import views.MainContainer;
+			import roma.util.ScreenCaptuerUploader;
+			import sound.MsgSound;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.BugBtnTip;
+			import mx.managers.ToolTipManager;
+			import mx.core.Application;
+			import views.windows.functionWins.ranking.RankingWin;
+			import views.windows.functionWins.friendly.FriendlyWin;
+			import roma.util.JavaScriptHelper;
+			import roma.util.MultiLang;
+			import roma.message.EvtDispacther;
+			import roma.message.events.BuffBarEvent;
+			import mx.collections.ArrayCollection;
+			import mx.effects.easing.Linear;
+			import mx.events.FlexEvent;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.resource.ImgManager;
+			import roma.logic.CaesaryConfig;
+			
+			private static var log:ILogger = Log.getLogger("views.StatusBar");
+			
+			private var isFullScreen:Boolean = false;
+			
+			[Bindable]
+			private var config:CaesaryConfig = CaesaryConfig.instance;
+			
+			[Bindable]
+			private var showBuffStatusBtnTip:String;
+			
+			[Bindable]
+			private var lvBtnTip:String;
+			
+			[Bindable]
+			private var fullScreenBtnTip:String;
+			
+			[Bindable]
+			private var isPlaySound:Boolean;
+			
+			
+			private function init():void {
+				this.isPlaySound=config.isPlaySound;
+			}
+			
+
+			private function onFullScreenBtnClick():void {
+				this.isFullScreen = !this.isFullScreen;
+				this.config.isFullScreen=this.isFullScreen;
+				JavaScriptHelper.instance.fullScreen(this.isFullScreen);
+			}
+
+			
+			private function btnOver(event:MouseEvent):void{
+				var str:String="";
+				switch(event.currentTarget){				
+					case this.fullScreenBtn:
+						str=this.isFullScreen?MultiLang.msg("public.revert"):MultiLang.msg("public.maxSize");
+						fullScreenBtnTip=str;
+						break;
+					
+					default:
+				}
+			}
+			
+			private function btnOut():void{
+				EvtDispacther.instance.dispatchEvent(new BuffBarEvent(false));
+			}
+			
+			private function onFriendlyClick():void{
+				EvtDispacther.instance.eventDispatch(FriendlyWin.WINDOW_SHOW);
+			}
+			
+			private function onRankingClick():void{
+				EvtDispacther.instance.eventDispatch(RankingWin.WINDOW_SHOW);
+			}
+
+			private function onForumClick():void{
+				navigateToURL(new URLRequest(CaesaryConfig.instance.forumUrl),"_blank");
+			}
+			
+			private function onPopPage():void{
+				MainContainer.instance.levelImg.visible = true;
+			}			
+
+			private function onsoundControlBtnClick():void{
+				if(this.config.isPlaySound){
+					MsgSound.instance.stopAllSound();
+				}
+				this.config.isPlaySound=!this.config.isPlaySound;
+				this.isPlaySound=this.config.isPlaySound;
+				
+				//MsgSound.instance.playBgSound();
+			}
+			
+			private function gotoLeGuForum():void{
+				TaskManager.isGotoGULE = true;
+				JavaScriptHelper.instance.getURL(CaesaryConfig.instance.leGuUrl);
+			}
+			
+			private function gotoBaHaForum():void{
+				TaskManager.isGoToBHMT = true;
+				JavaScriptHelper.instance.getURL(CaesaryConfig.instance.baHaUrl);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:HBox horizontalGap="2" left="0" height="100%" verticalCenter="-1" borderStyle="none" verticalAlign="middle">
+		<mx:Button styleName="bufferTechBtn" 
+			 id="fullScreenBtn" 
+			 mouseOver="btnOver(event)"
+		  	 mouseOut="btnOut()"
+			 click="onFullScreenBtnClick()" toolTip="{fullScreenBtnTip}"/>
+		<mx:Button styleName="{this.isPlaySound?'soundOpenBtn':'soundCloseBtn'}" 
+			 id="soundControlBtn" 
+			 click="onsoundControlBtnClick()" toolTip="{this.isPlaySound?MultiLang.msg('buttonBar.btnTip.closeSound'):MultiLang.msg('buttonBar.btnTip.openSound')}"/>
+		<mx:Button click="onFriendlyClick()" 
+		 	styleName="bufferBuddiesBtn" toolTip="{MultiLang.msg('friendly.label.friendly')}"/>
+		<!--mx:Button height="18" click="onRankingClick()"
+			label="{Lang.msg('ranking.label.ranking')}" styleName="bufferRankingBtn"/-->
+		<mx:Button click="onForumClick()" toolTip="{MultiLang.msg('topButtonBar.forumBtn.label')}" 
+		 	styleName="bufferForumBtn"/>
+
+		<mx:Button click="onPopPage()" visible="{CaesaryConfig.instance.levelBtnShow}" includeInLayout="{CaesaryConfig.instance.levelBtnShow}" toolTip="{MultiLang.msg('kr.leveBtn')}"
+		 	styleName="userLevelBtn"/>
+		<mx:Button click="gotoLeGuForum()" styleName="leGuBtn" visible="{CaesaryConfig.instance.showLeGuBtn}" includeInLayout="{CaesaryConfig.instance.showLeGuBtn}" toolTip="{MultiLang.msg('buttonBar.btnTip.leGu')}"/>
+		<mx:Button click="gotoBaHaForum()" styleName="baHaBtn" visible="{CaesaryConfig.instance.showBaHaBtn}" includeInLayout="{CaesaryConfig.instance.showBaHaBtn}" toolTip="{MultiLang.msg('buttonBar.btnTip.baHa')}"/>
+		</mx:HBox> 
+</mx:Canvas>

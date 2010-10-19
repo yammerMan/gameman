@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="240" 
+	backgroundColor="0x666600" xmlns:spreadUI="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas width="284" height="240" left="31" top="0">
+		<mx:TextArea left="10" right="10" bottom="10" top="10" editable="false" htmlText="test"/>
+	</mx:Canvas>
+	<mx:Canvas width="471" height="239" right="31" top="0">
+		<spreadUI:ConditionForm horizontalCenter="0" top="50"/>
+	</mx:Canvas>
+</mx:Canvas>

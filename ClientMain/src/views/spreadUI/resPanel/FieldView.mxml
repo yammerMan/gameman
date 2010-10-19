@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="64" height="44" styleName="BuildingAlphaWindow" >
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import views.mainModules.map.diamond2.DiamondMapTile2;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import views.mainModules.map.CastleInfoWin;
+			import roma.message.EvtDispacther;
+			import roma.util.ImageHandle;
+			import roma.logic.object.field.FieldHelper;
+			import roma.common.action.ControllerFactory;
+			import roma.common.controller.CommonResponse;
+			import views.spreadUI.MyAlert;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import roma.logic.object.field.BaseField;
+			import roma.util.FiltersUtil;
+			import views.spreadUI.tips.BaseTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.FieldTooltip;
+			import roma.resource.ImgManager;
+			
+			private var fieldTooltip:FieldTooltip = ToolTipContainer.instance.fieldTooltip;
+			[Bindable]
+			public var _fieldObj:BaseField;
+			
+			[Bindable]
+			private var logoClass:*;
+			
+			public function set fieldObj(obj:BaseField):void{
+				this._fieldObj=obj;
+				this.logoClass=FieldHelper.getFieldMapIcon(this._fieldObj.fieldType,this._fieldObj.fieldLevel,true);
+			}
+			
+			public function get fieldObj():BaseField{
+				return this._fieldObj;
+			}
+			
+			private function onMouseOver(tt:BaseTip, event:MouseEvent):void {
+				this.fieldTooltip.setFieldObj(this._fieldObj);
+				tt.onMouseOver(event,1);
+			}
+			
+			private function onMouseOut(tt:BaseTip):void {
+				tt.onMouseOut();
+			}
+			
+			private function onGiveUpField():void{
+				var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				MyAlert.show(MultiLang.msg('field.giveUp.warm'),giveUp);
+				function giveUp(isTrue:Boolean):void{
+					if(isTrue){
+						ControllerFactory.getInstance().getCityController().giveUpSelfField(cityId,_fieldObj.idField,giveUpSelfFieldResponse);
+					}
+				}	
+				function giveUpSelfFieldResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("townHall.giveUp.success"));
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function viewField():void{
+				var data:DiamondMapTile2=MapDataByteArray.instance.getTileObj(GameContext.getFieldPostionX(_fieldObj.idField),GameContext.getFieldPostionY(_fieldObj.idField));
+				EvtDispacther.instance.eventDispatch(CastleInfoWin.WINDOW_SHOW,data);
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas left="0" top="0" bottom="0" right="0" mouseOut="onMouseOut(this.fieldTooltip)"
+			mouseOver="onMouseOver(this.fieldTooltip , event)"
+			verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Canvas  styleName="smallLogoBG" left="4" top="4" right="4" bottom="12">
+			<mx:Image source="{this.logoClass}"  id="imageField" top="3" left="3" bottom="3" right="3" scaleY="{22/48}" scaleX="{50/104}"
+				updateComplete="ImageHandle.onLoadComplete(event)" click="viewField()"/>
+			<!--mx:Button id="cancelBtn" click="onGiveUpField()" styleName="dakCancleBtn" width="20" height="20" right="3" bottom="3"/-->
+		</mx:Canvas>
+		<mx:Label text="{_fieldObj.fieldPosNoBracket}" bottom="-2" styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}" fontSize="10" right="3"/>
+	</mx:Canvas>
+	
+	
+</mx:Canvas>

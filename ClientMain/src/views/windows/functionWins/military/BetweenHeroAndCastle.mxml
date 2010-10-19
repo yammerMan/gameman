@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseFunctionWindow3 
+	height="85"
+	xmlns="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.windows.functionWins.military.*" 
+	xmlns:ns2="views.spreadUI.army.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import mx.controls.TextInput;
+			import roma.resource.ImgManager;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.object.hero.HeroObj;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.castle.TFHelper;
+			
+			private var heroTroopNum:int ;
+			private var castleTroopNum:int;
+			
+			private var armyPosition:int;
+
+			[Bindable]
+			public var troop:int;
+
+			[Bindable]
+			public var curHero:HeroObj;
+			[Bindable]
+			private var troopName:String;
+			
+			private var castleIsTarget:Boolean=false;
+			
+			private var fullOverTroop:int=0;
+			
+			private var totalArmyNum:int=0;
+			
+
+			public function betweenCastleAndHero(th:TroopInHero,tc:TroopInCastle,toCastle:Boolean):void {
+				this.fullOverTroop=0;
+				this.curHero = th.heroObj;
+				this.armyPosition = th.value.position;
+				if (tc.value.value>0) {
+					this.troop = tc.troop;
+				} else {
+					this.troop = th.value.troopType;
+				}
+				this.troop = tc.troop;
+				this.castleIsTarget=toCastle;
+				this.heroTroopNum = th.value.count;
+				this.castleTroopNum = tc.value.value;
+				this.totalArmyNum=this.heroTroopNum+this.castleTroopNum;
+				if(toCastle){
+					
+				}else{
+					if(this.curHero.getMaxContain(this.troop)>0){
+						if(this.castleTroopNum>this.curHero.getMaxContain(this.troop)){
+							this.fullOverTroop = this.castleTroopNum - this.curHero.getMaxContain(this.troop);
+							this.castleTroopNum=this.curHero.getMaxContain(this.troop);
+						}else{
+
+						}			
+					}
+					else{
+						this.castleTroopNum=0;
+					}
+					
+				}
+				this.troopName=TFHelper.instance.getTfName(this.troop);
+			}
+			
+			override public function refresh():void {
+				if(this.castleIsTarget){
+					this.silderInput.inputData(this.heroTroopNum,this.castleTroopNum , inputCallBack);
+					this.heroTroopNum=0;
+					this.castleTroopNum=this.totalArmyNum;
+				}else{
+					this.silderInput.inputData(this.castleTroopNum ,this.heroTroopNum, inputCallBack);
+					if(this.curHero.getMaxContain(this.troop)>0){
+						if((this.totalArmyNum-this.heroTroopNum)>this.curHero.getMaxContain(this.troop)){
+							this.heroTroopNum+=this.curHero.getMaxContain(this.troop);
+							this.castleTroopNum=this.totalArmyNum-this.heroTroopNum;
+						}else{
+							this.heroTroopNum+=this.castleTroopNum;
+							this.castleTroopNum=0;
+						}			
+					}
+					else{
+						this.castleTroopNum=this.totalArmyNum-this.heroTroopNum;
+					}
+				}
+
+			}
+			
+			private function inputCallBack(num1:int,num2:int):void {
+				if(this.castleIsTarget){
+					this.heroTroopNum = num1;
+					this.castleTroopNum = num2;
+				}else{
+					this.heroTroopNum = num2;
+					this.castleTroopNum = num1+this.fullOverTroop;
+				}
+			}
+						
+			override protected function onSubmit():void {
+				this.onCloseBtnClick();
+					ControllerFactory.getInstance().getArmyController().castle2Hero(
+					this.curHero.castleObj.cityId,
+					this.curHero.heroInfo.id, this.armyPosition,
+					this.troop,
+					this.castleTroopNum,
+					onCastle2HeroResponse);
+			}
+			
+			private function onCastle2HeroResponse(event:CommonResponse):void {
+				if (!event.isSuccess()) {
+					MyAlert.showError(event);
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Button horizontalCenter="0"
+			click="onSubmit()"
+			label="{MultiLang.msg('public.label.sure')}" width="60" bottom="7"/>
+	<ns1:HSilderInput id="silderInput"
+	 top="0" left="0"/>
+</BaseFunctionWindow3>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="250" height="200" styleName="popUpWinBG">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.speedUp.ItemWin;
+			import roma.util.ClientUtil;
+			import roma.util.ImageHandle;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ItemRule;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.PopupWinManager;
+			import roma.logic.object.building.BaseBuilding;
+			
+			private static var instance:DismantlePanel = new DismantlePanel();
+			private static var isCommon:Boolean= false;
+			private static var isCompelete:Boolean = true;
+			
+			[Bindable]
+			private var _buidingName:String;
+			
+			private var _buildingObj:BaseBuilding;
+			
+			private var _fun:Function;
+			
+			public static function show(buildingObj:BaseBuilding,fun:Function =null):void{
+				instance._buildingObj =buildingObj;
+				instance._fun = fun;
+				instance._buidingName = BuildingHelper.instance.getName(buildingObj.typeId);
+				
+				PopupWinManager.instance.addPopup(instance);
+			}
+			
+			private function dismantle(event:MouseEvent):void{
+				with(event.target){
+					if(id == "dismantleCommon"){
+						this._buildingObj.destructDownBuilding(isCommon);
+					}else if(id == "dismantleComplete"){
+						var c:Boolean = _fun.call(this);
+						if(c){
+							this.detroyComplete();
+						}
+					}
+				}
+				PopupWinManager.instance.removePopup();
+			}
+			
+			private function detroyComplete():void{
+				var bean:MaterialBean = GameContext.instance.getPlayerObj().itemManager.getMaterialBeanById(BuildingConstant.DESTRUCT_COMPLETE_ITEM);
+				var rule:ItemRule = GameRuleHelper.instance.getItemRuleById(BuildingConstant.DESTRUCT_COMPLETE_ITEM);
+				
+				if(bean ==null || bean.count <= 0){
+					MyAlert.show(MultiLang.msg('public.item.not.enough',rule.name),buyItemAndUseItem);
+				}else{
+					this._buildingObj.destructDownBuilding(isCompelete);
+				}
+			}
+			
+			private function buyItemAndUseItem(_true:Boolean):void{
+				if(_true){
+                    var b:Boolean = GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(BuildingConstant.DESTRUCT_COMPLETE_ITEM);
+					if(b){
+						this._buildingObj.destructDownBuilding(isCompelete);
+					}else{
+						MyAlert.show(MultiLang.msg('public.coin.lack'),recharge,MultiLang.msg('systemMsg.getGold'));
+					}
+				}
+			}
+
+			private function recharge(_true:Boolean):void{
+				if(_true){
+					ClientMain.recharge();
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button horizontalCenter="0" top="5" styleName="popUpWinTitleBtn" enabled="false"/>
+	<mx:Button right="15" top="5" styleName="closeBtn" mouseDown="dismantle(event)"/>
+	<mx:TextArea styleName="discritionWithBorderTextArea" top="30" right="15" selectable="false" text="{MultiLang.msg('building.dismantle.desc')}" left="15" bottom="60"/>
+	<mx:Button id="dismantleCommon" label="{MultiLang.msg('public.destruct.common')}" right="15" top="142" mouseDown="dismantle(event)" textAlign="center" left="15"/>
+	<mx:Button id="dismantleComplete" label="{MultiLang.msg('public.destruct.complete')}" top="167" mouseDown="dismantle(event)" textAlign="center" left="15"/>
+	<mx:Button label="{MultiLang.msg('public.label.cancel')}" top="167" mouseDown="dismantle(event)" textAlign="center" right="15"/>
+	<mx:Label text="{MultiLang.msg('public.destuct.building',_buidingName)}" horizontalCenter="0" top="7" styleName="titleLabel"/>
+</mx:Canvas>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="540" height="540" 
+	xmlns:ns1="views.windows.functionWins.turntable.*" 
+	backgroundImage="{ImgManager.clazz('turntable.background')}" 
+	xmlns:spreadUI="views.spreadUI.*"
+	creationComplete="init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import views.windows.WindowTitle;
+			import roma.util.MultiLang;
+			import roma.util.ImageHandle;
+			import roma.util.FiltersUtil;
+			import roma.resource.ImgManager;
+		]]>
+	</mx:Script>
+	
+	<mx:Script source="Turntable_.as"/>
+
+	<ns1:TurnTableItemUI x="238" y="13" id="item0" isFirst ="true"/>
+	
+	<ns1:TurnTableItemUI x="463" y="237" id="item5" isFirst ="true"/>
+	<ns1:TurnTableItemUI x="238" y="463" id="item10" isFirst ="true"/>
+	<ns1:TurnTableItemUI x="13" y="238.3" id="item15" isFirst ="true"/>
+	
+	<ns1:TurnTableItemUI x="308" y="23.65" id="item1"/>
+	<ns1:TurnTableItemUI x="370" y="56.15" id="item2"/>
+	<ns1:TurnTableItemUI x="420.35" y="106" id="item3"/>
+	<ns1:TurnTableItemUI x="452.35" y="169.35" id="item4"/>
+	<ns1:TurnTableItemUI x="451.35" y="307" id="item6"/>
+	<ns1:TurnTableItemUI x="420.35" y="370.3" id="item7"/>
+	<ns1:TurnTableItemUI x="370" y="420.3" id="item8"/>
+	<ns1:TurnTableItemUI x="308" y="452" id="item9"/>
+	<ns1:TurnTableItemUI x="169" y="452" id="item11"/>
+	<ns1:TurnTableItemUI x="106" y="420.3" id="item12"/>
+	<ns1:TurnTableItemUI x="56" y="370.3" id="item13"/>
+	<ns1:TurnTableItemUI x="24" y="307" id="item14"/>
+	<ns1:TurnTableItemUI x="25" y="169.3" id="item16"/>
+	<ns1:TurnTableItemUI x="56.7" y="106" id="item17"/>
+	<ns1:TurnTableItemUI x="106.5" y="56.15" id="item18"/>
+	<ns1:TurnTableItemUI x="168.5" y="24" id="item19"/>
+
+	<mx:Button 
+		width="70" height="26" click="setMin()" 
+		horizontalCenter="0" top="96" 
+		styleName="turntableMinBtn" 
+		id="minBtn" focusEnabled="false" enabled ="{this.isShow}"/>
+		
+	<mx:Button 
+		id="stopBtn" label="{MultiLang.msg('turntable.turn.stop')}" 
+		width="163" height="41" styleName="turntableSubmitBtn" 
+		horizontalCenter="0" bottom="152"  click="stopRolette()"
+		visible="{this.stopbtnVisible}" enabled="{this.stopbtnEnabled}" fontSize="14" focusEnabled="false"/>
+	<mx:CheckBox id="isClickToTurnCheckBox" horizontalCenter="0" bottom="195" click="clickToTurnHandle()" label="{MultiLang.msg('public.label.simpleMode')}"/>
+	<mx:Button 
+		id="startBtn" label="{MultiLang.msg('turntable.turn.start')}" 
+		width="163" height="41" styleName="turntableSubmitBtn" fontSize="14" 
+		horizontalCenter="0" bottom="152"
+		visible="{this.startbtnVisible}" 
+		enabled="{this.startEnabled}" 	
+		click="judgeToturn()" focusEnabled="false"/>
+	
+	<mx:Label 
+		text="{MultiLang.msg('turntable.amount',itemBean !=null?itemBean.count:0)}" 
+		textAlign="right" styleName="normalBoldLabel" 
+		filters="{[FiltersUtil.glowFilter]}" verticalCenter="-100" left="125" width="140"/>
+	<mx:Label 
+		text="{MultiLang.msg('turntable.player.coin',this.player.coin)}" 
+		textAlign="left" styleName="normalBoldLabel" 
+		filters="{[FiltersUtil.glowFilter]}" right="125" verticalCenter="-100" width="140"/>
+		
+	<spreadUI:MyNumericStepper 
+		id="input" 
+		horizontalCenter="0" top="299" 
+		maxValue="{this.turnMaxNum}" valueMin="{1}" toolTip="{MultiLang.msg('turntable.spending')}"/>	
+	<mx:UIComponent 
+		id="imgComponent" width="150" height="67" top="205" 
+		mouseMove="onMouseMove(event)" mouseOut="onMouseOut(event)" 
+		mouseOver="onMouseOver(event)" horizontalCenter="0"/>
+	<mx:Label 
+		text="{this.itemNum}" 
+		textAlign="center" styleName="normalBoldLabel" 
+		filters="{[FiltersUtil.glowFilter]}" verticalCenter="-5" right="195" 
+		mouseChildren="false" mouseEnabled="false"/>
+	<mx:Image horizontalCenter="0" top="115" source="{ImgManager.clazz('background.turntable.titleBG')}"/>
+	<spreadUI:TitleBar top="122" horizontalCenter="0" winTitle="{MultiLang.msg('turntable.title')}"/>
+</mx:Canvas>

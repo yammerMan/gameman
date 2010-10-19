@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%" xmlns:ns1="view.module.market.*" creationComplete="init()" xmlns:ns2="views.windows.buildings.market.*">
+<mx:Script>
+	<![CDATA[
+		import roma.message.events.MarketEvent;
+		import roma.common.valueObject.BusinessBean;
+		import views.spreadUI.MyAlert;
+		import roma.common.controller.CommonResponse;
+		import roma.logic.object.building.impl.Market;
+		import roma.common.constants.BuildingConstant;
+		import roma.logic.object.building.BaseBuilding;
+		import roma.util.MultiLang;
+		import roma.message.events.WindowSwitchEvent;
+		import roma.common.controller.trade.BusenissListResponse;
+		import roma.common.action.ControllerFactory;
+		import roma.common.events.BusinessUpdate;
+		import roma.common.ResponseEvtDispatcher;
+		import roma.message.EvtDispacther;
+		import roma.logic.GameContext;
+		import mx.collections.ArrayCollection;
+		
+		[Bindable]
+		private var myTradesArr:ArrayCollection = GameContext.instance.getPlayerObj().getCurCastleObj().tradeManager.tradeList
+		private var cancelId:int =0;
+		
+		public static const NEW_TRADE:String = "createNewTrade";
+		
+		[Bindable]
+		public var labelBuy:String = MultiLang.msg("public.label.offer");
+		[Bindable]
+		public var labelSell:String = MultiLang.msg("public.label.bid");
+		[Bindable]
+		public var labelCancel:String = MultiLang.msg('public.label.cancel');
+		
+		private var callBackFunc:Function = null;
+				
+		public function refresh():void{
+			myTradesArr = GameContext.instance.getPlayerObj().getCurCastleObj().tradeManager.tradeList;
+		}
+		
+		private function init():void{
+			EvtDispacther.instance.addEventListener(MarketEvent.TRADE_UPDATE,onTradeUpdate);
+		}
+		
+		private function onTradeUpdate(e:MarketEvent):void{
+			this.refresh();
+		}
+		
+		public function cancelCityTrade(id:int):void{
+			this.cancelId = id;
+			var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().getCityId();
+			ControllerFactory.getInstance().getTradeController().cancelCityTrade(cityId,id,cancelCityTradeResponse);
+		}
+		
+		/**
+		 * 取消指定交易的返回
+		 */ 
+		private function cancelCityTradeResponse(event:CommonResponse):void{
+			if(event.isSuccess()){
+				for(var i:int=0;i<myTradesArr.length;i++){
+					if(BusinessBean(myTradesArr[i]).id == cancelId){
+						if(callBackFunc != null)
+						callBackFunc.call(this,BusinessBean(myTradesArr[i]).businessType);
+						myTradesArr.removeItemAt(i);
+					}
+				}
+			}
+			else{
+				MyAlert.showError(event);
+			}
+		}
+	]]>
+</mx:Script>	
+	<mx:DataGrid height="100%" rowHeight="22" headerHeight="22" borderStyle="none"
+		resizableColumns="false" draggableColumns="false"  sortableColumns="false" left="0" right="0" dataProvider="{myTradesArr}">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.resource')}" width="72"
+				dataField="resource">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ns2:ResourceLabel resouceText="{data.resource}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.amount')}" width="75" 
+				dataField="amounts"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.price')}" width="75"
+				dataField="price"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.trade')}" width="80"
+				dataField="dealed"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('market.status')}" 
+				dataField="businessType">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:Text text="{data.businessType==0?outerDocument.labelBuy:outerDocument.labelSell}" />
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.cancel')}" dataField="id" 
+				width="70">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox horizontalAlign="center" height="22" verticalAlign="middle">
+							<mx:Button label="{outerDocument.labelCancel}" styleName="secondaryBtn" click="{outerDocument.cancelCityTrade(data.id)}" height="18"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	
+</mx:Canvas>

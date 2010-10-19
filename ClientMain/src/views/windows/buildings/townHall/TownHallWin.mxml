@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow xmlns:buildings="views.windows.buildings.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="100%" horizontalScrollPolicy="off"
+	 xmlns:townHall="views.windows.buildings.townHall.*" xmlns:ns1="views.spreadUI.*" creationComplete="init();">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.building.impl.TownHall;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			import mx.events.ItemClickEvent;
+			
+			public static const WINDOW_SHOW:String = "townHallWin.show";
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.TownHallWin");
+			
+			private var buttonTitle:Array=new Array(MultiLang.msg("townHall.label.increatBuilting"),MultiLang.msg("townHall.label.resourceProduce")
+			,MultiLang.msg("townHall.label.changeTax"),MultiLang.msg("townHall.label.changCityName"),MultiLang.msg("townHall.label.cityIncrease"),MultiLang.msg("townHall.tab.field")
+			,MultiLang.msg("upgradingWin.upgradeRequest"));
+			
+			[Bindable]
+			private var townHallObj:TownHall;
+			private var curWin:DisplayObject;
+			private var showWinId:int=0;
+
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				if(this.initialized){
+					this.townHallObj=TownHall(this.buildingObj);
+					if(this.showWinId==0){
+						this.myViewstack.selectedChild=this.buildingQueueWin;
+						this.buttonBar.selectedIndex=0;
+						this.buildingQueueWin.refresh();
+					}else if(this.buttonBar.selectedIndex ==this.buttonTitle.length-1){
+						this.buttonBar.selectedIndex = this.buttonTitle.length-1;
+						this.myViewstack.selectedChild = this.upgradingWin;
+						this.upgradingWin.refresh();
+					}else{
+						this.buttonBar.selectedIndex=showWinId;
+						this.myViewstack.selectedIndex=showWinId;
+						this.showWinId=0;
+					}
+				}
+			}
+			
+			private function init():void{
+				this.townHallObj=TownHall(this.buildingObj);
+				this.buttonBar.dataProvider=buttonTitle;
+			}
+			
+			
+			/**
+			 * 界面隐藏调用，停止当前窗体一切相关动画等
+			 */ 
+			override public function destroy():void{
+				this.buildingQueueWin.destroy();
+				this.extendCastle.destroy();
+			}
+			
+			private function tbClick(event:ItemClickEvent):void{
+				this.extendCastle.destroy();
+				switch(event.index){
+					case 0:
+						myViewstack.selectedChild=this.buildingQueueWin;
+						this.buildingQueueWin.refresh();
+						break;
+					case 1:
+						myViewstack.selectedChild=this.productionWin;
+						this.productionWin.refresh();
+						break;
+					case 2:
+						myViewstack.selectedChild=this.taxRateWin;
+						this.taxRateWin.refresh();
+						break;
+					case 3:
+						myViewstack.selectedChild=this.cityReNameWin;
+						this.cityReNameWin.refresh();
+						break;
+					case 4:
+						myViewstack.selectedChild=this.extendCastle;
+						this.extendCastle.refresh();
+						break;
+					case 5:
+						myViewstack.selectedChild = this.fieldsWin;	
+						this.fieldsWin.show();				
+						break;
+					case 6:
+						myViewstack.selectedChild=this.upgradingWin;
+						this.upgradingWin.refresh();
+						break;
+					default:
+				}
+		}
+		private function gotoTaxWin():void{
+			this.showWinId=2;
+			if(this.initialized){
+				myViewstack.selectedIndex=2;
+				buttonBar.selectedIndex=2;
+				this.taxRateWin.refresh();
+				this.townHallObj=TownHall(this.buildingObj);
+			}
+		}
+		
+		override public function gotoWin(data:Object):void {
+			gotoTaxWin();
+		}
+		
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="tbClick(event)">
+		   </mx:ToggleButtonBar>
+		<ns1:MulHRule>
+		</ns1:MulHRule>
+		   
+	</mx:VBox>
+	<mx:ViewStack id="myViewstack" bottom="0" left="0" right="0" top="25">
+		<townHall:BuildingQueueWin width="100%" height="100%" id="buildingQueueWin" buildingObj="{this.townHallObj}"/>
+		<townHall:ProductionWin width="100%" height="100%" id="productionWin" buildingObj="{this.townHallObj}"/>
+		<townHall:TaxRateWin width="100%" height="100%" id="taxRateWin" buildingObj="{this.townHallObj}"/>
+		<townHall:CityReNameWin width="100%" height="100%" id="cityReNameWin" buildingObj="{this.townHallObj}"/>
+		<townHall:ExtendCastle width="100%" height="100%" id="extendCastle" buildingObj="{this.townHallObj}"/>
+		<townHall:TownHallField width="100%" height="100%" id="fieldsWin"/>
+		<townHall:UpgradingWin width="100%" height="100%" id="upgradingWin" buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

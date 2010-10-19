@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="220" height="300" creationComplete="init()" xmlns:ns1="views.spreadUI.playerInfo.*">
+	<mx:Script>
+		<![CDATA[
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.util.ClientUtil;
+			import views.PopupWindows;
+			import roma.message.events.WindowSwitchEvent;
+			import roma.message.EvtDispacther;
+			import views.mainFrame.ToggleButton;
+			import roma.common.valueObject.CastleInfoBean;
+			import mx.events.ListEvent;
+			import roma.common.valueObject.ScoutPlayerBean;
+			import mx.collections.ArrayCollection;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import views.windows.functionWins.mail.Mail;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.util.PopupWinManager;
+			[Bindable]
+			private var castleList:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var scoutPlayerDataBean:ScoutPlayerBean;
+			[Bindable]
+			private var remainTimeStr:String;
+			private var timer:Timer=new Timer(1000);
+			private function init():void{
+				EvtDispacther.instance.addEventListener(WindowSwitchEvent.EVENT_CHANGE,closeWinHandle);
+				timer.addEventListener("timer", timerHandler);
+				this.mouseChildren = true;
+				this.mouseEnabled = true;
+			}
+			
+			public function show(castleArray:ArrayCollection,scoutPlayerDataBean:ScoutPlayerBean):void {
+				this.castleList.removeAll();
+				this.castleList=castleArray;
+				this.scoutPlayerDataBean=scoutPlayerDataBean;
+				this.visible=true;
+				this.timer.start();
+  			}
+  			
+  			private function selectPos(event:ListEvent):void{
+				var posX:int = 0;
+				var posY:int = 0;
+				posX = CastleInfoBean(event.itemRenderer.data).fieldId/10000;
+				posY = CastleInfoBean(event.itemRenderer.data).fieldId%10000;
+				if(ToggleButton.instance.isTown){
+					ToggleButton.instance.switchHandler(true);
+				}
+				DiamondWorldMap2.instance.goPoint(posX,posY);
+				this.visible = false;
+				this.timer.stop();
+				PopupWindows.closeAll();
+			}
+			
+			private function closeWinHandle(event:*):void{
+				this.visible=false;
+				this.timer.stop();
+			}
+			
+			private function timerHandler(evt:TimerEvent):void {
+				this.remainTimeStr="";
+				if((scoutPlayerDataBean.endTime - new Date().valueOf())>0){
+					this.remainTimeStr	=MultiLang.msg('public.label.effectLastFor')+": "+MultiLang.timeFormatToString((scoutPlayerDataBean.endTime - new Date().valueOf())/1000);		
+				}else{
+					this.timer.stop();
+				}
+		
+       		}
+  			
+  			
+		]]>
+	</mx:Script>
+	<mx:VBox left="5" top="10" right="5" bottom="10" horizontalAlign="center" verticalGap="1">
+		
+		<mx:HBox width="100%" verticalAlign="middle">
+			<mx:Label width="100%" text="{MultiLang.msg('playInfo.viewAllCity')}" textAlign="center" styleName="titleBordLabel"/>
+			<mx:Button  styleName="closeBtn" click="this.visible=false;" visible="false"/>
+			<mx:Spacer width="3"/>
+		</mx:HBox>
+		<mx:HRule width="100%"/>
+		<mx:VBox width="100%" verticalGap="3" height="100%">
+			<mx:Label width="100%" styleName="goodNoticeLabel" text="{remainTimeStr}"/>
+			<mx:Canvas width="100%" height="100%">
+				<mx:List  dataProvider="{castleList}" styleName="noBGList" id="cityList" itemClick="selectPos(event)"  rowHeight="22" left="2" bottom="5" right="2" top="5">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ns1:CastleConditionUI castleInfoBean="{data}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
+			</mx:Canvas>
+		</mx:VBox>
+	</mx:VBox>
+</BaseTip>
