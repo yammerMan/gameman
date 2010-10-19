@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	height="202" width="299" 
+	xmlns:ns1="views.spreadUI.*"
+	xmlns:ui="views.spreadUI.playerInfo.*"
+	creationComplete="init()"
+	 styleName="playerInfoBG">
+	<!--个人信息面板-->
+<mx:Script>
+	<![CDATA[
+		import views.windows.functionWins.shop.ShopHelper;
+		import roma.message.events.PublicEvent;
+		import views.mainModules.map.smallMap.SmallMap;
+		import views.spreadUI.tips.BaseTip;
+		import views.spreadUI.tips.ToolTipContainer;
+		import views.spreadUI.tips.CommonTooltip;
+		import mx.resources.ResourceManager;
+		import mx.core.BitmapAsset;
+		import mx.utils.StringUtil;
+		import views.windows.functionWins.alliance.outOfAlliance.OutAllianceWin;
+		import views.windows.functionWins.ranking.RankingWin;
+		import views.windows.functionWins.alliance.Alliance;
+		import roma.util.ImageHandle;
+		import roma.util.FiltersUtil;
+		import roma.util.MultiLang;
+		import views.windows.functionWins.playInfo.PlayerLogoWin;
+		import views.windows.functionWins.playInfo.KingInfoWin;
+		import views.windows.functionWins.friendly.FriendlyWin;
+		import views.windows.functionWins.myItem.MyItemsWin;
+		import views.PopupWindows;
+		import roma.logic.CaesaryConfig;
+		import roma.logic.object.player.PlayerObj;
+		import roma.resource.ImgManager;
+		import roma.message.EvtDispacther;
+		import roma.logic.GameContext;
+		import roma.common.valueObject.PlayerInfoDataBean;
+		
+		private var circleMask:Sprite=new Sprite();
+		
+		[Bindable]
+		private var info:PlayerInfoDataBean ;
+		
+		[Bindable]
+		private var logoSource:String;
+		
+		[Bindable]
+		private var allicneRightIcon:Class;
+
+		[Bindable]
+		private var hasAlliance:Boolean;
+		
+		[Bindable]
+		private var titleName:String;
+		
+		[Bindable]
+		private var canOwnCastleNum:int;
+		
+		private var playerObj:PlayerObj = GameContext.instance.getPlayerObj();
+		
+		private var commonTip:CommonTooltip=ToolTipContainer.instance.commonTooltip;
+		
+		 private var addMovieClipMc:MovieClip;
+		
+		private function init():void {
+			this.initData();
+			ShopHelper.instance.checkHaveNewItem();
+			
+			var onPlayerInfoDataUpdate:Function = function(event:Event):void {
+				initData();
+			}
+			
+			EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_INFO_UPDATE_EVENT , onPlayerInfoDataUpdate);
+			EvtDispacther.instance.addEventListener(SmallMap.IS_SMALL_MAP_BTN_SHOW,onMapBtnShow);
+		}
+		
+		private function drawCircleMask(event:Event):void{
+			if (event.currentTarget.content != null && event.currentTarget.content is BitmapAsset ){
+				BitmapAsset(event.currentTarget.content).smoothing = true;
+			}
+			circleMask.graphics.beginFill(0x0099ff);
+			circleMask.graphics.drawCircle(0,0,PlayerLogo.width/2);
+			circleMask.graphics.endFill();
+			imgMask.addChild(circleMask);
+			this.PlayerLogo.mask=imgMask;
+		}
+		
+		private function initData():void {
+			info = this.playerObj.getPlayerInfo();
+			if(info.logoUrl == null || info.logoUrl == ""){
+				this.logoSource =ImgManager.clazz("logo.player.a1");
+			}else{
+				this.logoSource =ImgManager.clazz(info.logoUrl);
+			}
+
+			this.titleName = this.playerObj.getTitleName();
+			this.canOwnCastleNum=this.playerObj.getCanOwnCastle();
+			this.hasAlliance = this.playerObj.hasAlliance();
+			if (hasAlliance) {
+				this.allicneRightIcon = ImgManager.allianceRightsLogo(info.allianceRight);
+			}
+		}
+		
+		//修改头像
+		private function modifyLogo():void{
+//			if(!GameContext.instance.getPlayerObj().getPlayerInfo().everChangeLogo){
+				EvtDispacther.instance.eventDispatch(PlayerLogoWin.WINDOW_SHOW);
+//			}
+		}
+		
+		private function onAllianceClick():void{
+				if(GameContext.instance.getPlayerObj().getPlayerInfo().leagueName == "" || GameContext.instance.getPlayerObj().getPlayerInfo().leagueName == null){
+					EvtDispacther.instance.eventDispatch(OutAllianceWin.WINDOW_SHOW);
+				}
+				else{
+					EvtDispacther.instance.eventDispatch(Alliance.WINDOW_SHOW);
+				}
+			}
+						
+		private function onRankingClick():void{
+			EvtDispacther.instance.eventDispatch(RankingWin.WINDOW_SHOW);
+		}
+		
+		private function onMouseOutTip():void {
+			this.commonTip.onMouseOut();
+		}
+		private function onMouseOver(tt:BaseTip, event:MouseEvent):void {
+			tt.onMouseOver(event);
+		}
+		
+		/**
+		 *添加宝箱按钮动画 
+		 */		
+		
+		private function openMyItemWin():void{
+			PopupWindows.openFuncWin(MyItemsWin.WINDOW_SHOW);
+		}
+		
+		private function onMapBtnShow(event:PublicEvent):void{
+			var b:Boolean = event.evtData as Boolean;
+			if(b == true){
+				mapBtn.visible = true;			
+			}else{
+				mapBtn.visible = false;			
+			}
+		}
+		
+		private function onSmallMapShow():void{
+			EvtDispacther.instance.dispatchEvent(new Event(SmallMap.SMALL_MAP_SHOW));
+		}
+	]]>
+</mx:Script>
+	<mx:Image left="3" source="{ImgManager.clazz('background.playerLogoBG')}" bottom="5" updateComplete="ImageHandle.onLoadComplete(event)"/>
+<!--	<mx:ViewStack left="160" top="55" id="myControlViewStack">
+		<mx:Canvas id="playerInfoBtn" width="100%" height="100%">
+			<mx:Button  styleName="playerInfoFieldBtn"  click="myViewStack.selectedChild=this.mapDesc;myControlViewStack.selectedChild=this.mapDescBtn"/>
+		</mx:Canvas>
+		<mx:Canvas id="mapDescBtn" width="100%" height="100%">
+			<mx:Button  styleName="playerInfoMyInfoBtn"  click="myViewStack.selectedChild=this.playerInfo;myControlViewStack.selectedChild=this.playerInfoBtn"/>
+		</mx:Canvas>
+	</mx:ViewStack>
+-->	
+	<mx:Button styleName="playerInfoMapBtn" left="140" top="30" id="mapBtn" click="onSmallMapShow()" toolTip="{MultiLang.msg('world.showMap.tips')}" visible="false"/>
+	<mx:Canvas id="playerInfo" width="100%" height="100%">
+		<mx:Canvas top="32" left="18" right="132" bottom="20" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:UIComponent id="imgMask"  verticalCenter="0" horizontalCenter="0"/>
+			<mx:Image source="{this.logoSource}" id="PlayerLogo" updateComplete="drawCircleMask(event);" click="{modifyLogo()}" horizontalCenter="0" verticalCenter="0" toolTip="{MultiLang.msg('playerInfoPanel.modifyLogo.tip')}"/>
+			<mx:Label  horizontalCenter="0" verticalCenter="0" text="{MultiLang.msg('playInfo.modifyLogo.label')}" styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}" visible="{(info.logoUrl==null||info.logoUrl == '')?true:false}" includeInLayout="{(info.logoUrl==null||info.logoUrl == '')?true:false}"/>
+		</mx:Canvas>
+		
+		<mx:Button label="{this.info.playerName}" left="17" bottom="7"  
+			 toolTip="{MultiLang.msg('playInfo.btn.tooltip')}"
+			styleName="playerInfoBtn" click="{EvtDispacther.instance.eventDispatch(KingInfoWin.WINDOW_SHOW)}"/>
+		<mx:VBox verticalGap="-1" top="60" right="35" width="75" verticalScrollPolicy="off" horizontalScrollPolicy="off" mouseOver="this.toolTipsUi.visible=true" mouseOut="this.toolTipsUi.visible=false">
+			<mx:HBox horizontalGap="0" verticalAlign="middle"
+				mouseOver="this.commonTip.setTip(MultiLang.msg('playerInfoPanel.infoTip.prestige',this.info.prestiges));this.onMouseOver(this.commonTip ,event);" mouseOut="this.onMouseOutTip()">
+				<mx:Spacer width="4"/>
+				<mx:Image source="{ImgManager.clazz('playerInfo.prestige')}" width="16" height="16"/>
+				<mx:Label text="{this.info.prestiges}" styleName="playInfoLabel"/>
+			</mx:HBox>
+			<mx:HRule styleName="playerInfoHRule"/>
+			<mx:Canvas width="100%" height="19" horizontalScrollPolicy="off" verticalScrollPolicy="off" label="排行"
+				mouseOver="this.commonTip.setTip(MultiLang.msg('playerInfoPanel.infoTip.ranking',this.info.rank));this.onMouseOver(this.commonTip ,event);rankingBrn.visible=true;" mouseOut="rankingBrn.visible=false;this.onMouseOutTip();" click="onRankingClick()">
+				<mx:Button id="rankingBrn" visible="false" styleName="buttonRender" width="75" x="0" height="17" verticalCenter="0"/>
+				<mx:Image source="{ImgManager.clazz('playerInfo.ranking')}" verticalCenter="0" left="4" 
+					updateComplete="ImageHandle.onLoadComplete(event)" mouseEnabled="false" enabled="false" width="16" height="16"/>
+				<mx:Label text="{this.info.rank}" verticalCenter="0" left="20" styleName="playInfoLabel" mouseEnabled="false" enabled="false"/>
+			</mx:Canvas>
+			<mx:HRule styleName="playerInfoHRule"/>
+			<mx:Canvas width="100%" height="19" horizontalScrollPolicy="off" verticalScrollPolicy="off" label="联盟"
+				mouseOver="this.commonTip.setTip(MultiLang.msg('playerInfoPanel.infoTip.alliance',this.info.leagueName==null?'':this.info.leagueName));this.onMouseOver(this.commonTip ,event);allianceBrn.visible=true;" mouseOut="allianceBrn.visible=false;this.onMouseOutTip();" click="onAllianceClick()">
+				<mx:Button id="allianceBrn" visible="false" styleName="buttonRender" width="75" x="0" height="17" verticalCenter="0"/>
+				<mx:Image source="{ImgManager.clazz('playerInfo.alliance')}" verticalCenter="0" left="4" 
+					updateComplete="ImageHandle.onLoadComplete(event)" mouseEnabled="false" enabled="false" width="16" height="16"/>
+				<!--mx:Label text="{this.info.leagueName}" verticalCenter="0" left="20" styleName="playInfoLabel" mouseEnabled="false" enabled="false"/-->
+				<ui:AllianceNameLabel text="{this.info.leagueName==null?'':this.info.leagueName}" verticalCenter="0" left="20" styleName="playInfoLabel" mouseEnabled="false" enabled="false"/>
+			</mx:Canvas>
+			<mx:HRule styleName="playerInfoHRule"/>
+			<mx:HBox horizontalGap="0" verticalAlign="middle" label="荣誉" mouseOver="this.commonTip.setTip(MultiLang.msg('playerInfoPanel.infoTip.honor',this.info.honor));this.onMouseOver(this.commonTip ,event);" mouseOut="this.onMouseOutTip()">
+				<mx:Spacer width="4"/>
+				<mx:Image source="{ImgManager.clazz('playerInfo.honor')}" updateComplete="ImageHandle.onLoadComplete(event)" width="16" height="16"/>
+				<mx:Label text="{this.info.honor}"  styleName="playInfoLabel"/>
+			</mx:HBox>
+			<mx:HRule styleName="playerInfoHRule"/>
+			<mx:HBox verticalAlign="middle" horizontalGap="0" label="官职" mouseOver="this.commonTip.setTip(MultiLang.msg('playerInfoPanel.infoTip.title',this.titleName,this.canOwnCastleNum));this.onMouseOver(this.commonTip ,event);" mouseOut="this.onMouseOutTip()">
+				<mx:Spacer width="4"/>
+				<mx:Image source="{ImgManager.clazz('playerInfo.title')}" updateComplete="ImageHandle.onLoadComplete(event)" width="16" height="16"/>
+				<mx:Label text="{this.titleName}"  styleName="playInfoLabel"/>
+			</mx:HBox>
+			<mx:HRule styleName="playerInfoHRule"/>
+			<mx:Canvas width="100%" height="19" horizontalScrollPolicy="off" verticalScrollPolicy="off" label="充值"
+				mouseOver="this.commonTip.setTip(MultiLang.msg('playerInfoPanel.infoTip.coin',this.info.coin));this.onMouseOver(this.commonTip ,event);addCoinBrn.visible=true;" mouseOut="this.onMouseOutTip();addCoinBrn.visible=false;" click="ClientMain.recharge()">
+				<mx:Button id="addCoinBrn" visible="false" styleName="buttonRender" width="75" x="0" height="17" verticalCenter="0"/>
+				<mx:Image source="{ImgManager.clazz('icon.coin')}" verticalCenter="0" left="4" 
+					updateComplete="ImageHandle.onLoadComplete(event)" mouseEnabled="false" enabled="false" width="16" height="16"/>
+				<mx:Label text="{this.info.coin}" verticalCenter="0" left="20" styleName="playInfoLabel" mouseEnabled="false" enabled="false"/>
+			</mx:Canvas>
+		</mx:VBox>
+		<mx:Canvas cornerRadius="20" styleName="brownAlphaBG" right="115" id="toolTipsUi" y="60" visible="false">
+			<mx:VBox  verticalGap="0"   left="5" right="5">
+				<mx:Label text="{MultiLang.msg('public.label.prestige')}:" styleName="titleLevelLabel" textAlign="right" width="100%" filters="{[FiltersUtil.brownGlowFilter]}"/>
+				<mx:Label text="{MultiLang.msg('ranking.label.ranking')}:" styleName="titleLevelLabel" textAlign="right" width="100%" filters="{[FiltersUtil.brownGlowFilter]}"/>
+				<mx:Label text="{MultiLang.msg('public.label.alliance')}:" styleName="titleLevelLabel" textAlign="right" width="100%" filters="{[FiltersUtil.brownGlowFilter]}"/>
+				<mx:Label text="{MultiLang.msg('label.horne')}:" styleName="titleLevelLabel" textAlign="right" width="100%" filters="{[FiltersUtil.brownGlowFilter]}"/>
+				<mx:Label text="{MultiLang.msg('info.player.title')}:" styleName="titleLevelLabel" textAlign="right" width="100%" filters="{[FiltersUtil.brownGlowFilter]}"/>
+				<mx:Label text="{MultiLang.msg('public.label.coin')}:" styleName="titleLevelLabel" textAlign="right" width="100%" filters="{[FiltersUtil.brownGlowFilter]}"/>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	<mx:Button  styleName="myItemBtn" left="2" top="14" click="openMyItemWin()" toolTip="{MultiLang.msg('playerInfoPanel.btnTip.myItem')}" id="myItemBtn"/>
+	<!--ns1:NewItemMark left="2" top="14" visible="{CaesaryConfig.instance.haveNewChest||CaesaryConfig.instance.haveNewLuxury||CaesaryConfig.instance.haveNewProduce||CaesaryConfig.instance.haveNewSpeedup||CaesaryConfig.instance.haveNewTreasure}">
+	</ns1:NewItemMark-->
+	<mx:Label text="{MultiLang.msg('shop.type.treasure')}" left="3" top="68" styleName="CityLogoLabel" filters="{[FiltersUtil.glowFilter]}" fontSize="12"/>
+</mx:Canvas>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BasePopup xmlns="views.spreadUI.popups.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="240" height="180" verticalScrollPolicy="off" horizontalScrollPolicy="off" styleName="baseTooltip">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import roma.common.valueObject.PlayerDataBean;
+			import roma.common.controller.rank.RankPlayerDataResponse;
+			import views.windows.functionWins.ranking.RankingWin;
+			import roma.common.constants.PlayerConstant;
+			import mx.managers.PopUpManager;
+			import mx.core.IFlexDisplayObject;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.common.constants.AllianceConstant;
+			import views.windows.functionWins.mail.Mail;
+			import views.spreadUI.MyAlert;
+			import views.windows.functionWins.friendly.PlayerInfoView;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import views.mainFrame.PlayerInfoPanel;
+			import roma.resource.ImgManager;
+			import mx.resources.ResourceManager;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var playerName:String;
+			private var callBackFun:Function;
+			[Bindable]
+			private var isScreenShield:Boolean=false;
+			
+			
+			public function show(p:String,func:Function):void{
+				this.visible = true;
+				this.playerName = p;
+				this.callBackFun = func;
+				this.isScreenShield=GameContext.instance.isScreenShield(this.playerName);
+			}
+			
+			public function remove():void{
+				this.visible = false;
+			}
+			
+			private function addFriend():void{
+				GameContext.instance.getPlayerObj().playerRelationManager.addOrUpdatePlayerRelation(playerName,PlayerConstant.RELATION_FRIENDS);
+			}
+			
+			private function block():void{
+				GameContext.instance.getPlayerObj().playerRelationManager.addOrUpdatePlayerRelation(playerName,PlayerConstant.RELATION_BLOCKS);
+			}
+			
+			private function copyName():void{
+				System.setClipboard(playerName);
+				visible = false;
+			}
+			
+			private function inviteIntoAlliance():void{
+				var p:PlayerInfoDataBean = GameContext.instance.getPlayerObj().getPlayerInfo();
+				if(p.leagueName && p.allianceRight>=AllianceConstant.ALLIANCE_TITLE_OFFICER){
+					ControllerFactory.getInstance().getAllianceManagementController().inviteToAlliance(playerName,onInviteToAlliance);
+				}else if(p.leagueName == null || p.leagueName == ""){
+					MyAlert.show(MultiLang.msg('alliance.outOfAlliance.warn'));
+				}else if(p.allianceRight < AllianceConstant.ALLIANCE_TITLE_OFFICER){
+					MyAlert.show(MultiLang.msg('alliance.invite.levelLimit'));
+				}
+				function onInviteToAlliance(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("alliance.invite.success"));
+						visible = false;
+					}
+					else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function showPlayerInfo():void{
+				ControllerFactory.getInstance().getRankController().getPlayerInfo(playerName,onGetPlayerInfo);
+				function onGetPlayerInfo(e:RankPlayerDataResponse):void{
+					for each(var p:PlayerInfoDataBean in e.beansArray){
+						if(p.playerName == playerName){
+							PlayerInfoView.show(p);
+							visible = false;
+							break;
+						}
+					}
+				}
+			}
+			
+			private function screenShieldHandle():void{
+				if(isScreenShield){
+					GameContext.instance.deleteScreenShield(this.playerName);
+				}else{
+					GameContext.instance.setScreenShield(this.playerName);
+				}
+				this.isScreenShield=GameContext.instance.isScreenShield(this.playerName);
+				this.remove();
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="98%" horizontalCenter="0" top="5" horizontalAlign="center" verticalGap=".5">
+		<mx:Label text="{playerName}" width="90%" textAlign="center"/>
+		<mx:HRule width="90%"/>
+		<mx:Button width="98%" height="20" paddingLeft="10" textAlign="left" styleName="chatPureColorBtn"  icon="{ImgManager.clazz('chat.icon.content')}" horizontalGap="5" label="{MultiLang.msg('chat.popupBox.whisper')}" click="{callBackFun.call(this,playerName);this.visible= false;}"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="31" styleName="chatPureColorBtn" label="{MultiLang.msg('chat.checkPlayerInfo')}" click="{showPlayerInfo()}"/>
+		<mx:HRule width="90%"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="31" horizontalGap="5" styleName="chatPureColorBtn" label="{MultiLang.msg('chat.popupBox.copyName')}" click="{copyName()}"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="10" horizontalGap="5" styleName="chatPureColorBtn" icon="{ImgManager.clazz('chat.icon.addFriends')}" label="{MultiLang.msg('friendly.addFriends')}" click="addFriend()"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="31" horizontalGap="5" styleName="chatPureColorBtn" label="{MultiLang.msg('chat.popupBox.block')}" click="block()"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="31" horizontalGap="5" styleName="chatPureColorBtn" label="{isScreenShield?MultiLang.msg('chat.popupBox.unScreenShield'):MultiLang.msg('chat.popupBox.screenShield')}" click="screenShieldHandle()"/>
+		<mx:HRule width="90%"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="10" horizontalGap="5" styleName="chatPureColorBtn" icon="{ImgManager.clazz('chat.icon.write')}" label="{MultiLang.msg('chat.popupBox.write')}" click="{Mail.writeMailToPlayer(playerName);this.visible = false;}"/>
+		<mx:Button width="98%" height="20" textAlign="left" paddingLeft="31" horizontalGap="5" styleName="chatPureColorBtn" label="{MultiLang.msg('chat.popupBox.invite')}" click="{inviteIntoAlliance()}"/>
+	</mx:VBox>
+</BasePopup>

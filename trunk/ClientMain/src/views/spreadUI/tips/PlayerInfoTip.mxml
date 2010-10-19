@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="295" height="205" creationComplete="init()" mouseOver="this.endTime()">
+	<mx:Script>
+		<![CDATA[
+			import mx.resources.ResourceManager;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import views.windows.functionWins.mail.Mail;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.util.PopupWinManager;
+			[Bindable]
+			private var playerInfo:PlayerInfoDataBean;
+			[Bindable]
+			private var tileName:String;
+			[Bindable]
+			private var logoSource:*;
+			private var time:Timer=new Timer(1000);
+			private var timeCount:int=0;
+			private var timeLimit:int=5;
+
+			private function init():void{
+				var maskSp:Sprite = new Sprite();
+				maskSp.graphics.beginFill(0,0);
+				maskSp.graphics.drawCircle(49,50,50);
+				maskSp.graphics.endFill();
+				this.logoImage.addChild(maskSp);
+				this.logoImage.mask = maskSp;
+				this.time.addEventListener(TimerEvent.TIMER,timerHandle);
+			}
+			
+			private function timerHandle(event:TimerEvent):void{
+				this.timeCount++;
+				if(this.timeCount==timeLimit){
+					this.endTime();
+				}
+			}
+			
+			private function endTime():void{
+				this.timeLimit=0;
+				this.visible=false;
+				this.time.stop();
+			}
+			
+			public function show(data:Object):void {
+				this.playerInfo=PlayerInfoDataBean(data);
+  				this.getTitleName();
+  				this.getLogo();
+  				if(this.time.running){
+  					this.timeCount=0;
+  				}else{
+  					this.time.start();
+  				}
+  			}
+  			
+  			private function getTitleName():void{
+  				this.tileName=MultiLang.getPlayerTitle(this.playerInfo.title);
+  			}
+  			
+  			private function getLogo():void{
+  				this.logoSource =ImgManager.clazz(playerInfo.logoUrl);
+				if (this.logoSource==null) {	
+					this.logoSource =ImgManager.clazz("logo.unKnown.a1");
+				}
+  			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:Canvas height="125" width="100%">
+			<mx:Canvas width="123" height="121" left="2" verticalCenter="0">
+				<mx:Image left="0" right="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0"/>
+				<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{this.logoSource}" id="logoImage" horizontalCenter="0" verticalCenter="0" width="102" height="102"/>
+			</mx:Canvas>
+			<mx:HBox left="128" horizontalGap="0" top="0" bottom="0" right="0">
+				<mx:VBox horizontalAlign="center"  verticalGap="0" height="100%" width="100%">
+					<mx:VBox verticalAlign="middle" height="100%" width="100%" horizontalAlign="center">
+						<mx:Label text="{playerInfo.playerName}" textAlign="center" styleName="titleBordLabel"/>
+					</mx:VBox>
+					<mx:HBox width="100%" horizontalGap="0">
+						<mx:VBox verticalGap="0" width="40%">
+							<mx:Label text="{MultiLang.msg('info.player.title')}:" textAlign="right" width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.ranking')}:" textAlign="right" width="100%"/>
+						</mx:VBox>
+						<mx:VBox verticalGap="0" width="100%">
+							<mx:Label text="{this.tileName}" width="100%"/>
+							<mx:Label text="{playerInfo.leagueName}" width="100%"/>
+							<mx:Label text="{playerInfo.rank}" width="100%"/>
+						</mx:VBox>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:Canvas>
+		<mx:HBox  horizontalGap="0" styleName="whiteBGwithBorder" width="200" height="47">
+			<mx:VBox width="50%" verticalGap="0">
+				<mx:HBox width="100%" height="22" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('icon.populationSmall')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label text="{playerInfo.population}" width="100%"/>
+				</mx:HBox>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="22" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('playerInfo.alliance')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label text="{playerInfo.honor}" width="100%"/>
+				</mx:HBox>		
+			</mx:VBox>
+			<mx:VRule height="100%"/>
+			<mx:VBox width="50%" verticalGap="0">
+				<mx:HBox width="100%" height="22" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('playerInfo.castle')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label text="{playerInfo.cityCount}" width="100%"/>
+				</mx:HBox>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" height="22" verticalAlign="middle">
+					<mx:Image source="{ImgManager.clazz('playerInfo.prestige')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					<mx:Label text="{playerInfo.prestiges}" width="100%"/>
+				</mx:HBox>		
+			</mx:VBox>
+		</mx:HBox>
+	</mx:VBox>
+</BaseTip>

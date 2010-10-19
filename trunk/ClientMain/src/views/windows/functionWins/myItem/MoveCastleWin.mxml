@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()"
+	xmlns:util="views.util.*" title="{MultiLang.msg('item.moveCastle.title')}"
+	width="338" height="202" xmlns:imageLogo="views.windows.functionWins.alliance.*">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import views.mainModules.map.diamond2.ZoneGenerator;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import views.mainModules.map.diamond2.TileHelper;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.ZoneInfoDataBean;
+			import roma.common.controller.common.ZoneInfoDataResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.PopupWinManager;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+
+			[Bindable]
+			private var zoneBean:ZoneInfoDataBean;
+			[Bindable]
+			private var stateDataArray:ArrayCollection = new ArrayCollection([
+																			  {label:'state.Britons',data:0},
+																			  {label:'state.Reich',data:1},
+																			  {label:'state.Asiana',data:2},
+																			  {label:'state.Gauls',data:3},
+																			  {label:'state.Hispania',data:4},
+																			  {label:'state.Italia',data:5},
+																			  {label:'state.Macedon',data:6},
+																			  {label:'state.Carthage',data:7},
+																			  {label:'state.Egypt',data:8},
+																			  {label:'state.Parthia',data:9}]);
+
+			private static var instancePopup:MoveCastleWin= new MoveCastleWin();
+			private var zoneInfomationmationResponse:ZoneInfoDataResponse;
+			private var zone:int;
+
+			private function init():void{
+				instancePopup=this;
+			}
+			
+			public static function show(modal:Boolean=true):void {
+  				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,modal);
+				}
+				ControllerFactory.getInstance().getCommonController().zoneInfomation(instancePopup.getZoneInfoHandle);
+  			}
+  			
+  			public function getZoneInfoHandle(event:ZoneInfoDataResponse):void{
+  				this.zoneInfomationmationResponse=null;
+  				if(event.success){
+	  				this.zoneInfomationmationResponse=event;
+
+	  				this.zone=ZoneGenerator.getInstance().getZoneId(GameContext.instance.getPlayerObj().getCurCastleObj().idField);
+	  				getCurSelectZone(this.zone);
+
+	  				for(var i:int=0;i<stateDataArray.length;i++){
+	  					if(this.zone==stateDataArray[i].data){
+	  						this.zoneCom.selectedIndex=i;
+	  					}
+	  				}
+  				}
+  			}
+  			
+  			private function stateCloseHandle(event:Event):void{
+				this.zone = ComboBox(event.target).selectedItem.data;
+				getCurSelectZone(this.zone);
+			}
+			
+			private function getCurSelectZone(id:int):void{
+				this.zoneBean=null;
+				if(zoneInfomationmationResponse!=null){
+					for each(var zone:ZoneInfoDataBean in zoneInfomationmationResponse.arrayArray){
+						if(zone.id==id){
+							this.zoneBean=zone;
+							this.cityCountText.text=String(zoneBean.cityCount);
+							this.playerCountText.text=String(zoneBean.playerCount);
+							this.rateText.text=zoneBean.rate.toFixed(1)+"%";
+						}
+					}
+				}
+			}
+			
+			private function moveCity():void{
+				ControllerFactory.getInstance().getCityController().moveCity(GameContext.instance.getPlayerObj().getCurCastleObj().cityId,this.zone,onMoveCastleResponse);
+			}
+			
+			private function onMoveCastleResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					PopupWinManager.instance.removePopup(this);
+					
+					var idField:int = GameContext.instance.getPlayerObj().getCurCastleObj().idField;
+					var fx:int = idField/10000;
+					var fy:int = idField%10000;
+					DiamondWorldMap2.instance.setCenterPoint(fx,fy);
+
+ 					MainContainer.instance.risePlay(MultiLang.msg('myItems.moveCastleAdv.success'));
+ 				}else{
+ 					MyAlert.showError(event);
+ 				}
+			} 
+			
+			/*回调函数 ，获取玩家联盟职位名称 */
+			private function getZoneName(item:Object):String{
+				return TileHelper.getZoneName(item.data);			
+			}
+					
+		]]>
+	</mx:Script>
+	<mx:VBox top="35" left="12" right="12" bottom="12" verticalGap="2">
+		<mx:HBox width="100%" verticalAlign="middle" horizontalGap="6">
+			<mx:Label text="{MultiLang.msg('chatType.zone')}:" width="60" textAlign="right"/>
+			<mx:ComboBox width="144" close="stateCloseHandle(event)" dataProvider="{stateDataArray}" labelFunction="getZoneName" id="zoneCom"></mx:ComboBox>
+			<mx:Button label="{MultiLang.msg('item.moveCastle.title')}" width="97" click="moveCity()"/>
+		</mx:HBox>
+		<mx:Canvas width="100%" height="100%" styleName="mainWindowContentBG">
+			<mx:HBox horizontalGap="0" verticalCenter="0" horizontalCenter="0" styleName="whiteBGwithBorder">
+				<mx:VBox height="100%" verticalGap="0">
+					<mx:Label text="{MultiLang.msg('info.player.castleCount')}:" width="100%" textAlign="right"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('item.moveCastle.playerCount')}:" width="100%" textAlign="right"/>
+					<mx:HRule width="100%"/>
+					<mx:Label text="{MultiLang.msg('item.moveCastle.crowd')}:" width="100%" textAlign="right"/>
+				</mx:VBox>
+				<mx:VRule height="61"/>
+				<mx:VBox height="100%" verticalGap="0">
+					<mx:Label width="100%" id="cityCountText"/>
+					<mx:HRule width="100%"/>
+					<mx:Label width="100%" id="playerCountText"/>
+					<mx:HRule width="100%"/>
+					<mx:Label width="100%" id="rateText"/>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:Canvas>
+	</mx:VBox>
+</functionWins:BasePopUpWindow>

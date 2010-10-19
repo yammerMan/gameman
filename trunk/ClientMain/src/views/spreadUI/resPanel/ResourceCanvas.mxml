@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="125" height="30"
+	creationComplete="init()"
+	mouseOut="resTooltip.onMouseOut()"
+	mouseOver="onMouseOver(event)"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	 xmlns:ns1="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import views.mainFrame.ToggleButton;
+			import mx.formatters.SwitchSymbolFormatter;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.object.player.ItemResManager;
+			import roma.util.ImageHandle;
+			import mx.core.BitmapAsset;
+			import roma.util.MultiLang;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ResTooltip;
+			import views.spreadUI.tips.BaseTip;
+			import roma.message.EvtDispacther;
+			import roma.resource.ImgManager;
+			import roma.logic.RomaConstants;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.logic.object.castle.ResourceObj;
+			
+			[Bindable]
+			private var res:ResourceObj;
+			
+			[Bindable]
+			private var imgSource:Class;
+			
+			private var typeId:int;
+			
+			private var resTooltip:ResTooltip;
+			private var resNameStr:String;
+			
+			[Bindable]
+			private var tipString:String;
+			
+			private function init():void {
+				var onCurCastleChange:Function = function(event:Event):void {
+					refresh();
+				}
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT, onCurCastleChange);
+				
+				addEventListener(Event.ENTER_FRAME,frameHandler);
+			}
+			
+			//两分钟
+			private static var TIMR_DELAY:int =2880;
+			private var timeCount:int;
+			private function frameHandler(event:Event):void{
+				if(ToggleButton.instance.isTown){
+					timeCount++;
+					if(timeCount>TIMR_DELAY){
+						timeCount =0;
+						if(res.isCapacityFull()){
+							if(numLabel.styleName !="clewLabel")
+								numLabel.styleName ="clewLabel";
+						}else{
+							numLabel.styleName ="resourceCommonLabel";
+						}
+					}
+				}else{
+					timeCount =0;
+				}
+			}
+			
+			public function set resourceType(type:int):void {
+				typeId = type;
+				refresh();
+			}
+			
+			private function refresh():void {
+				var resManger:CastleResourceManager = GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+				resTooltip = ToolTipContainer.instance.resTooltip;
+				switch (typeId) {
+					case RomaConstants.RES_TYPE_FOOD:
+						res = resManger.food;
+						imgSource = ImgManager.clazz("icon.food");
+						resNameStr = MultiLang.msg("label.food");
+						tipString=MultiLang.msg("addButtonTip.food");
+						break;
+					case RomaConstants.RES_TYPE_WOOD:
+						res = resManger.wood;
+						imgSource = ImgManager.clazz("icon.wood");
+						resNameStr = MultiLang.msg("label.wood");
+						tipString=MultiLang.msg("addButtonTip.wood");
+						break;
+					case RomaConstants.RES_TYPE_IRON:
+						res = resManger.iron;
+						imgSource = ImgManager.clazz("icon.iron");
+						resNameStr = MultiLang.msg("label.iron");
+						tipString=MultiLang.msg("addButtonTip.iron");
+						break;
+					case RomaConstants.RES_TYPE_STONE:
+						res = resManger.stone;
+						imgSource = ImgManager.clazz("icon.stone");
+						resNameStr = MultiLang.msg("label.stone");
+						tipString=MultiLang.msg("addButtonTip.stone");
+						break;
+					default:
+				}
+				resTooltip.setResourceObj(res);
+				
+				if(res.isCapacityFull()){
+					numLabel.styleName ="clewLabel";
+				}else{
+					numLabel.styleName ="resourceCommonLabel";
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				resTooltip.setResourceObj(res);
+				resTooltip.resName = resNameStr;
+				resTooltip.setResType(typeId);
+				resTooltip.onMouseOver(event,1);
+			}
+			private function showItemManager():void{
+				switch (typeId) {
+					case RomaConstants.RES_TYPE_FOOD:
+						ItemSelectSpeedUpWin.show(ItemResManager.incFoodItemArrayCollection);
+						break;
+					case RomaConstants.RES_TYPE_WOOD:
+						ItemSelectSpeedUpWin.show(ItemResManager.incWoodItemArrayCollection);
+						break;
+					case RomaConstants.RES_TYPE_IRON:
+						ItemSelectSpeedUpWin.show(ItemResManager.incIronItemArrayCollection);
+						break;
+					case RomaConstants.RES_TYPE_STONE:
+						ItemSelectSpeedUpWin.show(ItemResManager.incStoneItemArrayCollection);
+						break;
+					default:
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Image source="{imgSource}"  left="5" updateComplete="ImageHandle.onLoadComplete(event)" verticalCenter="0"/>
+	<ns1:FormatLabel id="numLabel" myText="{Number(res.curAmount).toFixed(0)}"
+		left="32" textAlign="right" top="0" styleName="resourceCommonLabel"/>
+	<ns1:FormatLabel myText="{Number(res.totalProduce).toFixed(0)}" 
+		textAlign="right" bottom="0" right="25" styleName="{Number(res.totalProduce)>0?'goodNoticeSmallLabel':'NoticeSmallLabel'}"/>
+	<mx:Button styleName="addBtn"
+		right="5" verticalCenter="0" click="showItemManager()" toolTip="{tipString}">
+	</mx:Button>
+</mx:Canvas>

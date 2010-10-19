@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="56" height="28" horizontalScrollPolicy="off" styleName="smallLogoBG" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.object.player.ItemResManager;
+			import roma.logic.rule.ItemRule;
+			import mx.utils.ObjectProxy;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var itemObj:ObjectProxy;
+			[Bindable]
+			private var rule:ItemRule;
+			private var itemName:String;
+			
+			public function set itemBean(i:ObjectProxy):void{
+				itemObj = i;
+				rule = GameRuleHelper.instance.getItemRuleById(itemObj.id);
+			}
+		]]>
+	</mx:Script>
+	<mx:Image source="{rule.itemIcon}" width="50" height="23" verticalCenter="0" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" 
+		toolTip="{rule.name}"/>
+	<mx:Label text="{itemObj.count}"/>
+</mx:Canvas>

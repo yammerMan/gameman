@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="12" height="12" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.resource.ImgManager;
+			
+			public static var CASTLE_TYPE:String = "castleType";
+			public static var NPC_TYPE:String = "npcType";
+			public static var NPC_RATTER_TYPE:String = "npcRatterType";
+			public static var DOT_MOUSEOVER:String = "dotMouseOver";
+			public static var DOT_MOUSEOUT:String = "dotMouseOut";
+			
+			[Bindable]
+			private var imgStr:String = "";
+			private var idField:int = 0;
+			private var callFun:Function;
+			
+			private function init():void{
+				this.addEventListener(MouseEvent.MOUSE_OVER,overHandler);
+				this.addEventListener(MouseEvent.MOUSE_OUT,outHandler);
+			}
+		
+			public function refresh(typeStr:String,fId:int,fun:Function= null):void{
+				if(typeStr == NPC_RATTER_TYPE){
+					imgStr = "map.npcRatterCastle.img";
+				}else if(typeStr == NPC_TYPE){
+					imgStr = "map.npcCastle.img";
+				}else if(typeStr == CASTLE_TYPE){
+					imgStr = "";
+					drawMyCity(0x00ff00);
+				}
+				idField = fId;
+				callFun  = fun;
+			}
+			
+			public function setDotXY(x1:int,y1:int):void{
+				this.x = x1-this.width/2;
+				this.y = y1 -this.height/2;
+			}
+			
+			public function setDocMyCastle(x1:int,y1:int):void{
+				this.x = x1-1;
+				this.y = y1-1;
+			}
+			
+			private function drawMyCity(rgb:Number):void{
+				this.graphics.beginFill(rgb,1);
+				this.graphics.drawCircle(2,2,2);
+			}
+			
+			private function overHandler(event:MouseEvent):void{
+				if(this.callFun != null){
+					callFun.apply(this,[DOT_MOUSEOVER,event,this.idField]);
+				}
+			}
+	
+			private function outHandler(event:MouseEvent):void{
+				if(this.callFun != null){
+					callFun.apply(this,[DOT_MOUSEOUT,event,this.idField]);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Image source="{ImgManager.clazz(imgStr)}" x="0" y="0"/>
+</mx:Canvas>

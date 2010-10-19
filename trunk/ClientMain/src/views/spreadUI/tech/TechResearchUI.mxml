@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="114" height="90" 
+	creationComplete="initCan()">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.tips.TechConditionTooltip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.CommonTooltip;
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+			import roma.message.events.PublicEvent;
+			import roma.message.EvtDispacther;
+			import roma.logic.rule.TechRule;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.object.tech.TechHelper;
+			import roma.util.ClientUtil;
+			import roma.logic.object.player.TechManager;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.logic.GameContext;
+			import roma.logic.object.tech.BaseTechObj;
+		
+			[Bindable]
+			private var techIcon:String;
+			[Bindable]
+			private var techNameStr:String;
+			[Bindable]
+			private var techIevelIcon:Class;
+			[Bindable]
+			private var techEffectIevelIcon:String;
+			[Bindable]
+			private var leftTime:String;
+			[Bindable]
+			private var level:int;
+			[Bindable]
+			private var effectLevel:int
+
+			[Bindable]
+			private var btnLable:String =MultiLang.msg('tech.label.research');
+
+			[Bindable]
+			public var btnEnabled:Boolean;
+			
+			[Bindable]
+			public var isResearching:Boolean;
+			
+			public var isOtherResearching:Boolean;
+
+			private var finishTime:Number;
+			private var timeNeed:Number;
+			private var progressBarWidth:int = 77;
+			
+			[Bindable]
+			private var _parent:String;
+			
+			[Bindable]
+			private var ruleResult:RuleCheckResult;
+			
+			private var _techObj:BaseTechObj;
+			
+			private var techConditionTooltip:TechConditionTooltip = ToolTipContainer.instance.techConditionTooltip;
+			private var commonTooltip:CommonTooltip= ToolTipContainer.instance.commonTooltip;
+			private var isShowDisc:Boolean=false;
+			
+			
+			private static var log:ILogger = Log.getLogger("views.spreadUI.TechResearch");
+			
+			private function initCan():void{
+				initPg();	
+				this.techEffectIevelIcon=TechHelper.instance.getEffectLevelIcon();
+				this.addEventListener(MouseEvent.MOUSE_OVER,onOverHandler);
+				this.addEventListener(MouseEvent.MOUSE_MOVE,onMoveHandler);
+				this.addEventListener(MouseEvent.MOUSE_OUT,onOutHandler);			
+			}
+			
+			public function getObj():BaseTechObj{
+				return _techObj;
+			}
+			
+			public function setTechObj(obj:BaseTechObj):void{
+				_techObj = obj;
+				
+				this.techIcon = _techObj.techIcon;
+				this.techNameStr = _techObj.techName;
+				this.isResearching = _techObj.startResearching;
+
+				this.level = _techObj.level;
+				this.effectLevel=_techObj.getCurCastleTechLevel(GameContext.instance.getPlayerObj().getCurCastleObj());
+				this.techIevelIcon = TechHelper.instance.getDiffLevelIcon(_techObj.level);
+				
+				if(this.initialized){
+					initPg();
+				}
+			}
+			
+			public function startResearchCheck():void{
+				this.level = _techObj.level;
+				this.effectLevel=_techObj.getCurCastleTechLevel(GameContext.instance.getPlayerObj().getCurCastleObj());
+				this.techIevelIcon = TechHelper.instance.getDiffLevelIcon(_techObj.level);
+				
+				this.isOtherResearching = false;
+				this.isResearching = false;
+	
+				this.checkCondition();
+									
+				if(_techObj.startResearching && _techObj.cityId == GameContext.instance.getPlayerObj().getCurCastleObj().cityId){
+					this.isResearching = true;
+					this.progress.visible = true;
+										
+					var now:Number = new Date().valueOf();
+					var diff:Number = GameContext.instance.getTimeDis();	
+					
+					this.timeNeed = _techObj.timeNeed;
+					this.finishTime = _techObj.finishTime;
+					
+					this.leftTime = MultiLang.timeFormatToString((this.finishTime-now+diff)/1000);
+					this.progressBar.width = (this.timeNeed-(this.finishTime - now +diff)/1000)/this.timeNeed*this.progressBarWidth;
+					
+				}else if(_techObj.startResearching && _techObj.cityId != GameContext.instance.getPlayerObj().getCurCastleObj().cityId){
+					this.isOtherResearching = true;
+					initPg();					
+				}else{
+					initPg();
+				}
+			
+				if(isOtherResearching){
+					this.btnLable = MultiLang.msg('tech.label.researching');
+				}else{
+					this.btnLable = MultiLang.msg('tech.label.research');
+				}
+			}
+			
+			private function checkCondition():void{
+				var rule:TechRule = _techObj.getNextTechRule();
+
+				if(rule !=null){
+					this.ruleResult = rule.check();
+
+					if(this.ruleResult.isMatch){
+						this.techIconCon.alpha = 1.0;
+						this.btnEnabled = true;	
+					}else{
+						this.techIconCon.alpha = 0.5;							
+						this.btnEnabled = false;							
+					}					
+				}
+				
+				if(_techObj.level>=10){
+					this.btnEnabled = false;				
+				}
+			}
+			
+			private function sendHandler(event:MouseEvent):void{
+				//加速按钮不发送事件流，防止调用两次
+				with(event.target){
+					if(id == "speedUpBtn"){
+						EvtDispacther.instance.dispatchEvent(new PublicEvent(TechTypeList.TECH_SPEEDUP,_techObj));
+					}else if(id == "cancelBtn"){
+						EvtDispacther.instance.dispatchEvent(new PublicEvent(TechTypeList.TECH_CANCEL,_techObj));
+					}
+				}
+			}	
+			
+			private function initPg():void{
+				this.progress.visible = false;
+				this.progressBar.width =0;
+			}
+			
+			private function onOverHandler(event:MouseEvent):void{
+				if(event.currentTarget==this.techIconContainer){
+					this.commonTooltip.setTip(TechHelper.instance.getTechDisc(this._techObj.techType));
+					this.commonTooltip.onMouseOver(event);
+					this.isShowDisc=true;
+				}else if(event.currentTarget==this.curentLevelContainer||event.currentTarget==this.effectLevelContainer){
+					this.commonTooltip.setTip(MultiLang.msg('tech.currentEffectLevel',this.level,this.effectLevel));
+					this.commonTooltip.onMouseOver(event);
+					this.isShowDisc=true;
+				}else {
+					if(!isShowDisc){
+						if(_techObj.level<10){
+							this.techConditionTooltip.setData(this._techObj,this.ruleResult);
+							this.techConditionTooltip.onMouseOver(event);
+						}else{
+							var dis:String=MultiLang.msg('tech.level.max');
+							dis+="\n\n"+TechHelper.instance.getFuncEffect(this._techObj.techType,this._techObj.level);
+							this.commonTooltip.setTip(dis);
+							this.commonTooltip.onMouseOver(event);
+						}
+					}
+				}
+			}
+
+			private function onMoveHandler(event:MouseEvent):void{
+				if(event.currentTarget==this.techIconContainer||event.currentTarget==this.curentLevelContainer||event.currentTarget==this.effectLevelContainer){
+					if(this.commonTooltip.getVisible()){
+						this.commonTooltip.onMouseMove(event);
+						this.isShowDisc=true;
+					}
+				}else{
+					if(!isShowDisc){
+		 				if(this.techConditionTooltip.getVisible()){
+							this.techConditionTooltip.onMouseMove(event);
+						}
+						if(this.commonTooltip.getVisible()){
+							this.commonTooltip.onMouseMove(event);
+						}
+					}
+				}
+			}
+			
+			private function onOutHandler(event:MouseEvent):void{
+				if(event.currentTarget==this.techIconContainer||event.currentTarget==this.curentLevelContainer||event.currentTarget==this.effectLevelContainer){
+					this.commonTooltip.onMouseOut();
+					this.isShowDisc=false;
+				}else{
+					if(!isShowDisc){
+						if(this._techObj.level<10){
+							this.techConditionTooltip.onMouseOut();
+						}else{
+							this.commonTooltip.onMouseOut();
+						}	
+					}
+				}
+			}			
+		]]>
+	</mx:Script>
+	<mx:Canvas id ="uiContainer" styleName="BuildingAlphaWindow" width="100%" height="70" >
+		<mx:VBox width="100%" height="100%" id="techIconContainer" horizontalAlign="center" verticalGap="1" paddingTop="4" mouseOver="onOverHandler(event)" mouseMove="onMoveHandler(event)" mouseOut="onOutHandler(event)">
+			<mx:Canvas  styleName="smallLogoBG"   width="80" height="40">
+				<mx:Image source="{this.techIcon}"  id="techIconCon" top="3" left="3" bottom="3" right="3" scaleY="{34/46}" scaleX="{74/102}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			</mx:Canvas>
+			<mx:Label width="104" height="25" text="{this.techNameStr}" textAlign="center" styleName="titleNameLabel"/>
+		</mx:VBox>
+		<mx:Canvas width="26" height="30" right="3" top="3" id="curentLevelContainer" mouseOver="onOverHandler(event)" mouseMove="onMoveHandler(event)" mouseOut="onOutHandler(event)">
+			<mx:Image  source="{this.techIevelIcon}" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event);"/>
+			<mx:Label text="{this.level}" styleName="LvLabel" top="1" left="0" right="0" textAlign="center"/>
+		</mx:Canvas>
+		<mx:Canvas width="18" height="20" top="3" left="3" id="effectLevelContainer" mouseOver="onOverHandler(event)" mouseMove="onMoveHandler(event)" mouseOut="onOutHandler(event)">
+			<mx:Image  source="{this.techEffectIevelIcon}" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event);"/>
+			<mx:Label text="{this.effectLevel}" styleName="LvLabel" top="-3" textAlign="center" color="#000000" width="101" horizontalCenter="0"/>
+		</mx:Canvas>
+		<mx:Canvas id="progress" width="80" height="15" verticalCenter="2" horizontalCenter="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Canvas id="progressBg" width="80" height="15" styleName="progressBarBG" verticalCenter="0" horizontalCenter="0"/>
+			<mx:Canvas  id="progressBar" width="74" height="11" styleName="progressBar" verticalCenter="0" left="2"/>
+			<mx:Label id="numPercent" text="{this.leftTime}"  styleName="titleLevelLabel" fontSize="10" filters="{[FiltersUtil.glowFilter]}" verticalCenter="0" horizontalCenter="0"/>
+		</mx:Canvas>
+	</mx:Canvas>
+
+	<mx:Button 
+		id="startResearchBtn" enabled="{this.btnEnabled}" mouseEnabled="{this.btnEnabled}" styleName="commomNormalBtn" 
+		horizontalCenter="0" width="100%" height="18" mouseDown="sendHandler(event)" label="{btnLable}" bottom="1" visible="{!this.isResearching}" mouseOver="onOverHandler(event)" mouseMove="onMoveHandler(event)" mouseOut="onOutHandler(event)"/>
+	<mx:HBox id="btnCon2" horizontalGap="1" bottom="1" horizontalCenter="0" visible="{this.isResearching}" mouseOver="onOverHandler(event)" mouseMove="onMoveHandler(event)" mouseOut="onOutHandler(event)">
+		<mx:Button id ="speedUpBtn" width="70" height="18" styleName="buildingNowSpeedUpBtn" mouseDown="sendHandler(event)" label="{MultiLang.msg('public.label.speed')}"/>
+		<mx:Button id = "cancelBtn" width="18" height="18" styleName="dakCancleBtn" mouseDown="sendHandler(event)" textAlign="center" fontSize="11" toolTip="{MultiLang.msg('tech.cancelResearch',this.techNameStr,this.level+1)}"/>
+	</mx:HBox>
+</mx:Canvas>

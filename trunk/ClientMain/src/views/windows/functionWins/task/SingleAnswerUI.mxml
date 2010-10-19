@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.QuestAnswerTargetBean;
+			import mx.events.IndexChangedEvent;
+			import mx.messaging.channels.StreamingAMFChannel;
+			import roma.common.valueObject.QuestAnswerBean;
+			import mx.controls.RadioButton;
+			import roma.util.CompCache;
+			import mx.collections.ArrayCollection;
+			
+			private var questionBean:QuestionBean;
+			private var groupName:String = '';
+			private var radioDic:Dictionary = new Dictionary();
+			public var resultId:String = "";
+			
+			private var answerCacheUI:CompCache = new CompCache(5);
+			
+			public function checkResult():Boolean{
+				return (resultId == questionBean.correctAnswers);
+			}
+			
+			private function init():void{
+				this.initClassUI();
+			}
+			
+			public function setAnswerBean(bean:QuestionBean):void{
+				questionBean = bean;
+				this.initClassUI();
+			}
+			
+			private function initClassUI():void{
+				if(this.initialized){
+					subject.text = questionBean.subject;
+					answerContain.removeAllChildren();
+					var arr:ArrayCollection = questionBean.answersArray;
+					for(var i:int=0;i<arr.length;i++){
+						var tempRadio:RadioButton = answerCacheUI.getUI(RadioButton) as RadioButton;
+						tempRadio.label = arr[i];
+						tempRadio.id = String(i);
+	 					tempRadio.groupName = questionBean.subject;
+						answerContain.addChild(tempRadio);
+//						tempRadio.width = 220;
+						tempRadio.addEventListener(MouseEvent.CLICK,onRadioClick);
+					}
+//					RadioButton(radioDic[0]).selected = true;
+				}
+			} 
+			
+			private function onRadioClick(event:MouseEvent):void{
+				RadioButton(event.target).selected = true;
+				resultId = String(int(RadioButton(event.target).id)+1);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox verticalGap="0" width="95%">
+		<mx:Text id="subject" width="100%" selectable="false"/>
+		<mx:Canvas width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Tile id="answerContain" verticalGap="0" horizontalGap="60" left="20" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		</mx:Canvas>
+	</mx:VBox>	
+</mx:Canvas>

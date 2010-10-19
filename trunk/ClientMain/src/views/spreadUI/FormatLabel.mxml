@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Label xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+		 public function set myText(value:String):void{
+			if(value.charAt(value.length-1)=="."){
+		 		value=value.slice(0,value.length-1);
+		 	}
+			this.text=value;
+		}
+		]]>
+	</mx:Script>
+</mx:Label>

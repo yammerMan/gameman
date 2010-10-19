@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProduceUI xmlns="views.spreadUI.troop.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="180" height="50">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import roma.logic.object.player.ItemResManager;
+			import roma.resource.ImgManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.rule.ItemRule;
+			import roma.message.events.ProduceEvent;
+			
+			override public function cancelProduce():void{
+				ProduceEvent.cancel(ForticationTypeList.EVENT_PRODUCE_CANCEL,this.produceBean);
+			}
+			
+			override public function speedUpItemSelected():void{
+				if(this.haveSpeedUp){
+					MyAlert.show(MultiLang.msg('public.speed.limit'));
+					return;
+				}
+				
+				ItemSelectSpeedUpWin.show(ItemResManager.speedDefenceArrayCollection,speedUpProduce);
+			}
+			
+			override public function speedUpProduce(rule:ItemRule=null):void{
+				if(rule !=null){
+					ProduceEvent.speedup(ForticationTypeList.EVENT_PRODUCE_SPEED,this.produceBean,rule);
+				}
+			}
+		]]>
+	</mx:Script>	
+</ProduceUI>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*" title="{MultiLang.msg('playInfo.modifyPlayerName')}"  setPopUp="false"
+	width="394" height="182">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.GameContext;
+			import roma.common.constants.PlayerConstant;
+			import roma.logic.rule.GameRuleHelper;
+			import views.spreadUI.MyAlert;
+			import roma.util.ItemUseHandle;
+			import roma.util.InputTextHelper;
+			import roma.util.MultiLang;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			private static var log:ILogger = Log.getLogger("views.windows.functionWins.playInfo.ModifyPlayerNameWin");
+			public var modifyPlayerName:Function;
+			
+			private function textInputChange(e:Event):void{
+ 				var c:int = 0;
+ 				TextInput(e.currentTarget).maxChars = 20;
+				for(var i:int=0;i<e.target.text.length;i++){
+					var str:String = e.target.text.substr(i,1);
+					if(InputTextHelper.isChinese(str)){
+						c +=2;
+					}
+					else{
+						c +=1;
+					}
+					if(e.currentTarget == this.nameInput && c>12) {  						
+						this.nameInput.text = this.nameInput.text.substring(0,i);
+						break;
+					}					
+				}
+			}   
+			
+			 override public function refresh():void{
+				if(this.initialized){
+					this.nameInput.text="";
+				}
+			}
+			
+			private function modify():void{
+				if(InputTextHelper.specialCharFilter(nameInput.text)){
+						MyAlert.show(MultiLang.msg("public.label.errorInput"));
+				}else{
+					if(InputTextHelper.specialCharFilter(nameInput.text)){
+						MyAlert.show(MultiLang.msg("public.label.errorInput"));
+					}else{	
+						if (GameContext.instance.getPlayerObj().itemManager.getMaterialBeanById(PlayerConstant.MODIFY_PLAYER_NAME_ITEM) != null) {
+							MyAlert.show(MultiLang.msg("myItems.sureToUseItem{0}",GameRuleHelper.instance.getItemRuleById(PlayerConstant.MODIFY_PLAYER_NAME_ITEM).name), onItemSelectedOk);
+		  				} else {
+							MyAlert.show(MultiLang.msg("myItems.buyForUseItem{0}",GameRuleHelper.instance.getItemRuleById(PlayerConstant.MODIFY_PLAYER_NAME_ITEM).name), sureToBuy);
+		  				}
+					}
+				}
+  				function sureToBuy(isSure:Boolean):void{
+					if(isSure){
+						if(GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(PlayerConstant.MODIFY_PLAYER_NAME_ITEM)){
+							onItemSelectedOk(true);
+						}
+					}
+				}
+			}
+			
+			private function onItemSelectedOk(ok:Boolean):void {
+				if (ok) {
+  					if(this.modifyPlayerName!=null){
+  						this.modifyPlayerName.call(this,nameInput.text);
+  					}
+				}
+				this.visible=false;
+			}
+		
+		]]>
+	</mx:Script>
+	<mx:Canvas top="30" bottom="11" left="11" right="11" styleName="subContentBG">
+		<mx:HBox horizontalGap="3" left="10" right="10" top="39">
+			<mx:Label text="{MultiLang.msg('playInfo.playerName')}:" width="130" textAlign="right"/>
+			<mx:TextInput change="textInputChange(event)" id="nameInput" width="130"/>
+		</mx:HBox>
+		<mx:Button label="{MultiLang.msg('public.label.sure')}" width="130" horizontalCenter="0" bottom="30" click="modify()"/>
+	</mx:Canvas>
+	
+</functionWins:BasePopUpWindow>

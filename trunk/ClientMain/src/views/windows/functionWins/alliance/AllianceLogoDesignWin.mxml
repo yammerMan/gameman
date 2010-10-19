@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()"
+	xmlns:util="views.util.*" title="{MultiLang.msg('keyalliance.styleModify')}"
+	width="390" height="290">
+	<mx:Script>
+		<![CDATA[
+			import roma.message.EvtDispacther;
+			import roma.message.events.AllianceHandleEvent;
+			import roma.logic.CaesaryConfig;
+			import roma.resource.LogoData;
+			import mx.managers.PopUpManager;
+			import views.PopupWindows;
+			import roma.common.constants.AllianceConstant;
+			import mx.collections.ArrayCollection;
+			import roma.util.InputTextHelper;
+			import roma.logic.GameContext;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.common.controller.CommonResponse;
+			import roma.util.PopupWinManager;
+			import views.spreadUI.MyAlert;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.rule.AllianceRule;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var allianceObj:AllianceInfoDataBean;
+			
+			[Bindable]
+			private var topLogoArray:ArrayCollection;
+			
+			[Bindable]
+			private var middleLogoArray:ArrayCollection;
+			
+			[Bindable]
+			private var bottomLogoArray:ArrayCollection;
+			
+			
+			[Bindable]
+			private var topArrayIndex:int;
+			
+			[Bindable]
+			private var middleArrayIndex:int;
+			
+			[Bindable]
+			private var bottomArrayIndex:int;
+			
+			[Bindable]
+			private var topLogo:String;
+			[Bindable]
+			private var middleLogo:String;
+			[Bindable]
+			private var bottomLogo:String;
+			
+			[Bindable]
+			private var topLogoSource:*;
+			
+			[Bindable]
+			private var middleLogoSource:*;
+			
+			[Bindable]
+			private var bottomLogoSource:*;
+			
+			private var logoCode:int
+			
+			private static var instancePopup:AllianceLogoDesignWin = new AllianceLogoDesignWin(); 
+			private function init():void{
+				instancePopup=this;
+				this.topLogoArray=ImgManager.instance.getLeagueTopLogos();
+				this.middleLogoArray=ImgManager.instance.getLeagueMiddleLogos();
+				this.bottomLogoArray=ImgManager.instance.getLeagueBottomLogos();
+			}  
+			public static function show(allianceObj:AllianceInfoDataBean,modal:Boolean=true):void {
+				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,modal);
+				}
+				instancePopup.allianceObj=allianceObj;
+				instancePopup.getLeagueLogo();
+			} 
+			 private function doModifyLogo():void{
+				logoCode = topArrayIndex << 16|middleArrayIndex<<8|bottomArrayIndex;
+				var noticeStr:String="";
+				if(logoCode!=allianceObj.logoCode||leagueName.text!=allianceObj.name){
+					if(logoCode!=allianceObj.logoCode&&leagueName.text!=allianceObj.name){
+						MyAlert.show(MultiLang.msg("alliance.modifyLogoAndName.tip"),modifyLogo);
+					}else{
+						var modifyType:String=leagueName.text!=allianceObj.name?MultiLang.msg("alliance.allianceName"):MultiLang.msg("alliance.allianceLogo");
+						MyAlert.show(MultiLang.msg("alliance.modifyLogoOrName.tip",modifyType),modifyLogo);
+					}
+				}else{
+					MyAlert.show(MultiLang.msg("alliance.noModify.tip"));
+				}
+			 	
+			}
+			private function modifyLogo(_true:Boolean):void{
+				if(_true){
+					if(InputTextHelper.specialCharFilterWithSpace(leagueName.text)){
+							MyAlert.show(MultiLang.msg("public.label.errorInput"));
+						}else{
+							ControllerFactory.getInstance().getAllianceController().changeAllianceLogoAndName(logoCode,leagueName.text,callback);							
+						}	
+				}else{
+					PopUpManager.removePopUp(this);
+				}
+			}
+			private function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceLogo=logoCode;
+						EvtDispacther.instance.dispatchEvent(new AllianceHandleEvent(AllianceHandleEvent.EVENT_NAME_LOGOCHANGE));
+						PopUpManager.removePopUp(this);
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			
+			private function changeTopLogo(delta:int):void {
+		    	this.topArrayIndex += delta;
+		    	if (this.topArrayIndex < 0 ) {
+		    		this.topArrayIndex = this.topLogoArray.length-1;
+		    	} else if (this.topArrayIndex >= this.topLogoArray.length ) {
+		    		this.topArrayIndex = 0;
+		    	}
+		    	this.resetTopLogoData();
+		    }
+		    
+		    private function changeMiddleLogo(delta:int):void {
+		    	this.middleArrayIndex += delta;
+		    	if (this.middleArrayIndex < 0 ) {
+		    		this.middleArrayIndex = this.middleLogoArray.length-1;
+		    	} else if (this.middleArrayIndex >= this.middleLogoArray.length ) {
+		    		this.middleArrayIndex = 0;
+		    	}
+		    	this.resetMiddleLogoData();
+		    }
+		    
+		    
+		     private function changeBottomLogo(delta:int):void {
+		    	this.bottomArrayIndex += delta;
+		    	if (this.bottomArrayIndex < 0 ) {
+		    		this.bottomArrayIndex = this.bottomLogoArray.length-1;
+		    	} else if (this.bottomArrayIndex >= this.bottomLogoArray.length ) {
+		    		this.bottomArrayIndex = 0;
+		    	}
+		    	this.resetBottomLogoData();
+		    }
+		    
+		    private function resetTopLogoData():void {
+				var topLogoData:LogoData = this.topLogoArray[this.topArrayIndex] as LogoData;
+				this.topLogoSource = topLogoData.source;
+				this.topLogo = topLogoData.name;	
+			}
+			
+			private function resetMiddleLogoData():void {
+				var MiddleLogoData:LogoData = this.middleLogoArray[this.middleArrayIndex] as LogoData;
+				this.middleLogoSource = MiddleLogoData.source;
+				this.middleLogo = MiddleLogoData.name;
+			}
+		    
+		    private function resetBottomLogoData():void {
+				var bottomLogoData:LogoData = this.bottomLogoArray[this.bottomArrayIndex] as LogoData;
+				this.bottomLogoSource = bottomLogoData.source;
+				this.bottomLogo = bottomLogoData.name;
+			}
+			private function getLeagueLogo():void{
+				this.logoCode=this.allianceObj.logoCode;
+				this.topArrayIndex=logoCode>>16;
+				this.middleArrayIndex=logoCode<<16>>24;
+				this.bottomArrayIndex=logoCode<<24>>24;
+				this.topLogoSource=LogoData(ImgManager.instance.getLeagueTopLogos()[this.topArrayIndex]).source;
+				this.middleLogoSource=LogoData(ImgManager.instance.getLeagueMiddleLogos()[this.middleArrayIndex]).source;
+				this.bottomLogoSource=LogoData(ImgManager.instance.getLeagueBottomLogos()[this.bottomArrayIndex]).source;
+			}
+			
+			private function textInputChange(e:Event):void{
+ 				var c:int = 0;
+ 				TextInput(e.currentTarget).maxChars = 20;
+				for(var i:int=0;i<e.target.text.length;i++){
+					var str:String = e.target.text.substr(i,1);
+					if(InputTextHelper.isDoubleByte(str)){
+						c +=2;
+					}
+					else{
+						c +=1;
+					}
+					if(e.currentTarget == this.leagueName && c>CaesaryConfig.instance.nameLimit) {  						
+						this.leagueName.text = this.leagueName.text.substring(0,i);
+						break;
+					}					
+				}
+			} 
+		]]>
+	</mx:Script>
+	<mx:Button label="{MultiLang.msg('public.label.sure')}" horizontalCenter="0" bottom="17" click="doModifyLogo()" styleName="commomNormalBtn" width="118"/>
+	<mx:Canvas left="17" top="32" right="17" styleName="subContentBG" height="165">
+		<mx:Canvas width="123" height="121" left="10" verticalCenter="0">
+			<mx:Image left="0" right="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.bottomLogoSource}"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.middleLogoSource}"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.topLogoSource}"/>
+		</mx:Canvas>
+		<mx:VBox verticalCenter="0" left="150" horizontalAlign="center">
+			<mx:Label text="{MultiLang.msg('alliance.allianceLogo')}" textAlign="center" width="100%"/>
+			<mx:HBox verticalAlign="middle">
+				<mx:Button styleName="previousBtn" click="changeTopLogo(-1);"/>
+				<mx:Label text="{MultiLang.msg('alliance.topStyle')+topArrayIndex}" width="90" textAlign="center"/>
+				<mx:Button styleName="nextBtn" click="changeTopLogo(1)"/>
+			</mx:HBox>
+			<mx:HBox verticalAlign="middle">
+				<mx:Button styleName="previousBtn" click="changeMiddleLogo(-1);"/>
+				<mx:Label text="{MultiLang.msg('alliance.middleStyle')+middleArrayIndex}" width="90" textAlign="center"/>
+				<mx:Button styleName="nextBtn" click="changeMiddleLogo(1);"/>
+			</mx:HBox>
+			<mx:HBox verticalAlign="middle">
+				<mx:Button styleName="previousBtn" click="changeBottomLogo(-1);"/>
+				<mx:Label text="{MultiLang.msg('alliance.bottomStyle')+bottomArrayIndex}" width="90" textAlign="center"/>
+				<mx:Button styleName="nextBtn" click="changeBottomLogo(1);"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas bottom="40" top="199" left="17" right="17" styleName="subContentBG">
+		<mx:HBox verticalCenter="0" left="20" horizontalGap="2">
+			<mx:Label text="{MultiLang.msg('alliance.allianceName')}:"/>
+			<mx:TextInput id="leagueName" change="textInputChange(event)" text="{this.allianceObj.name}"/>
+		</mx:HBox>
+	</mx:Canvas>
+</functionWins:BasePopUpWindow>

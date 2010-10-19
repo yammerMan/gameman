@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="450" height="185" styleName="popUpWinBG" creationComplete="init()" xmlns:windows="views.windows.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.player.ConquestObj;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import roma.common.constants.BuffConstants;
+			import roma.common.valueObject.RelatedCastleTimeBean;
+			import roma.common.valueObject.FieldCollectBean;
+			import roma.util.PopupWinManager;
+			import roma.common.controller.rank.RankCityResponse;
+			import roma.common.valueObject.RankCityBean;
+			import mx.collections.ArrayCollection;
+			import roma.common.controller.rank.RankPlayerDataResponse;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.castle.CastleObj;
+			import mx.controls.Button;
+			import views.spreadUI.popups.PopupContainer;
+			import views.spreadUI.popups.MarketPosition;
+			import roma.util.MultiLang;
+			
+			private var collectView:MarketPosition;
+			private var castleObj:CastleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+			private var targetCastleObj:CastleObj;
+			private var idField:int = -99;
+			private var conquestArr:ArrayCollection = new ArrayCollection();
+			
+			
+			private function init():void{
+				collectView = PopupContainer.instance.marketPosition;
+				this.stage.addEventListener(MouseEvent.MOUSE_DOWN,onStageDown);
+				this.refresh(castleObj);
+			}
+			
+			public function refresh(c:CastleObj):void{
+				conquestArr.removeAll();
+				castleObj = c;
+				if(castleObj == null)
+				castleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+				conquestArr = GameContext.getAllConquestCity();
+				if(this.initialized){
+					
+				}
+			}
+			
+			private function onCloseBtnClick():void {
+				this.visible = false;
+			}
+			
+			private function onStageDown(event:MouseEvent):void{
+				if(collectView.hitTestPoint(event.stageX,event.stageY)){
+				}
+				else{
+					collectView.visible = false;
+				}
+			}
+			
+			private function showCollect(event:MouseEvent):void{
+				var p:Point = Button(event.target).localToGlobal(new Point(event.target.x,event.target.y));
+				collectView.visible = !collectView.visible;
+				collectView.setPos(p.x,p.y-60);
+				collectView.showMyCity(false);
+				collectView.filterField();
+				collectView.callBackFun = onGetCityName;
+			}
+			
+			private function onGetCityName(obj:Object):void{
+				var nameStr:String = "";
+				if(obj.hasOwnProperty('cityId')){
+					nameStr = CastleObj(obj).name;
+					this.idField = CastleObj(obj).idField;
+					this.x_input.text=String(GameContext.getFieldPostionX(CastleObj(obj).idField));
+					this.y_input.text=String(GameContext.getFieldPostionY(CastleObj(obj).idField));
+				}else{
+					nameStr = FieldCollectBean(obj).remark;
+					this.idField = FieldCollectBean(obj).fieldId;
+					this.x_input.text=String(GameContext.getFieldPostionX(FieldCollectBean(obj).fieldId));
+					this.y_input.text=String(GameContext.getFieldPostionY(FieldCollectBean(obj).fieldId));
+				}  
+				menuBtn.label = nameStr;
+			}
+			
+			private function sureToAssal():void{
+				if(this.idField != -99){
+					if(this.conquestArr.length>0){
+						for each(var con:ConquestObj in conquestArr){
+							if(con.relatedCityBean.castle.fieldId==this.idField){
+								MyAlert.show(MultiLang.msg("diplomacy.refuse.targetIsMyself"));
+								return;
+							}
+						}
+					}
+					if(GameContext.instance.getPlayerObj().getCurCastleObj().buffManager.getBuffById(BuffConstants.PLAYER_BEGINNER)!=null){
+						MyAlert.show(MultiLang.msg("diplomacy.refuse.iMNew"));
+						return;
+					}
+					var fx:int = GameContext.getFieldPostionX(idField);
+					var fy:int = GameContext.getFieldPostionY(idField);
+					if(!MapDataByteArray.instance.getTileObj(fx,fy).isCastle()){
+						MyAlert.show("diplomacy.refuse.targetIsWild");
+						return;
+					}
+					ControllerFactory.getInstance().getCityController().applyBeConquested(castleObj.cityId,this.idField,onApplyBeConquested);
+					this.visible = false;
+				}else{
+					if(this.x_input.text!=""&&this.y_input.text!=""){
+						ControllerFactory.getInstance().getCityController().applyBeConquested(castleObj.cityId,GameContext.getFieldId(int(this.x_input.text),int(this.y_input.text)),onApplyBeConquested);
+						this.visible = false;
+					}else{			
+						MyAlert.show(MultiLang.msg('diplomacy.vassal.apply.tip.haveNotSelect'));
+					}
+				}
+				function onApplyBeConquested(event:CommonResponse):void{
+					if(!event.isSuccess()){
+						MyAlert.showError(event);
+					}else{
+					}
+				}
+			}
+			
+			private function resetClass():void{
+				x_input.text = "";
+				y_input.text = "";
+				menuBtn.label = "";
+			}
+		]]>
+	</mx:Script>
+	
+	<windows:WindowTitle onCloseFun="{onCloseBtnClick}" winTitle="{MultiLang.msg('diplomacy.vassal.apply.label')}"/>
+	<mx:Canvas styleName="subContentBG" top="30" left="10" right="10" bottom="10" verticalScrollPolicy="off" horizontalScrollPolicy="off"> 
+		<mx:Button label="{MultiLang.msg('public.label.sure')}" click="{sureToAssal()}" bottom="15" horizontalCenter="0" width="155" height="22" toolTip="{MultiLang.msg('diplomacy.vassal.apply.submitTip')}"/>
+		<mx:VBox left="20" right="10" top="15" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{MultiLang.msg('diplomacy.vassal.apply.InputAddTitle')}"/>
+			<mx:HBox horizontalGap="2" horizontalAlign="center" verticalAlign="middle">
+				<mx:Label text="X" textAlign="center" width="15" fontWeight="bold"/>
+				<mx:TextInput id="x_input" width="35" maxChars="3" restrict="0-9"/>
+				<mx:Label text="Y" textAlign="center" width="15" fontWeight="bold"/>
+				<mx:TextInput id="y_input" width="35" maxChars="3" restrict="0-9" />
+			</mx:HBox>
+			<mx:Label text="{MultiLang.msg('diplomacy.vassal.apply.ComboAddTitle')}"/>
+			<mx:Button label="" click="{showCollect(event)}" width="120" styleName="comboBoxBtn" id="menuBtn" />
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>

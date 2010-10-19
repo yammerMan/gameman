@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="602" height="327" xmlns:herosMansion="views.windows.functionWins.hero.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.HeroManConstants;
+		]]>
+	</mx:Script>
+	<mx:Script source="HeroCampaignView_.as"/>
+	<mx:Canvas label="英雄属性、加点等" left="0" width="265" top="1" bottom="1" styleName="subContentBG">
+		<herosMansion:HeroAttribute id="heroProperty" curHeroObj="{curHero}" left="11" right="11" top="11" bottom="11"/>
+	</mx:Canvas>
+	<mx:Canvas label="有英雄的时候" top="1" bottom="1" left="267" right="1" styleName="subContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:HBox top="20" horizontalCenter="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:HBox label="目标" top="32" verticalAlign="middle" right="10" horizontalGap="2">
+				<mx:Label text="{MultiLang.msg('military.newArmy.target')}:" styleName="titleBordLabel"/>
+				<mx:Button label="{mapTileData.fieldName}" click="{onShowPositionList(event)}" styleName="comboBoxBtn" id="menuBtn"  width="140"/>
+				<!--mx:Label text="{this.targetName}"/-->
+			</mx:HBox>
+			<mx:HBox label="任务类型" horizontalGap="2" right="30" top="70" verticalAlign="middle">
+				<mx:Label text="{MultiLang.msg('task.label.task')}:" styleName="titleBordLabel"/>
+				<mx:ComboBox id="missionTypeCom" width="80" dataProvider="{missionTypeComData}" change="onMisstionTypeChange(event)" enabled="{isJoin?false:true}" toolTip="{this.missionTypeComTip}" selectedIndex="{this.missionComIndex}"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:HRule width="310" horizontalCenter="0" y="45"/>
+		<mx:Canvas right="20" label="军队界面"
+			enabled="{this.isAttackMission}" horizontalScrollPolicy="off" verticalScrollPolicy="off" left="20" top="60">
+			<mx:VBox height="100%" width="100%" label="行军时间及通知联盟" verticalGap="5" left="12" top="15" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:HBox horizontalGap="0">
+					<mx:Label text="{MultiLang.msg('military.costTime')}:" styleName="titleBordLabel" toolTip="{MultiLang.msg('battleSituation.battleTime.desc')}"/>
+					<mx:Label text="{isJoin?'':this.moveNeedTimeStr}" styleName="titleLable"/>	
+				</mx:HBox>
+				<!--mx:Label text="{this.arrivedTimeStr}" styleName="titleLable"/-->
+				<mx:HBox horizontalGap="2" toolTip="{MultiLang.msg('battleSituation.battleNotice.desc')}">
+					<mx:Label text="{MultiLang.msg('military.newArmy.notice')}: " styleName="titleBordLabel"/>
+					<mx:CheckBox id="appealAllianceCB" enabled="{isJoin?false:true}" label="{MultiLang.msg('public.label.alliance')}"/>
+					<mx:CheckBox id="appealFriendsCB" enabled="{isJoin?false:true}" label="{MultiLang.msg('friendly.label.friendly')}"/>
+				</mx:HBox>
+				<mx:Label text="{MultiLang.msg('military.retreatContdition')}:" styleName="titleBordLabel" toolTip="{MultiLang.msg('battleSituation.retreatFactor.desc')}"/>
+				<mx:HBox horizontalGap="0">
+					<mx:CheckBox id="cb_lostLimit" label="{MultiLang.msg('military.lostLimit')}"/>
+					<mx:TextInput id="ti_lostLimit" enabled="{this.cb_lostLimit.selected}" width="28" maxChars="2" restrict="0-9"/>
+					<mx:Label text="%" styleName="titleLable"/>
+				</mx:HBox>
+				<mx:CheckBox id="cb_closeInAllDead" label="{MultiLang.msg('military.closeInAllDead')}"/>
+				<mx:CheckBox top="22" id="cb_longDistanceAllDead" label="{MultiLang.msg('military.longDistanceAllDead')}"/>
+			</mx:VBox>
+		</mx:Canvas>
+		<mx:Button label="{isJoin?MultiLang.msg('battleSituation.join.btnLabel'):MultiLang.msg('military.newArmy.send')}" click="onSendBtnClick()" height="22" bottom="12" id="newArmyBtn" width="110" enabled="{this.curHero.heroInfo.status==HeroManConstants.STATUS_FREE}" horizontalCenter="0"/>
+	</mx:Canvas>
+</mx:Canvas>

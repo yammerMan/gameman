@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ns1="views.spreadUI.*" 
+	xmlns:townHall="views.windows.buildings.townHall.production.*"
+	xmlns:production="views.windows.buildings.townHall.production.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.ResourceStaticBean;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.ResourceObj;
+			
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.ResourceProduction");
+			[Bindable]
+			private var resourceObj:ResourceStaticBean;
+			[Bindable]
+			public var workerStation:int;//现有工位
+			
+			[Bindable]
+			public var workerEfficiency:Number;//工作效率
+			
+			[Bindable]
+			public var output:int;
+			
+			public function set copyData(obj:ResourceStaticBean):void{
+				this.resourceObj=obj;
+			}
+			
+			public function getWorkerPer():int{
+				return this.numstep.value;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox height="100%" width="100%" verticalGap="0" horizontalAlign="center">
+		<!--production:ThroughputLabel origin="{resourceObj.originalProduce}" workerEfficiency="{this.workerEfficiency}" height="22"/-->
+		<mx:Label text="{this.workerStation*output}" height="22" paddingTop="2" width="100%" textAlign="center"/>
+		<mx:Label text="{this.workerStation}" height="22" paddingTop="2" textAlign="center" width="100%"/>
+		<mx:Label paddingTop="2" text="{(this.workerStation*resourceObj.operRate/100)%1==0?(this.workerStation*resourceObj.operRate/100).toFixed(0):(this.workerStation*resourceObj.operRate/100).toFixed(2)}" height="22" textAlign="center" width="100%"/>
+		<mx:Label paddingTop="2" text="{((this.workerStation*resourceObj.operRate*workerEfficiency)/100)%1==0?((this.workerStation*resourceObj.operRate*workerEfficiency)/100).toFixed(0):((this.workerStation*resourceObj.operRate*workerEfficiency)/100).toFixed(2)}" height="22" textAlign="center" width="100%"/>
+		<townHall:ProductionNumericStepper width="100%" id="numstep" maxNum="100" height="22" value="{resourceObj.operRate}"/>
+		<mx:Label paddingTop="2" text="{int(resourceObj.originalProduce)}" height="22" styleName="{resourceObj.originalProduce>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+		<production:NumberLabel paddingTop="2"  origin="{resourceObj.originalProduce}" addPercent="{resourceObj.techIncreasePer}" textAlign="center" width="100%"/>
+		<production:NumberLabel paddingTop="2" origin="{resourceObj.originalProduce}" addPercent="{resourceObj.chiefIncreasePer}" textAlign="center" width="100%"/>
+		<production:NumberLabel paddingTop="2" origin="{resourceObj.originalProduce}" addPercent="{resourceObj.fieldIncreasePer}" textAlign="center" width="100%"/>		
+		<production:NumberLabel paddingTop="2" origin="{resourceObj.originalProduce}" addPercent="{resourceObj.buffIncreasePer}" textAlign="center" width="100%"/>
+		<ns1:PlusMinusSeparatorLabel paddingTop="2"  labelValue="{resourceObj.militaryConsume}" height="22" textAlign="center" width="100%"/>
+		<mx:Label paddingTop="2"  text="{int(resourceObj.conquestAdd)}" height="22" styleName="{resourceObj.conquestAdd>=0?'goodNoticeLabel':'NoticeLabel'}" textAlign="center" width="100%"/>
+		<mx:Label paddingTop="2" text="{resourceObj.basicProduce}" height="22" textAlign="center" width="100%"/>
+		<ns1:PlusMinusSeparatorLabel paddingTop="2" labelValue="{Number(Number(resourceObj.totoalProduce).toFixed(0))}" height="22" textAlign="center" width="100%"/>
+		<mx:Label paddingTop="2" text="{int(resourceObj.dakTransport)}" height="22" styleName="{resourceObj.dakTransport>=0?'goodNoticeLabel':'NoticeLabel'}" textAlign="center" width="100%"/>
+	</mx:VBox>
+</mx:Canvas>

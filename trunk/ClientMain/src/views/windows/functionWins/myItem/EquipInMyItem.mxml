@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="183" height="97" styleName="BuildingAlphaWindow" verticalScrollPolicy="off" horizontalScrollPolicy="off" click="doLook(event)" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.EquipValueBean;
+			import views.windows.functionWins.hero.EquipHelper;
+			import roma.message.events.BuyEquipEvent;
+			import views.spreadUI.tips.EquipDescTooptip;
+			import roma.common.valueObject.PairValueBean;
+			import roma.common.valueObject.EquipBean;
+			import roma.logic.CaesaryConfig;
+			import framework.game.MouseCursorManager;
+			import roma.message.events.BuyItemEvent;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.tips.ItemOrigintip;
+			import roma.util.ImageHandle;
+			import mx.collections.ArrayCollection;
+			import roma.logic.RomaConstants;
+			import roma.util.FiltersUtil;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.ItemRule;
+			
+			[Bindable]
+			private var rule:EquipBean;
+			
+			[Bindable]
+			private var itemBean:EquipValueBean;
+			
+			private var itemDescTooptip:EquipDescTooptip = ToolTipContainer.instance.equipDescTooptip;
+			
+			[Bindable]
+			private var specialIcon:Class;
+			[Bindable]
+			public var isSpecialItem:Boolean=false;
+			[Bindable]
+			private var isShowCount:Boolean=false;
+			
+			private function init():void{
+				this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+				this.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+				this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
+				specialIcon=MultiLang.clazz("shop.specialIcon");
+			}
+						
+			public function setRule(itemRule:EquipValueBean):void {
+				this.itemBean = itemRule;
+				if(this.itemBean==null){
+					this.visible=false;
+				}else{
+					this.visible=true;
+				}
+			}
+			
+			public function refreshItemCount():void {
+				if(this.itemBean!=null){
+					this.rule =EquipHelper.instance.getEquipsBeanById(this.itemBean.typeId);
+					this.isShowCount=this.itemBean.value>0?true:false;
+				}else{
+					this.isShowCount=false;
+				}
+			}
+			
+		
+			
+			private function doLook(event:MouseEvent):void {
+				EvtDispacther.instance.dispatchEvent(new BuyEquipEvent(BuyEquipEvent.EVENT_NAME_MYITEM,this.rule));
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event); 
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				this.itemDescTooptip.onMouseMove(event);
+			}
+			
+			private function onMouseOut(event:MouseEvent):void{
+				this.itemDescTooptip.onMouseOut();
+			}
+		]]>
+	</mx:Script>
+	<mx:Label
+		text="{this.rule.name}" textAlign="center" bottom="2" horizontalCenter="0" styleName="titleNameLabel"/>
+	<mx:Canvas  styleName="bigBuildingLogo" 
+		 width="140" height="68" bottom="21" horizontalCenter="0">
+			<mx:Image source="{this.rule.iconUrl}"  id="imageField"
+				top="4" left="4" scaleY="{60/67}" scaleX="{132/150}" updateComplete="ImageHandle.onLoadComplete(event)" right="4" bottom="4"/>
+			<mx:Image top="0" left="0" source="{this.specialIcon}" visible="{isSpecialItem}"/>
+	</mx:Canvas>
+	
+	<mx:Canvas mouseChildren="false" right="12" top="6">
+		<mx:Image source="{ImgManager.clazz('item.countBG.icon')}" right="0" top="0" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Label  text="{this.itemBean!=null?this.itemBean.value:'0'}" styleName="titleLevelLabel" right="0" top="5" textAlign="center" width="30"/>
+	</mx:Canvas>
+</mx:Canvas>

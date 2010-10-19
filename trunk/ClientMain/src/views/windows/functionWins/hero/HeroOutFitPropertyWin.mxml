@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="265" height="325" styleName="subContentBG" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.EquipBean;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.controller.equip.HeroEquipsResponse;
+			import roma.common.action.ControllerFactory;
+			import mx.events.MenuEvent;
+			import mx.controls.Menu;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.logic.object.hero.HeroObj;
+			[Bindable]
+			private var hero:HeroObj;
+			
+			private var myMenu:Menu;
+			private var myMenuData:XML;
+			private var point1:Point = new Point();
+			
+			private var outFitAdd:Array=new Array([0,0],[0,33],[0,66],[0,99],[62,99],[122,99],[183,99],[183,66],[183,33],[183,0])
+			private function onMouseClick(event:MouseEvent):void{
+				this.setBtnUpState();
+				
+				Button(event.target).selected = true;
+					with(Button(event.target)){
+						if(id == "outfitBtn"){
+							this.baseInfoViewStack.selectedIndex=0;
+						}else if(id == "propertyBtn"){
+							this.baseInfoViewStack.selectedIndex=1;
+						}else if(id == "armamentBtn"){
+							this.baseInfoViewStack.selectedIndex=2;
+						}else if(id == "mountsBtn"){
+							this.baseInfoViewStack.selectedIndex=3;
+						}else{
+							this.baseInfoViewStack.selectedIndex=0;
+						}
+					}
+				
+			}
+			private function setBtnUpState():void{
+				this.outfitBtn.selected = false;
+				this.propertyBtn.selected = false;
+				this.armamentBtn.selected = false;
+				this.mountsBtn.selected = false;
+			}
+			private function init():void{
+				setBtnUpState();
+				initOutFitUI();
+				this.baseInfoViewStack.selectedIndex=0;
+				this.outfitBtn.selected = true;
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_EQUIP_CHANGE,getHeroEquip);
+				getHeroEquip();
+			}
+			
+			public function set setHero(h:HeroObj):void{
+				this.hero=h;
+				initEquipHandle();
+				getHeroEquip();
+			}
+			
+			private function getHeroEquip(event:Event=null):void{
+				ControllerFactory.getInstance().getEquipController().getHeroEquips(this.hero.castleObj.cityId,this.hero.heroInfo.id,getHeroEquipsCallback,false);	
+			}
+			
+			private function getHeroEquipsCallback(event:HeroEquipsResponse):void{
+				//if(event.equipsArray.length>0){
+					
+				for each(var ui:HeroOutfitUI in this.outFitUIContainer.getChildren()){
+					/* ui.setEquipArr(EquipHelper.instance.getEquipsBeanById(event.equipsArray[i])); */
+					ui.setEquipArr(event.equipsArray);
+				}
+					
+				//}
+				initEquip();
+				initEquipHandle();
+			}
+			
+			private function initOutFitUI():void{
+				for(var i:int=0;i<10;i++){
+					var ui:HeroOutfitUI=new HeroOutfitUI();
+					ui.setOutfitType(i);
+					ui.x=outFitAdd[i][0];
+					ui.y=outFitAdd[i][1];
+					ui.showMenu=this.showMenu;
+					this.outFitUIContainer.addChild(ui);
+				}
+			}
+			
+			private function initEquip():void{
+				for each(var ui:HeroOutfitUI in this.outFitUIContainer.getChildren()){
+					ui.setFilter(EquipHelper.instance.curSelectEquip);
+				}
+			}
+			
+			
+			public function showMenu(event:MouseEvent,itemId:int=1):void {
+			 	if(myMenuData==null){
+			 		creatXml();
+			 	}
+			 	
+			 	
+			 	initEquip();
+			 	curEquipImage.source=EquipHelper.instance.curSelectEquip.iconUrl;
+			 	curEquipImageContainer.visible=true;
+                myMenu= Menu.createMenu(this, myMenuData, false);
+                myMenu.labelField="@label";
+                myMenu.addEventListener("itemClick", menuHandler);
+                
+                // Calculate position of Menu in Application's coordinates. 
+                point1.x=event.currentTarget.mouseX;
+                point1.y=event.currentTarget.mouseY;                
+                point1=event.currentTarget.localToGlobal(point1);
+                myMenu.show(point1.x - 25, point1.y + 25);
+			 	
+            }
+            
+            private function creatXml():void{
+            	var dataString:String="<root>";
+        		dataString+="<menuitem label="+"\""+MultiLang.msg("hero.outfit.uninstall")+"\""+" data="+"\""+"hero.outfit.uninstall"+"\"/>";
+            	dataString+="</root>";
+            	myMenuData=XML(dataString);
+            }
+            
+             private function menuHandler(event:MenuEvent):void  {
+				var str:String=String(event.item.@data);
+				switch(str){
+					case "hero.outfit.uninstall":
+						if(EquipHelper.instance.canHandleEquip(hero)){
+							ControllerFactory.getInstance().getEquipController().removeHeroEquip(this.hero.castleObj.cityId,this.hero.heroInfo.id,EquipHelper.instance.curSelectEquip.type,removeHeroEquipcallback);
+						}
+					break;
+					
+					default:
+				}
+             }
+             
+             private function initFilter(bean:EquipBean=null):void{
+             	for each(var ui:HeroOutfitUI in this.outFitUIContainer.getChildren()){
+					ui.setEquipBean(bean);
+				}
+             }
+             
+             private function removeHeroEquipcallback(event:CommonResponse):void{
+             	if(!event.isSuccess()){
+             		MyAlert.showError(event);
+             	}else{
+             		initEquipHandle();
+             		EquipHelper.instance.getPlayerEquip();
+             	}
+             }
+             
+             private function initEquipHandle():void{
+             	curEquipImage.source=null;
+             	EquipHelper.instance.curSelectEquip=null;
+             	curEquipImageContainer.visible=false;
+             }
+             
+             private function dropAllItemHandle():void{
+             	
+             }
+		]]>
+	</mx:Script>
+	<mx:VBox left="11" top="11" bottom="11" right="11" verticalGap="1">
+		<mx:HBox width="100%">
+			<mx:Label text="{hero.heroInfo.name}" width="100%" styleName="titleBordLabel" color="{hero.heroInfo.potentiality>0?0x0082cd:0x81511c}"/>
+			<mx:Button label="{MultiLang.msg('hero.dropAllItemBtn')}" click="dropAllItemHandle()" visible="false"/>
+			
+		</mx:HBox>
+		<mx:HRule width="237"/>
+		<mx:Canvas width="243" height="135" backgroundImage="{ImgManager.clazz('background.heroOutfitBg')}" id="outFitUIContainer">
+			
+		</mx:Canvas>
+		<mx:Canvas id="descView" top="170" width="243" bottom="35" left="2" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Canvas  styleName="bigBuildingLogo" width="140" height="68" horizontalCenter="0" id="curEquipImageContainer" verticalCenter="0">
+						<mx:Image id="curEquipImage" scaleY="{60/67}" scaleX="{132/150}" updateComplete="ImageHandle.onLoadComplete(event)" horizontalCenter="0" verticalCenter="0"/>
+				</mx:Canvas>
+				
+				<mx:HBox left="0" horizontalGap="0" top="0" styleName="tecTitleBG" right="0" height="23" visible="false">
+					<mx:Spacer width="10"/>
+					<mx:Button id="outfitBtn" height="23" click="onMouseClick(event)" label="{MultiLang.msg('hero.titleSubBar.outfit')}" styleName="tabBtn"/>
+					<mx:Button id="propertyBtn" height="23" click="onMouseClick(event)" label="{MultiLang.msg('hero.titleSubBar.property')}" styleName="tabBtn"/>
+					<mx:Button id="armamentBtn" height="23" click="onMouseClick(event)" label="{MultiLang.msg('hero.titleSubBar.armament')}" styleName="tabBtn"/>
+					<mx:Button id="mountsBtn" height="23" click="onMouseClick(event)" label="{MultiLang.msg('hero.titleSubBar.mounts')}" styleName="tabBtn"/>
+				</mx:HBox>
+				<mx:ViewStack id="baseInfoViewStack" left="1" right="1" top="24" bottom="0" visible="false">
+					<mx:Canvas width="100%" height="100%">
+				
+					</mx:Canvas>
+					<mx:Canvas width="100%" height="100%">
+						
+					</mx:Canvas>
+					<mx:Canvas width="100%" height="100%">
+						
+					</mx:Canvas>
+					<mx:Canvas width="100%" height="100%">
+						
+					</mx:Canvas>
+				</mx:ViewStack>
+				
+			</mx:Canvas>
+	</mx:VBox>
+</mx:Canvas>

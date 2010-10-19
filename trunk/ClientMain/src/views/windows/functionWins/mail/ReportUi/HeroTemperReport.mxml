@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseOtherReport xmlns="views.windows.functionWins.mail.ReportUi.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" >
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HeroHelper;
+			import roma.logic.object.castle.BattleHelper;
+			import roma.common.constants.HeroGrowthConstant;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.object.castle.TFHelper;
+			import roma.logic.rule.ItemRule;
+			import roma.util.MultiLang;
+			import mx.utils.ObjectProxy;
+			
+			[Bindable]
+			private var descStr:String = "";
+			
+			override public function setReportObj(o:ObjectProxy):void{
+				reportObj = o;
+				reportObj['itemGetRule'] = o.hasOwnProperty('itemGet')?setItem(reportObj.itemGet.itemId):null;
+				reportObj['lowItemRule'] = o.hasOwnProperty('lowPriceItem')?setItem(reportObj.lowPriceItem.itemId):null;
+				reportObj['lowItemPrice'] = o.hasOwnProperty('lowPriceItem')?reportObj.lowPriceItem.price:0;
+				reportObj['supportChange'] = o.hasOwnProperty('supportChange')?o.supportChange:null;
+				reportObj['potentialHeroGet'] = o.hasOwnProperty('potentialHeroGet')?o.potentialHeroGet:null;
+				reportObj['tempTypeName'] = BattleHelper.instance.getBeanTempleType(o.growthType);
+				reportObj['withGold'] = o.hasOwnProperty("initCoins")?o.initCoins:0;
+				reportObj['leftGold'] = o.hasOwnProperty('remainCoins')?o.remainCoins:0;
+				
+				setDesc();
+			}
+			
+			private function setDesc():void{
+				descStr = "";
+				descStr += MultiLang.msg('report.heroTemper.finish.heroGetDesc{0}{1}{2}{3}',reportObj.heroName,reportObj.lastHours,reportObj.tempTypeName,reportObj.expGet);
+				var othersCoinsConsume:int = Math.max(0,HeroHelper.instance.getTemperConsumeCoins(reportObj.growthType))*reportObj.lastHours;
+				if(reportObj.supportChange != null)
+				descStr += MultiLang.msg('report.heroTemper.finish.castleGetDesc{0}{1}',reportObj.supportChange.supportAdd,reportObj.supportChange.complaintMinus);
+				if(reportObj.withGold >0){
+					if(reportObj.lowItemRule != null){
+						descStr += MultiLang.msg('report.heroTemper.finish.consumeGoldWithItem',reportObj.withGold,othersCoinsConsume,reportObj.lowItemPrice,reportObj.lowItemRule.name,reportObj.leftGold);
+					}
+					else{
+						descStr += MultiLang.msg('report.heroTemper.finish.consumeGold',reportObj.withGold,othersCoinsConsume,reportObj.leftGold);
+					}
+				}
+			}
+			
+			private function setItem(iId:String):ItemRule{
+				var ir:ItemRule = GameRuleHelper.instance.getItemRuleById(iId);
+				return ir;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:VBox width="100%" height="100%" verticalGap="2">
+		<mx:VBox width="90%" verticalGap="1">
+			<mx:Label text="{MultiLang.msg('report.heroTemper.finish.label')}: " />
+			<mx:Text text="{descStr}" width="100%" paddingLeft="15"/>
+		</mx:VBox>
+		<mx:VBox width="90%" visible="{reportObj.potentialHeroGet != null}" includeInLayout="{reportObj.potentialHeroGet != null}" verticalGap="1">
+			<mx:Label text="{MultiLang.msg('report.heroTemper.getHero.label')}: " />
+			<mx:Text text="{reportObj.potentialHeroGet != null?MultiLang.msg('report.heroTemper.getHero.desc{0}{1}{2}',reportObj.potentialHeroGet.name,
+					reportObj.potentialHeroGet.level,reportObj.potentialHeroGet.potentialPoint):''}" paddingLeft="15" width="100%"/>
+		</mx:VBox>
+		<mx:VBox width="90%" visible="{reportObj.itemGetRule != null}" includeInLayout="{reportObj.itemGetRule != null}" verticalGap="1">
+			<mx:Label text="{MultiLang.msg('report.heroTemper.getItem.label')}: "/>
+			<mx:Text text="{MultiLang.msg('report.heroTemper.getItem.desc{0}',ItemRule(reportObj.itemGetRule).name)}" width="100%" paddingLeft="15"/>
+		</mx:VBox>
+		<mx:VBox width="90%" visible="{reportObj.lowItemRule!=null}" includeInLayout="{reportObj.lowItemRule!=null}" verticalGap="1">
+			<mx:HRule width="100%" />
+			<mx:Label text="{MultiLang.msg('report.heroTemper.adventure.label')}: " />
+			<mx:Text text="{MultiLang.msg('report.heroTemper.adventure.desc{0}{1}',reportObj.lowItemPrice,ItemRule(reportObj.lowItemRule).name)}" width="100%" paddingLeft="15"/>
+		</mx:VBox>
+	</mx:VBox>
+</BaseOtherReport>

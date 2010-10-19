@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.building.BuildingHelper;
+			[Bindable]
+			private var imgPath:String;
+			public function set imgSource(typeId:int):void{
+				this.imgPath=BuildingHelper.instance.getLogoClass(typeId);
+			}
+		]]>
+	</mx:Script>
+	<mx:Image source="{this.imgPath}" left="0" top="0" right="0" bottom="0" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	
+</mx:Canvas>

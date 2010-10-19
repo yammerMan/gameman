@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow xmlns:buildings="views.windows.buildings.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ns1="views.spreadUI.tech.*"
+	 xmlns:ns2="views.spreadUI.*" xmlns:upgradWin="views.windows.buildings.townHall.*"
+	width="820" height="410" 
+	creationComplete="init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.building.impl.MilitaryInstitute;
+			import roma.common.constants.BuildingConstant;
+			import views.PopupWindows;
+			import roma.common.constants.TechConstant;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import mx.collections.ArrayCollection;
+			import roma.logic.GameContext;
+			import roma.logic.object.player.TechManager;
+			import views.spreadUI.MyAlert;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.logic.object.building.impl.Academy;
+			import roma.data.BuildingData;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.object.tech.BaseTechObj;
+			import roma.message.events.PublicEvent;
+			import roma.message.EvtDispacther;
+			import roma.util.MultiLang;
+			import mx.effects.easing.Back;
+			import mx.events.ItemClickEvent;
+			
+			public static const WINDOW_SHOW:String = "baseTech.show";
+
+			private static var log:ILogger = Log.getLogger("views.windows.BaseTechWindow");
+			
+			[Bindable]
+			private var jumpBtnTip:String;
+			
+			[Bindable]
+			private var tagAry:Array =[];
+
+			[Bindable]			
+			private var eventType:String;
+			[Bindable]
+			public var gotoBtnName:String
+
+			private var techObj:BaseTechObj;
+			
+			private function init():void{
+				refresh1();
+			}
+			
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				if(this.initialized){
+					refresh1();
+					if(this.buttonBar.selectedIndex ==this.tagAry.length-1){
+						this.buttonBar.selectedIndex = this.tagAry.length-1;
+						this.techView.selectedChild = this.buildUpConPanel;
+						this.buildUpConPanel.refresh();
+					}else{
+						this.techView.selectedChild = techUiList;
+						this.buttonBar.selectedIndex=0;
+						this.techUiList.addListener();
+					}
+				}
+			}
+			
+			override public function update():void{
+				if(this.buildingObj.level<1){
+					this.buttonBar.selectedIndex = this.tagAry.length-1;
+					this.techView.selectedIndex = this.tagAry.length-1;
+					this.buttonBar.enabled = false;
+				}else{
+					if(!this.buttonBar.enabled){
+						this.buttonBar.enabled = true;
+					}
+				}
+			}
+			
+			private function refresh1():void{
+				var ary:ArrayCollection;
+				if(buildingObj is Academy){
+					ary =Academy(buildingObj).getPeopleTechAry();
+					this.gotoBtnName= MultiLang.msg("building.militaryInstitute.name");
+					this.tagAry =[MultiLang.msg('tech.type.militaryInstitute.list'),MultiLang.msg('upgradingWin.upgradeRequest')];
+					this.jumpBtnTip=MultiLang.msg("tech.btnTip.academy");
+					
+				}else{
+					ary = MilitaryInstitute(buildingObj).getArmyTechAry();
+					this.gotoBtnName= MultiLang.msg("building.academy.name");
+					this.tagAry =[MultiLang.msg('tech.type.academy.list'),MultiLang.msg('upgradingWin.upgradeRequest')];
+					this.jumpBtnTip=MultiLang.msg("tech.btnTip.militaryInstitute");
+					
+				}
+//				this.buttonBar.dataProvider=this.tagAry;
+				this.buttonBar.selectedIndex=0;
+				this.techUiList.initTechUi(ary);
+			}
+			
+			/**
+			 *窗口切换
+			 */ 
+			private function clickEvt(event:ItemClickEvent):void{
+				if(event.index == 0){
+					this.techView.selectedChild=this.techUiList;
+					this.techUiList.addListener();					
+				}else{
+					this.techView.selectedChild = this.buildUpConPanel;
+					this.techUiList.removeListener();
+					this.buildUpConPanel.refresh();
+				}
+			}
+			
+			/**
+			 * 停止当前窗体一切相关动画
+			 */ 
+			override public function destroy():void{
+				this.techUiList.removeListener();
+			}
+			
+			protected function gotoOtherTechWin():void{
+				if(this.buildingObj is Academy){
+					var obj:BaseBuilding=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MILITARY_INSTITUTE);
+					if(obj!=null){
+						PopupWindows.openBuildingInfoWin(WINDOW_SHOW,obj);
+					}else{
+						MyAlert.show(MultiLang.msg("building.noMilitaryInstitute"));
+					}
+				}else{
+					var objs:BaseBuilding=GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_ACADEMY_BUILDING);
+					if(objs!=null){
+						PopupWindows.openBuildingInfoWin(WINDOW_SHOW,objs);
+					}else{
+						MyAlert.show(MultiLang.msg("building.noAcademy"));
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="clickEvt(event)" dataProvider="{this.tagAry}"/>
+	    <ns2:MulHRule/>
+	</mx:VBox>	
+	<mx:Button label="{gotoBtnName}" click="gotoOtherTechWin()"  width="100" left="{buttonBar.width+5}" toolTip="{this.jumpBtnTip}"/>
+	<mx:ViewStack id="techView" bottom="0" left="0" right="0" top="25">
+		<ns1:TechTypeList width="100%" height="100%" id="techUiList" buildingObj="{this.buildingObj}"/>
+		<upgradWin:UpgradingWin width="100%" height="100%" id="buildUpConPanel" buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

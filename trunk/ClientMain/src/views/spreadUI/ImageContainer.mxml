@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="smallIconBG">
+	<mx:Image left="5" right="5" top="5" bottom="5" id="myImage" source="assets/images/EmbedImages/castle/icon_1.png" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			public function set imagePath(str:String):void{
+				this.myImage.source=str;
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

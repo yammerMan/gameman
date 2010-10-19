@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" height="170">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.GoldResourceObj;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.util.MultiLang;
+
+			[Bindable]
+			private var golds:GoldResourceObj;
+			
+			[Bindable]
+			private var maxCap:Number;
+			
+			[Bindable]
+			private var isFull:Boolean=false;
+			
+			override public function refresh():void {
+				this.golds = GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.golds;
+				
+			} 
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.gold')}" styleName="titleBordLabel"/>
+		</mx:HBox>
+		<mx:HBox verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{MultiLang.msg('public.label.amount')}"/>
+			<mx:Label text="{int(this.golds.curAmount)}" styleName="{golds.isFull?'clewLabel':null}"/>
+			<mx:Label text="({MultiLang.msg('public.res.full')})" styleName="NoticeLabel" visible="{golds.isFull}" includeInLayout="{golds.isFull}"/>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.resource.maxCap')}" />
+			<mx:Label text="{golds.maxCap.toFixed(0)}" />
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="{MultiLang.msg('label.income.taxRevenue')}"/>
+			<mx:Label text="{int(this.golds.totalProduce-this.golds.heroSalary)}"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="{MultiLang.msg('label.income.heroSalary')}"/>
+			<mx:Label text="{this.golds.heroSalary}" styleName="{this.golds.heroSalary==0?'':'NoticeLabel'}"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="{MultiLang.msg('label.income.netIncome')}"/>
+			<mx:Label text="{Number(this.golds.totalProduce).toFixed(0)}" styleName="{this.golds.totalProduce>0?'':'NoticeLabel'}"/>
+		</mx:HBox>
+	</mx:VBox>
+</BaseTip>

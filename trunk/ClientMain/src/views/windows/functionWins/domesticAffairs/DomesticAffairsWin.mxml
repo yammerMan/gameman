@@ -1,0 +1,24 @@
+<functionWins:BaseFunctionWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:functionWins="views.windows.functionWins.*" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			public static const WINDOW_SHOW:String = "domesticAffairsWin.show";
+
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+			
+			}
+			
+			/**
+			 * 界面隐藏调用，停止当前窗体一切相关动画等
+			 */ 
+			override public function destroy():void{
+			
+			}
+						
+		]]>
+	</mx:Script>
+</functionWins:BaseFunctionWindow>

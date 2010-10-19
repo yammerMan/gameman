@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Label xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ClientUtil;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+		
+			private var _timer:Timer;
+			private var timeData:Number =0;
+			public var callBackFunction:Function;
+			
+			public function set leftTimeForDis(t:Number):void{
+				this.timeData = t;
+				if(!isNaN(t) && timeData >0){
+					if(_timer == null){
+						_timer = new Timer(1000);
+						_timer.addEventListener(TimerEvent.TIMER,timerHandlerForDis);
+						this._timer.start();
+					}
+					if(!this._timer.running){
+						this._timer.start();
+					}
+				}else{
+					this.text = "";
+				}
+			}
+			
+			private function timerHandlerForDis(event:TimerEvent = null):void{
+				timeData = timeData - 1000;
+				if(timeData >0)
+					this.text = MultiLang.timeFormatToString(timeData/1000);
+				else{
+					if(this.callBackFunction != null && this._timer.running){
+						this.text = "";
+						_timer.stop();
+						this.callBackFunction.apply(this);
+					}
+				}
+			}
+			
+			public function closeTimer():void{
+				if(_timer !=null && this._timer.running)
+					_timer.stop();
+			}
+			
+			public function openTimer():void{
+				if(!_timer.running)
+					_timer.start();
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Label>

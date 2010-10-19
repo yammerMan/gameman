@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="82" height="42"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HeroHelper;
+			import roma.message.events.MsgEvent;
+			import roma.message.EvtDispacther;
+			import views.windows.functionWins.military.HeroData;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import views.windows.functionWins.hero.HerosMansionWin;
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import views.windows.functionWins.military.AssignTroopWin;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.object.building.impl.HerosMansion;
+			import roma.logic.object.castle.HeroManager;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.GameContext;
+			import roma.logic.object.buff.BaseBuffObj;
+			import views.PopupWindows;
+			import roma.logic.object.hero.HeroObj;
+			import roma.util.FiltersUtil;
+			import views.spreadUI.tips.HeroTips;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.BaseTip;
+			import roma.resource.ImgManager;
+			import roma.common.valueObject.HeroManBean;
+
+			[Bindable]
+			private var hero:HeroObj;
+
+			private var heroTips:HeroTips = ToolTipContainer.instance.heroTips;
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_ARMY_CHANGE,armyChange);
+			}
+			
+			private function armyChange(event:MsgEvent):void{
+				if(hero==null)return;
+				//防止英雄部队数据绑定无效，更新一次英雄对象
+				if(hero.heroInfo.id == int(event.data)){
+					hero = GameContext.instance.getPlayerObj().getCurCastleObj().heroManager.getBeanById(hero.heroInfo.id);
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.heroTips.setHeroObj(this.hero);
+				this.heroTips.onMouseOver(event,1);
+				this.imageField.filters=[FiltersUtil.brightnessColorMatrixFilter];
+			}
+			
+			private function onMouseOut():void {
+				this.heroTips.onMouseOut();
+				this.imageField.filters=null;
+			}
+			
+			public function set heroObj(obj:Object):void {
+				this.hero = HeroObj(obj);
+				this.hero.updateHeroObj();
+			} 
+			
+			private function onClick():void {
+				this.hero.selectedInUi = true;
+				HeroHelper.instance.curSelectHero=this.hero;
+				PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW , this.hero);
+			}
+			
+			private function onAssingBtnClick():void {
+				if (hero.heroInfo.canAssign) {
+					HeroHelper.instance.curSelectHero=hero;
+					PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW_WEAVE,this.hero);
+					/* PopupWindows.openFuncWin(AssignTroopWin.WINDOW_SHOW , new HeroData(hero,true)); */
+				} else {
+					MyAlert.show(MultiLang.msg("military.assginTroop.condition"));
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="BuildingAlphaWindow" width="100%" height="100%">
+		<mx:Canvas styleName="smallLogoBG" left="5" top="3" right="5" bottom="3"
+			mouseOut="onMouseOut()" mouseOver="onMouseOver(event)" click="onClick()">
+			<mx:Image source="{this.hero.logoClass}" id="imageField" mouseEnabled="false" width="65" height="30" updateComplete="ImageHandle.onLoadComplete(event)"  horizontalCenter="0" verticalCenter="0"/>
+			<mx:Canvas bottom="3" left="5" right="5" styleName="alphaBlackcolorBG" height="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<mx:Label text="{this.hero.heroInfo.level}" styleName="titleLevelLabel" fontSize="10" verticalCenter="0" filters="{[FiltersUtil.glowFilter]}"/>
+			</mx:Canvas>
+		    <mx:Image source="{this.hero.stateIcon}" left="4" updateComplete="ImageHandle.onLoadComplete(event)" top="3"/>
+		</mx:Canvas>
+		<mx:Button right="5" bottom="3" styleName="apportionmentBtn"
+			click="onAssingBtnClick()" toolTip="{MultiLang.msg('resourcePanel.btnTip.armyWeave')}"/>
+	</mx:Canvas>
+</mx:Canvas>

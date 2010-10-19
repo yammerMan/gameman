@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:spreadUI="views.spreadUI.*" xmlns:tech="views.spreadUI.tech.*" width="264" height="304">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.TechConstant;
+			import roma.logic.object.tech.TechHelper
+			import roma.logic.rule.ruleCheck.ConditionCheck;
+			import roma.util.MultiLang;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.object.tech.BaseTechObj;
+
+			[Bindable]
+			private var _result:RuleCheckResult;
+			[Bindable]
+			private var _techObj:BaseTechObj;
+			[Bindable]
+			private var _dependStr:String;
+			//建筑依赖
+			[Bindable]
+			private var _buildingDependStr:String;
+			[Bindable]
+			private var str:String = "<b><font color ='#370d00'>"+MultiLang.msg('tech.action')+"</font></b><br/>";
+			
+			public function setData(techObj:BaseTechObj,result:RuleCheckResult):void{
+				_techObj = techObj;
+				_dependStr = this.getDis();
+				_result = result;
+				if(result == null)return;
+				_buildingDependStr = ConditionCheck.instance.checkBuildingDepend(result.buildingDepenAry);
+			}
+			/*获取当前等级以及下一等级的科技效果*/
+			private function getDis():String{
+				var dis:String="";
+				if(_techObj!=null){
+					if(_techObj.level==0){
+						dis+="<b><font color='#370d00'>"+MultiLang.msg("public.nextLevel")+"</font></b><br/>";
+						dis+=TechHelper.instance.getFuncEffect(_techObj.techType,_techObj.level+1);
+					}
+					if(_techObj.level>0&&_techObj.level<TechConstant.HIGHEST_LEVEL){
+						dis="<b><font color='#370d00'>"+MultiLang.msg("public.curLevel")+"</font></b><br/>";
+						dis+=TechHelper.instance.getFuncEffect(_techObj.techType,_techObj.level);
+						dis+="\n"+"\n"+"<b><font color='#370d00'>"+MultiLang.msg("public.nextLevel")+"</font></b><br/>";
+						dis+=TechHelper.instance.getFuncEffect(_techObj.techType,_techObj.level+1);
+					}	
+					if(_techObj.level==TechConstant.HIGHEST_LEVEL){
+						dis="<b><font color='#370d00'>"+MultiLang.msg("public.curLevel")+"</font></b><br/>";
+						dis+=TechHelper.instance.getFuncEffect(_techObj.techType,_techObj.level);
+					}
+				}
+				return dis;			
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:VBox width="100%" height="100%">
+			<mx:Label text="{MultiLang.msg('upgradingWin.updata2NextLevel')} {_techObj.techName}{' '+MultiLang.msg('public.label.level')+' '+(_techObj.level+1)}" styleName="titleBordLabel"/>
+		</mx:VBox>
+		<mx:Text htmlText="{_dependStr}" styleName="goodNoticeLabel" width="100%" height="120"/>
+		<mx:Label  text ="{MultiLang.msg('tech.research.condition')}" styleName="titleBordLabel"/>
+		<mx:VBox verticalGap="0" width="100%">
+			<tech:PublicConditionForm result="{_result}" dependStr ="{_buildingDependStr}"/>
+		</mx:VBox>
+	</mx:VBox>
+</BaseTip>

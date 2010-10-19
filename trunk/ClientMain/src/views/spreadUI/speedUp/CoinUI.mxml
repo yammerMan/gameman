@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="320" height="66" 
+	xmlns:speedUp="views.spreadUI.speedUp.*" styleName="mainWindowContentBG" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ClientUtil;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import roma.common.valueObject.PlayerDataBean;
+			import roma.util.PopupWinManager;
+			import views.spreadUI.MyAlert;
+			import roma.message.events.PublicEvent;
+			import roma.logic.GameContext;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var bean:PlayerInfoDataBean;
+			[Bindable]
+			private var needCoin:int;
+
+			private var endTime:Number;
+			private var myTimer:Timer = new Timer(1000);
+						
+			private var _speedUptype:String;
+
+			private function init():void{
+				this.myTimer.addEventListener(TimerEvent.TIMER,timerHandler)
+				this.bean = GameContext.instance.getPlayerObj().getPlayerInfo();
+			}
+			
+			public function set speedUpType(type:String):void{
+				this._speedUptype =	type;	
+				this.bean = GameContext.instance.getPlayerObj().getPlayerInfo();	
+			}
+			
+			public function set needTime(t:Number):void{
+				this.endTime = t;
+				CoinSpeedUtil.instance.speedUpType = this._speedUptype;
+				
+				this.calcNeedCoin();
+				
+				if(!this.myTimer.running) 
+							this.myTimer.start();
+			}
+			
+			private function timerHandler(event:TimerEvent):void{
+				var remainTime:Number = this.calcNeedCoin();
+				
+				if(remainTime<=0)
+					this.myTimer.stop();
+			}
+			
+			private function calcNeedCoin():Number{
+				var now:Number = new Date().valueOf();
+				var remainTime:Number = (this.endTime - now +GameContext.instance.getTimeDis())/1000;
+				this.needCoin = CoinSpeedUtil.instance.getSpeedNeedCoins(remainTime);
+				return remainTime;
+			}
+			
+			public function stopTimer():void{
+				this.myTimer.stop();
+			}
+			
+			private function speedUpHandler():void{
+				var c:int = GameContext.instance.getPlayerObj().getPlayerInfo().coin;
+				if(c<this.needCoin){
+					PopupWinManager.instance.removePopup();
+					MyAlert.show(MultiLang.msg('public.coin.lack'),recharge,MultiLang.msg('systemMsg.getGold'));
+					return;
+				}
+				
+				this.dispatchEvent(new PublicEvent(PublicEvent.COMMON_EVENT));	
+			}
+			
+			private function recharge(_true:Boolean):void{
+				if(_true){
+					ClientMain.recharge();
+				}
+			}
+			
+			public function getNeedCoin():int{
+				return this.needCoin;
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox horizontalGap="2" horizontalCenter="0" top="1">
+		<mx:Label text  ="{MultiLang.msg('public.coin.have')}" color="0x000000"/>
+		<speedUp:CountWin account="{this.bean.coin}"/>
+	</mx:HBox>
+	<mx:Canvas width="100%" height="42" bottom="2" horizontalCenter="0" styleName="BuildingAlphaWindow" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Text selectable="false" height="100%" htmlText="{MultiLang.msg('public.needCoin.speedUp',this.needCoin)}" paddingLeft="3" paddingTop="5" left="10" right="105"/>
+		<mx:Button id="useCoinBtn" height="25" verticalCenter="0" right="5" label="{MultiLang.msg('immediately.complete')}" fontSize="12" fontWeight="bold" click="speedUpHandler()"/>
+	</mx:Canvas>
+</mx:Canvas>

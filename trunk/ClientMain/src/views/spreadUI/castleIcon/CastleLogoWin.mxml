@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" height="28" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="init()" width="83">
+	<mx:Script>
+		<![CDATA[
+			import roma.message.events.ChiefChangeEvent;
+			import roma.logic.object.hero.HeroObj;
+			import roma.logic.object.player.OtherArmyObj;
+			import mx.collections.ArrayCollection;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.message.events.MsgEvent;
+			import roma.message.EvtDispacther;
+			import views.mainFrame.ToggleButton;
+			import views.mainFrame.CastleFrame;
+			import roma.util.MultiLang;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.util.ClientUtil;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.common.constants.BuffConstants;
+			import roma.util.FiltersUtil;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			
+			public static const CASTLE_MAGNIFIER_SHOW:String = "castle.magnifier.show";  
+			
+			[Bindable]
+			public var castle:CastleObj;
+			
+			[Bindable]
+			private var constructPer:int;
+			
+			[Bindable]
+			private var isConstructing:Boolean;
+			
+			[Bindable]
+			private var constructingRemainTimeStr:String;
+			
+			[Bindable]
+			public var _selected:Boolean;
+			
+			[Bindable]
+			private var isShow:Boolean;
+			
+			[Bindable]
+			private var ChiefHero:HeroObj;
+			
+			private var timer:Timer = new Timer(1000);
+			
+			[Bindable]
+			private var cityBtnTip:String;
+
+			private function init():void {
+				this.timer.addEventListener(TimerEvent.TIMER , onTimerHandler);
+				this.checkArmyActionStatus();
+				
+				EvtDispacther.instance.addEventListener(CASTLE_MAGNIFIER_SHOW,onMagnifierHandler);
+				EvtDispacther.instance.addEventListener(EvtDispacther.ENEMY_ARMY_CHANGE , onArmyActionStatusChange);
+				EvtDispacther.instance.addEventListener(ChiefChangeEvent.CHIEF_CHANGE,chiefChangeHandle)
+		
+				this.isShow = !ToggleButton.instance.isTown;
+				
+			}
+			
+			private function onTimerHandler(event:TimerEvent=null):void {
+				var buf:BaseBuffObj = castle.buffManager.getBuffById(BuffConstants.CASTLE_CONSTRUCTING);
+				if (buf ==null) {
+					this.isConstructing = false;
+					this.timer.stop();
+				} else {
+					if(buf.getPercent()>=0){
+						this.constructPer = buf.getPercent();
+						this.constructingRemainTimeStr = MultiLang.timeFormatToString(buf.getRemainTimeSec());
+					}
+				}
+			}
+			
+			//有敌情需要判断是否攻击的是当前城
+			private function onArmyActionStatusChange(event:Event):void{
+				checkArmyActionStatus();
+			}
+			
+			/*获取当前敌军动态*/ 
+			private function checkArmyActionStatus():void{
+				this.cityName.setStyle("color",0xffffff);
+				var armyArr:ArrayCollection =GameContext.instance.getPlayerObj().otherArmyManager.getEnemyArmyArray();
+				for(var i:int=0;i<armyArr.length;i++){
+					if(this.castle.idField==OtherArmyObj(armyArr[i]).bean.targetFieldId){
+						this.cityName.setStyle("color",0xff0000);
+						break;
+					}
+				}
+			}
+			
+			public function set selected(selected:Boolean):void{
+				this._selected=selected
+			}
+			
+			public function get selected():Boolean{
+				return this._selected;
+			}
+			
+			public function setCastleObj(obj:CastleObj):void {
+				this.castle = obj;
+				if(this.isShow){
+					cityBtnTip=MultiLang.msg("castleIconPanel.tip.jumpAndGetIn",this.castle.name);
+				}else{
+					cityBtnTip=MultiLang.msg("castleIconPanel.tip.getIn",this.castle.name);
+				}
+				this.isConstructing = this.castle.isConstructing();
+				
+				if (this.isConstructing) {
+					this.onTimerHandler();
+					this.timer.start();
+				}
+				this.checkCastellan();
+			}
+			
+			private function onMagnifierHandler(event:MsgEvent):void{
+				this.isShow = !ToggleButton.instance.isTown;
+				if(this.isShow){
+					cityBtnTip=MultiLang.msg("castleIconPanel.tip.jumpAndGetIn",this.castle.name);
+				}else{
+					cityBtnTip=MultiLang.msg("castleIconPanel.tip.getIn",this.castle.name);
+				}
+			}
+			
+			private function castleLocate():void{
+				DiamondWorldMap2.instance.goPoint(this.castle.idField/10000,this.castle.idField%10000);
+			}
+			
+			private function castleClick():void{
+				EvtDispacther.sendEvent(CastleIconPanel.CASTLE_CLICK,this);
+			}
+			
+			private function checkCastellan():void{
+				this.ChiefHero=this.castle.heroManager.getChiefHero();
+			}
+			
+			private function chiefChangeHandle(event:ChiefChangeEvent):void{
+				if(this.castle.cityId==event.chief.castleObj.cityId){
+					this.ChiefHero=this.castle.heroManager.getChiefHero();
+				}
+			}
+			
+			private function refreshCityTip():void{
+				if(this.isShow){
+					cityBtnTip=MultiLang.msg("castleIconPanel.tip.jumpAndGetIn",this.castle.name);
+				}else{
+					cityBtnTip=MultiLang.msg("castleIconPanel.tip.getIn",this.castle.name);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox horizontalGap="0" horizontalAlign="center" verticalAlign="middle" id="box">
+		<mx:Button id="findBtn" width="25" height="22" styleName="cityFindBtn" visible="{isShow}" click="castleLocate()"
+			 mouseOver="findBtn.alpha=0.7" mouseOut="findBtn.alpha=1" toolTip="{MultiLang.msg('castleIconPanel.tip.jumpAndView',this.castle.name)}"/>
+		<mx:Canvas id="imgContainer" width="57" height="28" click="castleClick()"
+			 mouseOver="imgContainer.alpha=0.7;refreshCityTip()" mouseOut="imgContainer.alpha=1" toolTip="{cityBtnTip}">
+			<mx:Image source="{ImgManager.clazz('background.castleIcon.selected')}" updateComplete="ImageHandle.onLoadComplete(event)"
+				visible="{this._selected}" 
+				height="28" width="57" />
+			<mx:Image source="{ImgManager.clazz('background.castleIcon.normal')}" updateComplete="ImageHandle.onLoadComplete(event)"
+				visible="{!this._selected}" 
+				height="28" width="57" />
+			<mx:Image id="cityLogo" source="{this.ChiefHero==null?this.castle.logoClass:ImgManager.clazz(this.ChiefHero.heroInfo.logoUrl)}"
+				 left="11" updateComplete="ImageHandle.onLoadComplete(event)" bottom="4" top="4" right="5"/>
+			<mx:Label text="{this.castle.name.substr(0,3)}" 
+				id="cityName" fontWeight="{this._selected?'bold':'normal'}"
+				x="8" textAlign="center"  width="49" verticalCenter="0"
+				styleName="titleLevelLabel" filters="{[FiltersUtil.glowFilter]}"
+				visible="{!this.isConstructing}"/>
+			<mx:Label text="{this.constructPer}%"
+				toolTip="{this.constructingRemainTimeStr}" 
+				x="8" textAlign="center"  width="49" verticalCenter="0"
+				styleName="cityLogoNameLabel" filters="{[FiltersUtil.glowFilter]}" 
+				visible="{this.isConstructing}"/>
+		</mx:Canvas>
+	</mx:HBox>
+</mx:Canvas>

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:spreadUI="views.spreadUI.*" creationComplete="init()" xmlns:ns2="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.AllianceInviteBean;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.controller.alliance.AllianceInviteListResponse;
+			import roma.common.controller.alliance.AllianceApplyListResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.action.AllianceManagementController;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			import mx.events.ItemClickEvent;
+			
+			public var alliaceView:Function;
+			
+			[Bindable]
+			private var cur_page:int = 1;
+			private var page_size:int = 10;
+			[Bindable]
+			private var total_page:int = 0;
+			
+			[Bindable]
+			private var catalogArr:ArrayCollection = new ArrayCollection();
+			
+			private var inviteArr:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var inviteInShowArr:ArrayCollection=new ArrayCollection();
+			
+			[Bindable]
+			private var applyInShowArr:ArrayCollection=new ArrayCollection();
+			private var applyArr:ArrayCollection=new ArrayCollection();
+			
+			private var applayCurpage:int;
+			private var applayTotalpage:int;
+			private var inviteCurpage:int;
+			private var inviteTotalpage:int;
+			
+			private var curShowIndex:int=0;
+
+			private function init():void{
+				catalogArr.addItem(MultiLang.msg('alliance.inviteList'));
+				catalogArr.addItem(MultiLang.msg('alliance.applyList'));
+				this.refresh();
+			}
+			
+			public function refresh():void{
+				if(this.initialized){
+					this.allianceVS.selectedIndex=0;
+					this.myTitle.selectedIndex=0;
+					this.playerNameInput.text="";
+				}
+				this.curShowIndex=0;
+				this.getInvitedPlayerList();
+			}
+			
+			//回到联盟主显示页
+			private function gotoAllianceView():void{
+				if(this.alliaceView!=null){
+					this.alliaceView.apply(this);
+				}
+			}
+			
+			
+			private function catalogTbClick(event:ItemClickEvent):void{
+				if(ToggleButtonBar(event.target).selectedIndex == allianceVS.selectedIndex){
+					return;
+				}
+				this.curShowIndex=ToggleButtonBar(event.target).selectedIndex;
+				switch(ToggleButtonBar(event.target).selectedIndex){
+					case 0:
+						allianceVS.selectedIndex = 0;
+						this.getInvitedPlayerList();
+						
+					break;
+					case 1:
+						allianceVS.selectedIndex = 1;
+						this.getAppliedPlayerList();
+						
+					break;
+					
+					default:
+				}
+			}
+			
+			/**
+			 * 每页的切换
+			 */ 
+			private function turnPage(p:int):void{
+				var n:int = cur_page;
+				this.cur_page += p;
+				if (cur_page >=1 && cur_page <= total_page) {
+					showData(cur_page);
+				} else {
+					cur_page = n;
+				}
+			}
+			
+			//获取申请列表
+			private function getAppliedPlayerList():void{
+				ControllerFactory.getInstance().getAllianceManagementController().getAppliedPlayerList(callback);
+				function callback(event:AllianceApplyListResponse):void{
+					if(event.isSuccess()){
+						applyArr.removeAll();
+						applyInShowArr.removeAll();
+						if(event.allianceApplyArray.length>0){
+							applyArr=event.allianceApplyArray;
+							cur_page=1;
+							total_page=Math.ceil(applyArr.length/page_size);	
+							showData(cur_page);
+						}else{
+							cur_page=0;
+							total_page=0;	
+						}
+					}
+				}
+			}
+			
+			//获取邀请列表
+		 	private function getInvitedPlayerList():void{
+		 		ControllerFactory.getInstance().getAllianceManagementController().getInvitedPlayerList(callback);
+				function callback(event:AllianceInviteListResponse):void{
+					if(event.isSuccess()){
+						inviteArr.removeAll();
+						inviteInShowArr.removeAll();
+						if(event.allianceInviteArray.length>0){
+							inviteArr=event.allianceInviteArray;
+							cur_page=1;
+							total_page=Math.ceil(inviteArr.length/page_size);
+							showData(cur_page);
+						}else{
+							cur_page=0;
+							total_page=0;	
+						}
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+		 	}	
+			
+			
+			//邀请加入联盟
+			private function inviteToAlliance():void{
+				if(this.playerNameInput.text!=null){
+					for(var i:int=0;i<this.inviteArr.length;i++){
+						if(this.playerNameInput.text==AllianceInviteBean(this.inviteArr[i]).playerName){
+							MyAlert.show(MultiLang.msg("alliance.alreadyInvite"));
+							return;
+						}
+					}
+					ControllerFactory.getInstance().getAllianceManagementController().inviteToAlliance(this.playerNameInput.text,callback);
+				}else{
+					MyAlert.show(MultiLang.msg("inviteNameIsNull"));
+				}
+				
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						playerNameInput.text="";
+						if(myTitle.selectedIndex==0){
+							getInvitedPlayerList();
+						}
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			//取消邀请
+			public function cancelInvite(playerId:int):void{
+				ControllerFactory.getInstance().getAllianceManagementController().cancelInvite(playerId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+					   getInvitedPlayerList();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			//通过申请
+			public function agreeApply(playerId:int):void{
+				ControllerFactory.getInstance().getAllianceManagementController().agreeApply(playerId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						getAppliedPlayerList();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			//拒绝申请
+			public function refuseApply(playerId:int):void{
+				ControllerFactory.getInstance().getAllianceManagementController().refuseApply(playerId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						getAppliedPlayerList();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function showData(page:int):void{
+				if(this.curShowIndex==0){
+					this.inviteInShowArr.removeAll();
+					if(this.inviteArr.length>0){
+						var end:int=page*this.page_size>this.inviteArr.length?this.inviteArr.length:page*this.page_size;
+						for(var i:int=(page-1)*this.page_size;i<end;i++){
+							this.inviteInShowArr.addItem(this.inviteArr[i]);
+						}	
+					}
+				}else{
+					this.applyInShowArr.removeAll();
+					if(this.applyArr.length>0){
+					var endApply:int=page*this.page_size>this.applyArr.length?this.applyArr.length:page*this.page_size;
+						for(var j:int=(page-1)*this.page_size;j<endApply;j++){
+							this.applyInShowArr.addItem(this.applyArr[j]);
+						}		
+					}	
+				}
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:ToggleButtonBar styleName="titleToggleButtonBar" dataProvider="{catalogArr}" itemClick="{catalogTbClick(event)}" top="33" left="11" id="myTitle">
+	</mx:ToggleButtonBar>
+	<spreadUI:MulHRule left="12" right="12" top="53"/>
+	<mx:ViewStack id="allianceVS" left="12" right="12" top="57" bottom="36">
+		<mx:Canvas label="inviteCanvas" width="100%" height="100%">
+			<mx:DataGrid top="0" left="0" right="0" bottom="0" dataProvider="{this.inviteInShowArr}" editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center">
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('ranking.label.player')}" dataField="playerName"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.ranking')}" dataField="rank"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('label.horne')}" dataField="honor"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('alliance.inviteFrom')}" dataField="invitor"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('alliance.inviteTime')}" dataField="time">
+						<mx:itemRenderer>
+				                <mx:Component>
+				                	<mx:HBox left="1" right="1"  top="1" bottom="1" horizontalAlign="center" verticalAlign="middle">
+				                   		<ns2:TransLabel timeData="{data.time}"/>
+				               		</mx:HBox>
+				                </mx:Component>
+					        </mx:itemRenderer>
+						</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="time" width="100">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+									left="1" right="1" top="1" bottom="1">
+									<mx:Script>
+										<![CDATA[
+											import roma.util.MultiLang;
+										]]>
+									</mx:Script>
+									<mx:Button label="{MultiLang.msg('public.label.cancel')}" width="90" click="parentDocument.cancelInvite(data.playerId)"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas label="applyCanvas" width="100%" height="100%">
+			<mx:DataGrid top="0" left="0" right="0" bottom="0" dataProvider="{this.applyInShowArr}" editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center">
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('ranking.label.player')}" dataField="playerName"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.ranking')}" dataField="rank"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('label.horne')}" dataField="honor"/>
+					<mx:DataGridColumn headerText="{MultiLang.msg('alliance.inviteTime')}" dataField="time">
+						<mx:itemRenderer>
+				                <mx:Component>
+				                	<mx:HBox left="1" right="1"  top="1" bottom="1" horizontalAlign="center" verticalAlign="middle">
+				                   		<ns2:TransLabel timeData="{data.time}"/>
+				               		</mx:HBox>
+				                </mx:Component>
+					        </mx:itemRenderer>
+						</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="col3">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+									<mx:Script>
+										<![CDATA[
+											import roma.util.MultiLang;
+										]]>
+									</mx:Script>
+									<mx:Button label="{MultiLang.msg('alliance.agree')}" click="parentDocument.agreeApply(data.playerId)"/>
+									<mx:Button label="{MultiLang.msg('alliance.dissent')}" click="parentDocument.refuseApply(data.playerId)"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		
+	</mx:ViewStack>
+	<mx:HBox bottom="13" right="12" verticalAlign="middle" horizontalGap="3">
+		<mx:Label text="{MultiLang.msg('alliance.inputInviteName')}:"/>
+		<mx:TextInput width="150" id="playerNameInput"/>
+		<mx:Button label="{MultiLang.msg('alliance.invite')}" width="100" click="inviteToAlliance()"/>
+		<mx:Button label="{MultiLang.msg('public.label.return')}" width="100" click="gotoAllianceView()"/>
+	</mx:HBox>
+	<mx:HBox width="150" horizontalAlign="right" verticalAlign="middle" right="12" top="33" height="22" visible="{this.total_page>0?true:false}" includeInLayout="{this.total_page>0?true:false}">
+		<mx:Button click="turnPage(-1)" styleName="previousBtn"/>
+		<mx:Label text="{cur_page}/{total_page}" textAlign="center"/>
+		<mx:Button  click="turnPage(1)" styleName="nextBtn"/>
+	</mx:HBox>
+</mx:Canvas>

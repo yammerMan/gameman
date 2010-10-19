@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tips:BaseTip
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:tips="views.spreadUI.tips.*" 
+	height="32">
+<mx:Script>
+	<![CDATA[
+		import roma.util.MultiLang;
+	]]>
+</mx:Script>
+	<mx:HBox left="5" top="5" right="5" bottom="5">
+		<mx:Label text="{MultiLang.msg('public.label.newBuilding')} {MultiLang.msg('building.wall.name')}"/>
+	</mx:HBox>
+</tips:BaseTip>

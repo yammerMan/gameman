@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseOtherReport xmlns="views.windows.functionWins.mail.ReportUi.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import mx.utils.ObjectProxy;
+			
+			override public function setReportObj(u:ObjectProxy):void{
+				reportObj = u;
+				reportDesc = MultiLang.msg('report.uprising.desc{0}',reportObj.castleName);
+				setObj();
+			}
+			
+			private function setObj():void{
+				reportObj.food = reportObj.food==0?0: - reportObj.food;
+				reportObj.wood = reportObj.wood==0?0: - reportObj.wood;
+				reportObj.stone =reportObj.stone==0?0: - reportObj.stone;
+				reportObj.iron =reportObj.iron==0?0: - reportObj.iron;
+				reportObj.gold =reportObj.gold==0?0: - reportObj.gold;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalAlign="center">
+		<mx:Text text="{reportDesc}" width="100%" paddingLeft="10" textAlign="left" />
+		<mx:HRule width="98%" styleName="bufferBarVRule"/>
+		<mx:Canvas width="95%">
+			<battleResult:CommonResourceUi resourceObj="{reportObj}"/>
+		</mx:Canvas>
+	</mx:VBox>
+</BaseOtherReport>

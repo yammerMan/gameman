@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="602" height="327" xmlns:military="views.windows.functionWins.military.*"
+	xmlns:ns2="views.spreadUI.*"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.InputTextHelper;
+			import views.MainContainer;
+			import views.windows.functionWins.military.BaseTroopAtAssign;
+			import views.windows.functionWins.military.CoorConstant;
+			import views.windows.functionWins.military.GoToWarFromFavorite;
+			import views.windows.functionWins.military.TroopInHero;
+			import views.windows.functionWins.military.TroopInCastle;
+			import views.windows.functionWins.military.DragUIComponent;
+			import views.windows.functionWins.military.HeroData;
+			import views.windows.functionWins.military.AssignHelper;
+			import roma.data.MapTileData;
+			import views.PopupWindows;
+			import views.mainModules.map.MapFieldInfoWin;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import views.windows.BaseWin;
+			import mx.containers.Canvas;
+			import roma.util.PopupWinManager;
+			import roma.message.EvtDispacther;
+			import roma.message.events.MsgEvent;
+			import roma.logic.object.castle.CastleObj;
+			import roma.logic.GameContext;
+			import roma.logic.CaesaryConfig;
+			import mx.collections.ArrayCollection;
+			import roma.logic.object.hero.HeroObj;
+			import roma.util.MultiLang;
+			import flash.utils.getQualifiedClassName;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			
+			public static const WINDOW_SHOW:String = "AssingTroopWin.show";
+			
+			
+			private static var log:ILogger = Log.getLogger("views.windows.functionWins.military.AssingTroopWin");
+			
+			[Bindable]
+			private var curHero:HeroObj;
+			
+			[Bindable]
+			private var secHero:HeroObj;
+			
+			[Bindable]
+			private var hasSecend:Boolean = false;
+			
+			[Bindable]
+			private var secondHeroArray:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var isCanAssigeWithCastle:Boolean;
+			
+			[Bindable]
+			private var selectedHeroName:String;
+			
+			[Bindable]
+			private var heroSelectorVisable:Boolean = false;
+			
+			[Bindable]
+			private var canGotoWar:Boolean;
+
+			private var heroData:HeroData;
+						
+			private var helper:AssignHelper = AssignHelper.instance;
+			
+			private var secondUIary:Array = new Array();
+			private var allUIAry:Array = new Array();
+			
+			
+			/**
+			 * 初始化
+			 */
+			private function init():void {
+				EvtDispacther.instance.addEventListener(EvtDispacther.ASSIGN_TROOP_DROP, onAssignDrop);
+
+				this.initTroopUi();
+				this.setChildIndex(this.heroContainer,this.getChildren().length-1);
+				setHero();
+			}
+			
+			private function initTroopUi():void{
+				//底部兵种ui
+				var ary:Array = helper.troopInCastleArray;
+				for(var i:int =0;i<ary.length;i++){
+					var ui:TroopInCastle = ary[i] as TroopInCastle;
+					ui.x =CoorConstant.COOR1_X+i*(CoorConstant.UI_WIDTH+20);
+					ui.y = CoorConstant.COOR1_Y;
+					
+					this.allUIAry.push(ui);
+					this.addChild(ui);
+				}
+				
+				//左边兵种ui
+				var ary1:Array = helper.firstArray;
+				for(var j:int =0;j<ary.length;j++){
+					var ui1:TroopInHero = ary1[j] as TroopInHero;
+					ui1.x = CoorConstant.COOR2_X+j*CoorConstant.UI_WIDTH;
+					ui1.y = CoorConstant.COOR2_Y;
+					ui1.setSoldierinitTpye(j);
+					if(j>=3){
+						ui1.x=CoorConstant.COOR2_X+(j-3)*CoorConstant.UI_WIDTH;
+						ui1.y =CoorConstant.COOR2_Y+ CoorConstant.UI_HEIGHT;
+					}
+					
+					this.allUIAry.push(ui1);
+					this.addChild(ui1);
+				}
+				
+				//右边兵种ui
+				var ary2:Array = helper.secondArray;
+				for(var k:int =0;k<ary2.length;k++){
+					var ui2:TroopInHero = ary2[k] as TroopInHero;
+					ui2.x = CoorConstant.COOR3_X+k*CoorConstant.UI_WIDTH;
+					ui2.y = CoorConstant.COOR3_Y;
+					ui2.setSoldierinitTpye(k);	
+					if(k>=3){
+						ui2.x =CoorConstant.COOR3_X+(k-3)*CoorConstant.UI_WIDTH;	
+						ui2.y = CoorConstant.COOR3_Y+CoorConstant.UI_HEIGHT;	
+					} 
+					
+					if(!hasSecend){
+						ui2.visible = false;
+					}
+
+					this.allUIAry.push(ui2);
+					this.secondUIary.push(ui2);
+					this.addChild(ui2);
+				}
+				
+				//拖动框
+				var ary3:Array = helper.dragUIAry;
+				for(var d:int;d<ary3.length;d++){
+					var dragUI:DragUIComponent = ary3[d] as DragUIComponent;
+					dragUI.setTroopAttssign(BaseTroopAtAssign(allUIAry[d]));
+					this.addChild(dragUI);				
+				}
+			}
+			
+			/**
+			 * 拖动完成时
+			 */
+			private function onAssignDrop(event:MsgEvent):void {
+				var win:BaseWin = BaseWin(event.data);
+				win.onShowUpdate();
+				PopupWinManager.instance.addPopup(win , true, this);
+			}
+
+			public function refresh():void {
+				this.hasSecend = false;
+				this.helper.hasSecond = false;
+				this.heroSelectorVisable=false;
+
+				this.curHero = HeroHelper.instance.getCurSelectHero();
+				this.secHero=null;
+				
+				this.secondHeroArray.removeAll();
+				
+				if(this.curHero==null){
+					this.isCanAssigeWithCastle = false;
+					HeroHelper.instance.secSelectHero=null;
+				}else{
+					this.isCanAssigeWithCastle = curHero.isInCastle;
+					this.helper.reset(this.curHero);
+					var ac:ArrayCollection = this.curHero.castleObj.heroManager.heroArray;
+					for each(var hero:HeroObj in ac) {
+						if (hero.isCanSwapTroopWithOther(this.curHero)) {
+							this.secondHeroArray.addItem(hero);
+						}
+					}
+				}	
+				
+				
+				
+				if(this.initialized){
+					setHero();
+				}
+
+				
+				/* if(!heroData.isFromHero){
+					this.canGotoWar = true;
+				}else{ */
+				if(GameContext.instance.getPlayerObj().favoriteManager.filterArray.length>0){
+					this.canGotoWar	=true;				
+				}else{
+					this.canGotoWar = false;
+				}
+				/* } */
+			}
+			
+			/**
+			 * 选择了第二个英雄
+			 */
+			public function onHeroSelected(hero:HeroObj):void {
+				this.hasSecend = true;
+				this.helper.hasSecond = true;
+				/* if (this.secHero!=null) {
+					this.secHero.selectedInUi = false;
+				} */
+				this.secHero = hero;
+				//this.secHero.selectedInUi = true;
+				this.helper.setSecondHero(hero);
+				this.selectedHeroName = hero.heroInfo.name;
+				this.heroSelectorVisable = false;
+				this.targetArmyInAssign.setCurHero(hero);
+				this.heroSelectBtn.setStyle("color",this.secHero.heroInfo.potentiality>0?0x0082cd:0x81511c);
+				for(var i:int = 0;i<secondUIary.length;i++){
+					TroopInHero(secondUIary[i]).visible = true;
+				}
+			}
+			
+			private function onSelectHeroBtnClick():void {
+				var old:Boolean = this.heroSelectorVisable;
+				if (old) {
+					this.heroSelectorVisable = false;
+				} else {
+					/* this.curHero = this.heroData.heroObj; */
+					this.curHero = HeroHelper.instance.curSelectHero;
+					if(this.curHero==null)return;
+					var castle:CastleObj = this.curHero.castleObj;
+					var ac:ArrayCollection = castle.heroManager.heroArray;
+					this.secondHeroArray.removeAll();							
+					for each(var hero:HeroObj in ac) {
+						if (hero.isCanSwapTroopWithOther(this.curHero)) {
+							this.secondHeroArray.addItem(hero);
+						}
+					}
+					this.heroSelectorVisable = true;
+					this.curHero.updateHeroObj();
+				}
+			}
+			
+			/** 交换英雄部队 ,交换钱需要判断英雄统帅力*/
+			private function swapTroop():void{
+				var swapTroopResponse:Function = function(event:CommonResponse):void{
+					if(!event.isSuccess()){
+						MyAlert.showError(event);
+					}
+				}
+				
+				//当前英雄统帅力不够
+				if(this.curHero.leadership<this.secHero.armyManager.calcTroopStrength()){
+ 					MyAlert.show(MultiLang.msg("military.don't.swap",curHero.heroInfo.name));
+					return;
+				}
+				
+				//第二英雄统帅力不够
+				if(this.secHero.leadership<this.curHero.armyManager.calcTroopStrength()){
+ 					MyAlert.show(MultiLang.msg("military.don't.swap",secHero.heroInfo.name));
+					return;
+				}
+				
+				ControllerFactory.getInstance().getArmyController().changeHeroTroop(this.curHero.castleObj.cityId,this.curHero.heroInfo.id,this.secHero.heroInfo.id,swapTroopResponse);			
+			}
+			
+			private function createArmy():void{
+				if(this.heroData.isFromHero){
+					GoToWarFromFavorite.getInstance().goToWarToCity();	
+				}else{
+					//var d:MapTileData = GoingToWarWin.instance.winData as MapTileData;
+					//PopupWindows.openFuncWin(GoingToWarWin.WINDOW_SHOW,d);
+				}
+			} 
+			
+			/**
+			 * 英雄改名
+			 */ 
+			
+			private function onModifyName(event:MouseEvent):void{
+				if(Button(event.currentTarget).styleName =="collectionModifyBtn"){
+					Button(event.currentTarget).styleName = "agreeBtn";
+					Button(event.currentTarget).toolTip=MultiLang.msg('favorite.modify.neme');
+					heroNameText.setTextInputEditable(true);
+				}else if(Button(event.currentTarget).styleName == "agreeBtn"){
+					Button(event.currentTarget).styleName = "collectionModifyBtn";
+					Button(event.currentTarget).toolTip=MultiLang.msg('favorite.modify.click');
+					heroNameText.setTextInputEditable(false);
+					ControllerFactory.getInstance().getHeroController().reName(curHero.castleObj.cityId,curHero.heroInfo.id,heroNameText.getTextInputText(),onRenameResponse);
+				}
+				/**改名响应*/ 
+				 function onRenameResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("hero.changeSuccess"));
+						heroNameText.textString=curHero.heroInfo.name;
+						heroNameText.setTextInputEditable(false);
+					}
+					else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function textChange(event:Event):void{
+		 		var textCount:int = 0;
+				for (var i:int=0;i<event.target.text.length;i++){
+					var tempStr:String = event.target.text.substr(i,1);
+					if(InputTextHelper.isDoubleByte(tempStr)){
+						textCount +=2;
+					} else {
+						textCount +=1;
+					}
+					if (textCount>CaesaryConfig.instance.nameLimit) {  						
+						this.heroNameText.textString = this.heroNameText.getTextInputText().substring(0,i);
+						this.heroNameText.setMaxValue(i);
+						break;
+					}					
+				}
+			} 
+			
+			private function uninstallHeroTroop(event:MouseEvent):void{
+				if(event.currentTarget==this.uninstallFirstBtn){
+					HeroHelper.instance.uninstallHeroTroop(this.curHero);
+				}else if(event.currentTarget==this.uninstallSecBtn){
+					HeroHelper.instance.uninstallHeroTroop(this.secHero);
+				}
+			}
+			
+			private function setHero():void{
+				for(var i:int = 0;i<secondUIary.length;i++){
+					TroopInHero(secondUIary[i]).visible = false;
+				}
+				this.curArmyInAssign.setCurHero(this.curHero);
+				if (this.secondHeroArray.length>0) {
+					if (this.secHero!=null) {
+						if(this.curHero.heroInfo.id!=this.secHero.heroInfo.id){
+							this.onHeroSelected(this.secHero);
+						}else{
+							juedeIsTheSec();
+						}
+					}else{
+						juedeIsTheSec();
+					}
+				} else {
+					this.secHero = null;
+					HeroHelper.instance.secSelectHero=null;
+				}
+				if(curHero != null)
+				this.curHero.updateHeroObj();
+				if(secHero != null)
+				this.secHero.updateHeroObj();
+			}
+			
+			private function juedeIsTheSec():void{
+				var found:Boolean=false;
+				for(var k:int;k<this.secondHeroArray.length;k++){
+					if(this.curHero.heroInfo.id!=HeroObj(this.secondHeroArray[k]).heroInfo.id){
+						this.onHeroSelected(HeroObj(this.secondHeroArray[k]));
+						found=true;
+						break;
+					}
+				}
+				if(!found){
+					this.secHero=null;
+					HeroHelper.instance.secSelectHero=null;
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas width="265" height="260" label="英雄资料" styleName="subContentBG" left="0" top="1">
+		<military:ArmyInAssign  id="curArmyInAssign"/>
+		<mx:VBox left="120" verticalGap="3" verticalScrollPolicy="off" horizontalScrollPolicy="off" right="16" top="13">
+			<mx:HBox width="100%" verticalAlign="middle">
+				<!--mx:TextInput id="heroNameText" text="{curHero.heroInfo.name}" alpha="0"  width="100%" editable="false" textAlign="center" color="{curHero.heroInfo.potentiality>0?0x0082cd:0x81511c}" styleName="titleBordLabel" change="textChange(event)"/-->
+				<ns2:ModifyTextInput textString="{curHero.heroInfo.name}" id="heroNameText" width="100%" textInputChangeHandle="textChange" modifyColor="{curHero.heroInfo.potentiality>0?'0x0082cd':'0x81511c'}"/>
+				<mx:Button id="modifyNameBtn"  width="16" height="15" click="onModifyName(event)" styleName="collectionModifyBtn" toolTip="{MultiLang.msg('favorite.modify.click')}"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas width="265" height="260" label="英雄资料" styleName="subContentBG" right="1" top="1">
+		<military:ArmyInAssign id="targetArmyInAssign" visible="{this.hasSecend}"/>
+		<mx:Button styleName="comboBoxBtn" width="117" height="22"
+			label="{this.secHero.heroInfo.name}" 
+			click="onSelectHeroBtnClick()"
+			enabled="{this.secondHeroArray.length>0}" id="heroSelectBtn" x="124" y="12"/>
+	</mx:Canvas>
+	<mx:Canvas bottom="0" height="62" left="0" right="0" styleName="subContentBG"/>
+	<mx:Canvas width="340" height="274" right="32" label="英雄选择" styleName="baseTooltip" id="heroContainer"
+		visible="{this.heroSelectorVisable}" top="50">
+		<mx:DataGrid dataProvider="{this.secondHeroArray}" headerHeight="0" backgroundAlpha="0"
+			rowHeight="52" left="10" top="10" right="10" bottom="10" borderStyle="none">
+			<mx:columns>
+				<mx:DataGridColumn>
+					<mx:itemRenderer>
+						<mx:Component>
+							<military:HeroSelectorItem
+								hero="{HeroObj(data)}"
+								click="{outerDocument.onHeroSelected(HeroObj(data))}">
+								<mx:Script>
+									<![CDATA[
+										import roma.logic.object.hero.HeroObj;
+									]]>
+								</mx:Script>
+							</military:HeroSelectorItem>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:Canvas>
+	<mx:VBox verticalGap="3" height="62" y="200" horizontalCenter="0" horizontalAlign="center">
+		<mx:Button width="38" height="37" styleName="interchangeBtn" toolTip="{MultiLang.msg('hero.buttonTip.armyExchange')}" click="swapTroop()"  enabled="{this.hasSecend}"/>
+		<mx:HBox horizontalGap="2">
+			<mx:Button id="uninstallFirstBtn" toolTip="{MultiLang.msg('hero.buttonTip.armyUninstall')}" click="uninstallHeroTroop(event)" styleName="uninstallBtn" width="18" height="22"/>
+			<mx:Button id="uninstallSecBtn" toolTip="{MultiLang.msg('hero.buttonTip.armyUninstall')}" click="uninstallHeroTroop(event)" styleName="uninstallBtn" width="18" height="22"/>
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>

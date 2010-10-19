@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas  
+	width="100%" height="100%" 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:army="views.spreadUI.army.*" xmlns:hero="views.windows.functionWins.hero.*" xmlns:spreadUI="views.spreadUI.*" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.building.impl.Amphitheater;
+			import roma.common.valueObject.HeroInfoBean;
+			import roma.message.EvtDispacther;
+			import views.windows.buildings.amphitheater.HeroTemper;
+			import roma.common.constants.HeroGrowthConstant;
+			import views.windows.buildings.amphitheater.HeroDetail;
+			import roma.message.events.ChiefChangeEvent;
+			import views.MainContainer;
+			import roma.util.ImageHandle;
+			import mx.events.CollectionEvent;
+			import views.spreadUI.tips.CommonTooltip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.common.constants.BuffConstants;
+			import roma.logic.object.buff.BaseBuffObj;
+			import views.windows.functionWins.military.HeroData;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.common.constants.HeroManConstants;
+			import mx.binding.utils.BindingUtils;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ItemRule;
+			import gs.plugins.VolumePlugin;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import mx.collections.ArrayCollection;
+			import roma.resource.ImgManager;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.MyAlert;
+			import views.PopupWindows;
+			import roma.util.MultiLang;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.logic.object.hero.HeroObj;
+			
+			public static var AWARD_Hero_SUCCESS:String = "awardHeroSuccess";
+			[Bindable]
+			private var _hero:HeroObj;
+			[Bindable]
+			private var addAttackTips:String = "";
+			[Bindable]
+			private var addDefenceTips:String = "";
+			[Bindable]
+			private var addPoliticsTips:String = "";
+			[Bindable]
+			private var addArmyLimitTips:String = "";
+			[Bindable]
+			private var buffArr:ArrayCollection = new ArrayCollection();
+			private var buffTypeIdArr:Array=new Array(BuffConstants.HERO_INC_POLITICS,BuffConstants.HERO_INC_ATTACK,BuffConstants.HERO_INC_INTELLIGENCE,BuffConstants.HERO_INC_LEADERSHIP);
+			private var castleId:int = GameContext.instance.getPlayerObj().getCurCastleObj().getCityId();
+			private var func:Function;
+			
+			[Bindable]
+			private var showBuffTime:Boolean=false;
+			
+			[Bindable]
+			private var _heroStatus:String;
+			[Bindable]
+			private var curHeroStatus:String;
+			private var amphitheaterObj:Amphitheater;
+			
+			[Bindable]
+			private var hasAmphitheater:Boolean;
+			
+			
+			public function refresh(f:Function):void{
+				castleId = GameContext.instance.getPlayerObj().getCurCastleObj().getCityId();
+				func = f;
+			}
+			
+			public function set hero(h:HeroObj):void{
+				this._hero=h;
+				castleId=this._hero.castleObj.cityId;
+				this.amphitheaterObj = Amphitheater(_hero.castleObj.buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_AMPHITHEATRE));
+				hasAmphitheater = amphitheaterObj != null;
+				this.initBtn();
+			}
+			
+			public function get hero():HeroObj{
+				return this._hero;
+			}
+			
+			private function init():void{
+				addAttackTips = GameRuleHelper.instance.getItemRuleById(ItemResManager.heroAddAttack).funcDesc;
+				addDefenceTips = GameRuleHelper.instance.getItemRuleById(ItemResManager.heroAddDefence).funcDesc;
+				addPoliticsTips = GameRuleHelper.instance.getItemRuleById(ItemResManager.heroAddPolitics).funcDesc;
+				addArmyLimitTips = GameRuleHelper.instance.getItemRuleById(ItemResManager.heroAddArmyLimit).funcDesc;
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_LEADERSHIP_CHANGE,refreshBtn);
+				function refreshBtn(event:Event):void{
+					initBtn();
+				}
+			}
+			
+			private function callTroopDistribute():void{
+				if (_hero.heroInfo.canAssign) {
+					HeroHelper.instance.curSelectHero=_hero;
+					PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW_WEAVE);
+				} else {
+					MyAlert.show(MultiLang.msg("military.assginTroop.condition"));
+				}
+			}
+			
+			private function troopCallBack():void{
+				if(_hero.heroInfo.status == HeroManConstants.STATUS_IN_BATTLE_FIELD){
+					battleCallBack();
+					return;
+				}
+				HeroHelper.instance.callbackHero(_hero,onCallBack);
+//				ControllerFactory.getInstance().getArmyController().reCallArmy(
+//					this._hero.castle.castleId,this._hero.heroInfo.id,onCallBack);
+				function onCallBack(event:CommonResponse):void{
+					if (event.isSuccess()) {
+						MainContainer.instance.risePlay(MultiLang.msg("hero.temper.callBack.success.tips"));
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function battleCallBack():void{
+				if(!_hero.isCanCallBack()){
+					MyAlert.show(MultiLang.msg('intelligence.battle.hasSomeOneJoin'));
+					return;
+				}
+				if(_hero.battleGoTime()<HeroManConstants.HERO_CALL_BACK_NEED_ITEM_MINS){
+					MyAlert.show(MultiLang.msg('intelligence.battle.noOverOneMin'),callNoOverTimeBackFun);
+				}
+				else{
+					MyAlert.show(MultiLang.msg('intelligence.battle.isOverOneMin'),callOverTimeBackFun);
+				}
+				
+				function callNoOverTimeBackFun(isTrue:Boolean):void{
+					if(isTrue)
+					HeroHelper.instance.callbackHero(_hero,reCallArmyResponse);
+//					ControllerFactory.getInstance().getArmyController().reCallArmy(_hero.castle.castleId, _hero.heroInfo.id,reCallArmyResponse);
+				}
+				
+				function callOverTimeBackFun(isTrue:Boolean):void{
+					if(isTrue)
+					ItemSelectSpeedUpWin.show(new ArrayCollection([HeroManConstants.CALL_BACK_HERO_ITEM]),onUseResponse);
+				}
+				
+				function onUseResponse(i:ItemRule):void{
+//					ControllerFactory.getInstance().getArmyController().reCallArmy(_hero.castle.castleId,_hero.heroInfo.id,reCallArmyResponse);
+					HeroHelper.instance.callbackHero(_hero,reCallArmyResponse);
+				}
+				
+				function reCallArmyResponse(e:CommonResponse):void{
+					if(e.isSuccess()){
+						if(_hero.heroInfo.battleFieldLeader){
+							MainContainer.instance.risePlay(MultiLang.msg("intelligence.battle.launcher.callBackSuccess"));
+						}else{
+							MainContainer.instance.risePlay(MultiLang.msg("intelligence.battle.joiner.callBackSuccess"));
+						} 
+					}
+					else{
+						MyAlert.showError(e);
+					}
+				} 
+			}
+			
+			private function onUseItemResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					MainContainer.instance.risePlay(MultiLang.msg("hero.awardSuccess"));
+					initBtn();
+					if(func!=null){
+						func.call(this,[AWARD_Hero_SUCCESS]);
+						
+					}
+				}
+				else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			private function addArmyLimit(event:MouseEvent):void{
+				if(!_hero.isInCastle){MyAlert.show(MultiLang.msg('hero.notInCastle.tips'));return;}
+				ItemSelectSpeedUpWin.show(new ArrayCollection([ItemResManager.heroAddArmyLimit]),onUseItem);
+				function onUseItem(iRule:ItemRule):void{
+					ControllerFactory.getInstance().getHeroController().awardItem(castleId,_hero.heroInfo.id,iRule.itemId,onArmyLimitItemUse);
+				}
+				function onArmyLimitItemUse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						initBtn();
+						MainContainer.instance.risePlay(MultiLang.msg("hero.useItem.success"));
+					}
+				}
+			}
+			
+			private function awardHero(event:MouseEvent):void{
+				if(!_hero.isInCastle){MyAlert.show(MultiLang.msg('hero.notInCastle.tips'));return;}
+				var arr:ArrayCollection = new ArrayCollection();
+				if(event.target == addPoliticsBtn){
+					arr.addItem(ItemResManager.heroAddPolitics);
+				}else if(event.target == addAttackBtn){
+					arr.addItem(ItemResManager.heroAddAttack);
+				}else if(event.target == addDefenceBtn){
+					arr.addItem(ItemResManager.heroAddDefence);
+				}
+				ItemSelectSpeedUpWin.show(arr,onFunCallBack);
+			}
+			
+			private function onFunCallBack(iRule:ItemRule):void{
+				ControllerFactory.getInstance().getHeroController().awardItem(castleId,_hero.heroInfo.id,iRule.itemId,onUseItemResponse);
+			}
+			
+			private function initBtn():void{
+				this.addPoliticsBtn.alpha=0.5;
+				this.addAttackBtn.alpha=0.5;
+				this.addDefenceBtn.alpha=0.5;
+				this.addArmyLimitBtn.alpha=0.5;
+//				this.leaderContainer.visible=false;
+//				this.leaderContainer.includeInLayout=false;
+				this.showBuffTime=false;
+				if(this._hero==null){
+					return;
+				}
+				this.buffArr.removeAll();
+				if(this._hero.buffManager.getAllBuff().length>0){
+					this.showBuffTime=true;
+					for(var i:int=0;i<buffTypeIdArr.length;i++){
+						for each(var bean:BaseBuffObj in this._hero.buffManager.getAllBuff()) {
+							if(bean.buffBean.typeId==buffTypeIdArr[i]){
+								if(bean.buffBean.typeId==BuffConstants.HERO_INC_POLITICS){
+									this.addPoliticsBtn.alpha=1;
+									this.buffArr.addItem(bean);
+									break;
+								}
+								if(bean.buffBean.typeId==BuffConstants.HERO_INC_ATTACK){
+									this.addAttackBtn.alpha=1;
+									this.buffArr.addItem(bean);
+									break;
+								}
+								if(bean.buffBean.typeId==BuffConstants.HERO_INC_INTELLIGENCE){
+									this.addDefenceBtn.alpha=1;
+									this.buffArr.addItem(bean);
+									break;
+								}
+								if(bean.buffBean.typeId==BuffConstants.HERO_INC_LEADERSHIP){
+									this.addArmyLimitBtn.alpha=1;
+									this.buffArr.addItem(bean);
+									break;
+								}
+							}
+						}
+					}
+//					for each(var bean:BaseBuffObj in this._hero.buffManager.buffArray) {
+//						if(bean.buffBean.typeId==BuffConstants.HERO_INC_POLITICS){
+//							this.addPoliticsBtn.alpha=1;
+//							this.buffArr.addItem(bean);
+//							continue;
+//						}
+//						if(bean.buffBean.typeId==BuffConstants.HERO_INC_ATTACK){
+//							this.addAttackBtn.alpha=1;
+//							this.buffArr.addItem(bean);
+//							continue;
+//						}
+//						if(bean.buffBean.typeId==BuffConstants.HERO_INC_INTELLIGENCE){
+//							this.addDefenceBtn.alpha=1;
+//							this.buffArr.addItem(bean);
+//							continue;
+//						}
+//						if(bean.buffBean.typeId==BuffConstants.HERO_INC_LEADERSHIP){
+//							this.addArmyLimitBtn.alpha=1;
+//							this.buffArr.addItem(bean);
+//							continue;
+//						}
+//					}
+				}
+			}
+			
+			/**
+			 * 赏赐英雄忠诚度（黄金和珠宝）
+			 */ 
+			private function awardLoyalty():void{
+				if(!_hero.isInCastle){
+					MyAlert.show(MultiLang.msg('hero.notInCastle.tips'));
+					return;
+				}
+				var s:String = coolDownTime(); 
+				if(s!=""){
+					MyAlert.show(MultiLang.msg('hero.inCoolDownTime{0}',s));
+					return;
+				}
+				ItemSelectSpeedUpWin.instance.speedUpType = ItemSelectSpeedUpWin.GOLD_AWARD_HERO;
+				ItemSelectSpeedUpWin.show(ItemResManager.jewelryItemArrayCollection,onAwardJewelry);
+				ItemSelectSpeedUpWin.instance.goldsUi.curHero = _hero;
+			}
+			
+			private function onAwardJewelry(iRule:ItemRule):void{
+				if(iRule == null){
+					ControllerFactory.getInstance().getHeroController().awardMoney(castleId,_hero.heroInfo.id,onAwardGoldResponse);
+				}else{
+					ControllerFactory.getInstance().getHeroController().awardItem(castleId,_hero.heroInfo.id,iRule.itemId,onAwardJewelryResponse);}		
+				function onAwardGoldResponse(event:CommonResponse):void{
+					if(!event.isSuccess()){
+						MyAlert.showError(event);
+					}else{
+						MainContainer.instance.risePlay(MultiLang.msg("hero.awardSuccess"));
+					}
+				}
+				function onAwardJewelryResponse(event:CommonResponse):void{
+					if(!event.isSuccess()){
+						MyAlert.showError(event);
+					}else{
+						MainContainer.instance.risePlay(MultiLang.msg("hero.awardSuccess"));
+					}
+				}
+			}
+			
+			/**
+			 * 解雇英雄
+			 */ 
+			private function onDismiss():void{
+				if(!_hero.isInCastle){
+					MyAlert.show(MultiLang.msg('hero.notInCastle.tips'));
+					return;
+				}
+				if(_hero.isChief || _hero.isMoving || _hero.isGuardStatus){
+					MyAlert.show(MultiLang.msg('hero.hasTask.warn'));
+					return;
+				}
+				if(_hero.armyManager.troopsArray.length>0){
+					var c:int = 0;
+					for each(var h:HeroTroopBean in _hero.armyManager.troopsArray){
+						c += h.count;
+					}
+					if(c>0){
+						MyAlert.show(MultiLang.msg("hero.kickOut.haveTroopTip"));
+						return;
+					}
+				}
+				MyAlert.show(MultiLang.msg('hero.isSureToDismiss.tips'),sureToDis);
+				function sureToDis(isTrue:Boolean):void{
+					if(isTrue){
+						ControllerFactory.getInstance().getHeroController().kickHero(castleId,_hero.heroInfo.id,onDismissResponse);
+					}
+				
+				}
+				/**解雇英雄响应*/
+				function onDismissResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						_hero.selectedInUi = true;
+					} else {
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			/**
+			 * 劝降英雄
+			 */ 
+			private function onPersuade():void{
+				//官职是否足够
+				var tId:int = GameContext.instance.getPlayerObj().getPlayerInfo().title;
+				var titleStr:String = MultiLang.getPlayerTitle(tId);
+				if(_hero.heroInfo.level>(tId+1)*10){
+					MyAlert.show(MultiLang.msg('hero.cannotPersuade.tips',titleStr,(tId+1)*10));
+					return;
+				}
+				HeroDetail.show(_hero.heroInfo,persuadeBack,false);
+			}
+			
+			/**
+			 * 释放英雄
+			 */ 
+			private function onSetFree():void{
+				ControllerFactory.getInstance().getHeroController().treatSeizedHero(castleId,_hero.heroInfo.id ,0 , onTreatResponse);
+				function onTreatResponse(event:CommonResponse):void {
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("hero.releaseSuccess"));
+						_hero.selectedInUi = true;
+					} else {
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function onHeroExercise(t:int):void{
+				if(_hero.isInCastle || _hero.heroInfo.status == HeroManConstants.STATUS_GROWTH){
+					if(t == HeroManConstants.STATUS_GROWTH){
+						ItemSelectSpeedUpWin.show(new ArrayCollection([HeroGrowthConstant.ADD_HERO_GROWTH_LIMIT_ITEM]),onSelectFun);
+					}else{
+						// 历练 
+						if(!amphitheaterObj.checkUseItem() && amphitheaterObj.getBeanTemperList()>=HeroGrowthConstant.GROWING_HERO_COUNT_LIMIT){
+							ItemSelectSpeedUpWin.show(new ArrayCollection([ItemResManager.heroTemperAddLimit]),null,null,null,onUseItemToGrowth);
+						}else if(amphitheaterObj.checkUseItem() && amphitheaterObj.getBeanTemperList()>=HeroGrowthConstant.GROWING_HERO_COUNT_LIMIT_AFTER_ITEM_USED){
+							MyAlert.show(MultiLang.msg('hero.temper.isFull'));
+						}else{
+							HeroTemper.show(_hero,onExerciseCallBack);
+						}
+					}
+				}
+				else{
+					MyAlert.show(MultiLang.msg('hero.notInCastle.tips'));
+					return;
+				}
+		
+				function onSelectFun(i:ItemRule):void{
+					ControllerFactory.getInstance().getHeroController().speedUpHeroGrowth(_hero.castleObj.cityId,_hero.heroInfo.id,onSpeedUpGrowth);
+				}
+				function onSpeedUpGrowth(event:CommonResponse):void{
+					if(event.isSuccess()){
+							MainContainer.instance.risePlay(MultiLang.msg("market.speedUpSuccess"));
+						}else{
+							MyAlert.showError(event);
+					}
+				}
+			}
+			
+			/**
+			 * 城守任命及解除
+			 */ 
+			private function onChief():void{
+				if(!_hero.isInCastle){
+					MyAlert.show(MultiLang.msg('hero.notInCastle.tips'));
+					return;
+				}
+				if(chiefBtn.label == MultiLang.msg('hero.promoteChief')){
+					ControllerFactory.getInstance().getHeroController().setToChief(castleId,_hero.heroInfo.id,onPromoteToChiefResponse);
+				}else if(chiefBtn.label == MultiLang.msg('hero.removeChief')){
+					ControllerFactory.getInstance().getHeroController().dischargeLeader(castleId,onDischangeChief);
+				}
+				/** 解除城守响应 */ 
+				function onDischangeChief(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("hero.dischargeChiefSuccess"));
+						_heroStatus = _hero.heroStatus;
+						EvtDispacther.instance.dispatchEvent(new ChiefChangeEvent(ChiefChangeEvent.CHIEF_CHANGE,_hero));
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+				/**更改城守相应*/ 
+				function onPromoteToChiefResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("hero.promoteToChiefSuccess"));
+						_heroStatus = _hero.heroStatus;
+						EvtDispacther.instance.dispatchEvent(new ChiefChangeEvent(ChiefChangeEvent.CHIEF_CHANGE,_hero));
+					}else{MyAlert.showError(event)}
+				}
+			}
+			
+			private function onExerciseCallBack():void{
+				this.curHeroStatus = _hero.heroStatus;
+			}
+			
+			private function onUseItemToGrowth():void{
+				HeroTemper.show(data,onExerciseCallBack);
+			}
+				
+			private function coolDownTime():String{
+				var str:String = "";
+				var bo:BaseBuffObj = this._hero.buffManager.getBuffById(BuffConstants.HERO_AWARD_COOL_DOWN); 
+				if (bo!=null) {
+					var now:Number = new Date().valueOf();
+					var diff:Number = GameContext.instance.getTimeDis();
+					var remainT:Number = (bo.buffBean.endTime + diff - now)/1000 ;
+					str = MultiLang.timeFormatToString(remainT);
+				}
+				return str;
+			}  
+			
+			private function persuadeBack(h:HeroInfoBean):void{
+				ControllerFactory.getInstance().getHeroController().persuadeHero(castleId,h.id,onPersuadeResponse);
+				function onPersuadeResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("persuade.success"));
+					}
+					else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:VBox left="20" top="18" verticalGap="2" verticalScrollPolicy="off" horizontalScrollPolicy="off" right="20">
+		<mx:Canvas width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" styleName="whiteBGwithBorder">
+			<mx:VBox verticalGap="0" height="100%" width="100%" >
+				<mx:HBox width="100%" horizontalGap="0" verticalAlign="middle" label="忠诚" height="22" toolTip="{MultiLang.msg('hero.loyaty.tip')}">
+					<mx:Label text="{MultiLang.msg('hero.loyaty')}: " width="100%" height="20" textAlign="right"/>
+					<mx:Label text="{_hero.heroInfo.loyalties}" width="140" height="20" styleName="titleNameLabel" textAlign="right"/>
+					<mx:HBox width="80" horizontalAlign="right">
+						<mx:Button id="addLoyaltyBtn" styleName="addBtn" click="awardLoyalty()" enabled="{!_hero.isCaptive}" toolTip="{MultiLang.msg('addButtonTip.heroLoyaty')}"/>
+					</mx:HBox>
+					<mx:Spacer width="2"/>
+				</mx:HBox>
+				<mx:HRule width="100%"/>
+				<mx:HBox width="100%" horizontalGap="0" verticalAlign="middle" label="薪酬" toolTip="{MultiLang.msg('hero.salary.tip')}">
+					<mx:Label text="{MultiLang.msg('hero.salary')}: " width="100%" height="20" textAlign="right"/>
+					<mx:Label text="{_hero.isCaptive?0:_hero.heroInfo.level*HeroManConstants.SALARY_EACH_LEVEL}" width="140" height="20" styleName="titleNameLabel" textAlign="right"/>
+					<mx:HBox width="80" horizontalAlign="right" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Button id="dismissBtn" label="{MultiLang.msg('worker.dismiss')}" height="18" 
+						visible="{_hero.isCaptive?false:true}" 
+						includeInLayout="{_hero.isCaptive?false:true}"
+						click="onDismiss()"  fontWeight="normal" styleName="secondaryBtn"/>	
+					</mx:HBox>
+					<mx:Spacer width="2"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+		<mx:HBox horizontalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{MultiLang.msg('hero.status.lable')}: " width="90"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Button id="addPoliticsBtn" width="25" height="25" click="awardHero(event)" icon="{ImgManager.clazz('buff.hero.jovialMedal')}" toolTip="{this.addPoliticsTips}"/>
+			<mx:Button id="addAttackBtn" width="25" height="25" click="awardHero(event)" icon="{ImgManager.clazz('buff.hero.minervaMedal')}" toolTip="{this.addAttackTips}"/>
+			<mx:Button id="addDefenceBtn" width="25" height="25" click="awardHero(event)" icon="{ImgManager.clazz('buff.hero.marsMedal')}" toolTip="{this.addDefenceTips}"/>
+			<mx:Button id="addArmyLimitBtn" width="25" height="25" click="addArmyLimit(event)" icon="{ImgManager.clazz('buff.hero.armyTroopLimit')}" toolTip="{this.addArmyLimitTips}"/>
+		</mx:HBox>
+		<mx:List dataProvider="{this.buffArr}" width="100%" rowHeight="20" backgroundAlpha="0" 
+		 verticalScrollPolicy="off" borderStyle="none" mouseChildren="false" mouseEnabled="false" paddingLeft="0">
+			<mx:itemRenderer>
+				<mx:Component>
+					<hero:HeroBuffUI heroBuff="{data}">
+					</hero:HeroBuffUI>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:List>
+	</mx:VBox>
+	<mx:HBox bottom="14">
+		
+	</mx:HBox>
+	<mx:HBox bottom="14" horizontalCenter="0">
+		<mx:Button id="persuadeBtn" 
+					label="{MultiLang.msg('hero.persuade')}" height="22" 
+					visible="{_hero == null?false:(_hero.isCaptive)}" 
+					includeInLayout="{_hero ==null?false:(_hero.isCaptive)}"
+					click="onPersuade()" right="5"  fontWeight="normal"/>
+		<mx:Button id="setFreeBtn" label="{MultiLang.msg('hero.setFree')}" height="22" 
+					visible="{_hero == null?false:(_hero.isCaptive)}" 
+					includeInLayout="{_hero==null?false:(_hero.isCaptive)}"
+					click="onSetFree()" right="5"  fontWeight="normal"/>
+		<mx:Button label="{_hero.heroInfo.status == HeroManConstants.STATUS_GROWTH?MultiLang.msg('public.label.speed'):MultiLang.msg('hero.temper.btnLabel')}" click="onHeroExercise(_hero.heroInfo.status)" enabled="{hasAmphitheater}"
+					visible="{_hero.isCaptive?false:true}" toolTip="{_hero.heroInfo.status == HeroManConstants.STATUS_GROWTH?MultiLang.msg('hero.train.tip.speedUp'):MultiLang.msg('hero.exerciseManage')}" fontWeight="normal"/>
+		<mx:Button label="{_hero.isChief?MultiLang.msg('hero.removeChief'):MultiLang.msg('hero.promoteChief')}" 
+					id="chiefBtn" height="22" 
+					click="onChief()" fontWeight="normal"
+					visible="{_hero.isCaptive?false:true}" 
+					includeInLayout="{_hero.isCaptive?false:true}"/>
+		<mx:Button label="{MultiLang.msg('hero.troops.callBack')}" 
+			enabled="{this._hero.isGuardStatus || this._hero.heroInfo.status == HeroManConstants.STATUS_IN_BATTLE_FIELD}" 
+			click="{troopCallBack()}" width="100" styleName="commomNormalBtn"/>
+	</mx:HBox>
+</mx:Canvas>

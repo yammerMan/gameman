@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DestructPanel xmlns="views.spreadUI.troop.*" xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.MyAlert;
+			import roma.common.valueObject.PairValueBean;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.TFHelper;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.util.PopupWinManager;
+			import roma.message.events.ProduceEvent;
+			import roma.logic.rule.ForticationRule;
+			import roma.util.MultiLang;
+			import roma.logic.rule.BaseRule;
+			
+			public static var fortInstance:FortDestructPanel;
+
+			private var rule:ForticationRule;
+			private var fortNumBean:PairValueBean;
+
+			
+			public static function show(result:RuleCheckResult,rule:BaseRule):void{
+				if(fortInstance == null){
+					fortInstance = new FortDestructPanel();
+				}
+				
+				fortInstance.setRule(rule);
+				fortInstance.setResult(result);
+				PopupWinManager.instance.addPopup(fortInstance);
+			}
+
+		    override public function setRule(rule:BaseRule):void{
+				this.rule =rule as ForticationRule;
+				this.fortNumBean = GameContext.instance.getPlayerObj().getCurCastleObj().troopManager.getFortificationByTypeId(this.rule.fortType);
+				this.imgSrc = TFHelper.instance.getTfIcon(this.rule.fortType);	
+		    	this.txt = MultiLang.msg("public.destuct");
+
+			}
+
+			override public function destructJudge():void{
+				if(this.posseNum <=0){
+					MyAlert.show(MultiLang.msg('tf.public.amount',TFHelper.instance.getTfName(this.fortNumBean.typeId)));
+					return;
+				}
+				
+				if(this.numberStepper.effectValue<=0){
+					MyAlert.show(MultiLang.msg('public.least.input.one',TFHelper.instance.getTfName(this.fortNumBean.typeId)));
+					return;
+				}
+
+				if(numberStepper.effectValue>0){
+					MyAlert.show(MultiLang.msg("fort.destruct.sure",numberStepper.effectValue,TFHelper.instance.getTfName(this.fortNumBean.typeId)),destruct);
+					return;
+				}
+			}
+
+			override public function updateCurResource():void{
+				this.produceResourceData.updateResource();
+				this.posseNum = this.fortNumBean.value;
+			}
+			
+			override public function destruct(_true:Boolean):void{
+				if(_true){
+					ProduceEvent.destruct(ForticationTypeList.EVENT_DESTRUCT,this.rule.fortType,this.numberStepper.effectValue);
+				}
+			}
+			
+			override public function removePopup():void{
+				PopupWinManager.instance.removePopup(fortInstance);
+			}
+		]]>
+	</mx:Script>
+</DestructPanel>

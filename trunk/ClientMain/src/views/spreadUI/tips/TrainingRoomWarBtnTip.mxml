@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:troop="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import framework.socket.CaesaryClient;
+			import roma.logic.GameContext;
+			import views.windows.functionWins.shop.ShopHelper;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.logic.object.castle.TFHelper;
+			import roma.logic.rule.TroopRule;
+			
+			[Bindable]
+			public var _lineWidth:int = 243;
+			[Bindable]
+			public var _labelWidth:int = 77;
+			[Bindable]
+			public var _txtAlign:String = TextFormatAlign.RIGHT;
+
+			[Bindable]
+			private var isAddWar:Boolean=false;
+			
+			[Bindable]
+			private var rule:ItemRule; 
+			
+			[Bindable]
+			private var titleName:String;
+			
+			[Bindable]
+			private var itemRequest:int=1;
+			
+			[Bindable]
+			private var itemBean:MaterialBean;
+			
+			[Bindable]
+			private var enoughItem:Boolean=false;
+			
+			[Bindable]
+			private var enoughTitle:Boolean=false;
+			
+			[Bindable]
+			private var physicalQequest:int;
+			
+			[Bindable]
+			private var requireStr:String;
+			
+			
+			public function setInfo(isAddWar:Boolean,itemId:String,titleId:int=2,itemNum:int=1,physicalQequest:int=40):void{
+				this.isAddWar=isAddWar;
+				this.titleName=MultiLang.getPlayerTitle(titleId);
+				this.titleLabel.styleName=GameContext.instance.getPlayerObj().getPlayerInfo().title>=titleId?"goodNoticeLabel":"NoticeLabel";
+				this.itemRequest=itemNum;
+				this.physicalQequest=physicalQequest;
+				this.rule = GameRuleHelper.instance.getItemRuleById(itemId);
+				this.itemBean=ShopHelper.getMaterialBeanFromPlayer(itemId);
+				if(this.itemBean!=null){
+					this.enoughItem=this.itemBean.count>=itemNum?true:false;
+				}else{
+					this.enoughItem=false;
+				}
+				this.requireStr=isAddWar?MultiLang.msg("trainingRoomWin.addWar.tip.title"):MultiLang.msg("trainingRoomWin.joinWar.tip.title");
+				this.enoughTitle=GameContext.instance.getPlayerObj().getPlayerInfo().title>=titleId?true:false;
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Form paddingLeft="0" paddingTop="0"  
+		paddingRight="0" paddingBottom="0" verticalGap="0" horizontalGap="0"  left="10" top="10" right="10" bottom="10">
+
+		<mx:Label text="{this.requireStr}:" styleName="titleBordLabel"/>
+		<mx:Spacer height="5"/>
+		<mx:HRule width="100%"/>
+		
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9"   width="100%">
+			<mx:VRule height="24" x="0"/>
+			<mx:Label text="{MultiLang.msg('info.player.title')}:" width="90" textAlign="right"/>
+			<mx:VRule height="24"/>
+			<mx:Label text="{this.titleName}" fontWeight="bold" id="titleLabel" width="100%"/>
+			<mx:VRule height="24"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="100%" visible="{this.isAddWar}" includeInLayout="{this.isAddWar}"/>
+		
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9" visible="{this.isAddWar}" includeInLayout="{this.isAddWar}" width="100%">
+			<mx:VRule height="24" x="0"/>
+			<mx:Label text="{MultiLang.msg('trainingRoomWin.warBtn.tip.useItem')}:" width="90" textAlign="right"/>
+			<mx:VRule height="24"/>
+			<mx:Label text="{this.rule.name+' x '+this.itemRequest}" styleName="{enoughItem?'goodNoticeLabel':'NoticeLabel'}" fontWeight="bold" width="100%"/>
+			<mx:VRule height="24"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="100%"/>
+		
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9"   width="100%">
+			<mx:VRule height="24" x="0"/>
+			<mx:Label text="{MultiLang.msg('hero.physical')}:" width="90" textAlign="right"/>
+			<mx:VRule height="24"/>
+			<mx:Label  text="-{this.physicalQequest}" width="100%"/>
+			<mx:VRule height="24"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="100%"/>
+	</mx:Form>
+</BaseTip>

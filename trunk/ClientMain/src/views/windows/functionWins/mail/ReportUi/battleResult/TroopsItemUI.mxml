@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="65" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.GameContext;
+			import views.spreadUI.MyAlert;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.common.constants.BuildingConstant;
+			import views.windows.buildings.trainningField.TrainningFieldWin;
+			import roma.logic.object.building.impl.TrainningField;
+			import views.PopupWindows;
+			import roma.util.MultiLang;
+			import gs.plugins.VolumePlugin;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.CommonTooltip;
+			import roma.logic.object.castle.TFHelper;
+			import mx.utils.ObjectProxy;
+			import roma.resource.ImgManager;
+			
+			private var commonTooltip:CommonTooltip = ToolTipContainer.instance.commonTooltip;
+			[Bindable]
+			private var troopUnitB:ObjectProxy;
+			[Bindable]
+			private var iconClass:String;
+			[Bindable]
+			private var troopName:String = "";
+			[Bindable]
+			private var injuredStr:String = "";
+			public var isMyHero:Boolean = false;
+			
+			public function set troopUnitBean(tu:Object):void{
+				this.troopUnitB = ObjectProxy(tu);
+				iconClass = TFHelper.instance.getTroopSmallIconClass(troopUnitB.typeId); 
+				troopName = TFHelper.instance.getTfName(troopUnitB.typeId);
+				injuredStr = MultiLang.msg('battle.injured.label')+': '+troopUnitB.injured;
+			}
+			
+			private function init():void{
+				this.commonTooltip.width = 100;
+			}
+			
+			private function onMouseOver(event:MouseEvent):void{
+				if(!isMyHero)return;
+				this.commonTooltip.setTip(troopName+'\n'+injuredStr);
+				this.commonTooltip.onMouseOver(event)
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				if(!isMyHero)return
+				this.commonTooltip.onMouseMove(event);
+			}			
+		]]>
+	</mx:Script>
+	
+	<mx:VBox width="100%" height="100%" verticalGap="0" horizontalAlign="center" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Image width="31" height="30" mouseOut="{this.commonTooltip.onMouseOut()}"
+				updateComplete="ImageHandle.onLoadComplete(event)" mouseOver="{onMouseOver(event)}"
+				mouseMove="{onMouseMove(event)}" source="{iconClass}" />
+		<mx:Label text="{int(troopUnitB.count)+int(troopUnitB.lose)}" height="15" width="100%" textAlign="center" color="0x0" fontSize="10"/>
+		<mx:Label text="{troopUnitB.lose}" height="15" width="100%" textAlign="center" color="0xff0000" fontSize="10"/>
+	</mx:VBox>
+</mx:Canvas>

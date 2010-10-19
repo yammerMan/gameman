@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" xmlns:alliance="views.windows.functionWins.alliance.*"
+	xmlns:ui="views.spreadUI.*" 
+	 verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.rank.RankPlayerDataResponse;
+			import roma.common.constants.RankConstant;
+			import mx.collections.SortField;
+			import mx.collections.Sort;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.common.valueObject.AllianceApplyBean;
+			import roma.message.EvtDispacther;
+			import roma.message.events.ChatCallEvent;
+			import views.spreadUI.popups.PopupContainer;
+			import roma.common.controller.alliance.AllianceApplyListResponse;
+			import roma.common.controller.alliance.AllianceInviteListResponse;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import views.windows.functionWins.friendly.PlayerInfoView;
+			import mx.events.CollectionEvent;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import mx.events.IndexChangedEvent;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.constants.AllianceConstant;
+			import views.spreadUI.MyAlert;
+			import mx.controls.Menu;
+			import mx.events.MenuEvent;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			import roma.common.controller.alliance.AllianceMemberListResponse;
+			import roma.common.action.ControllerFactory;
+			
+			public var allianceView:Function;
+			private var point1:Point = new Point();
+            private var myMenu:Menu;
+            private var applyMenu:Menu;
+            private var applyMenuData:XML;
+            private var myMenuData:XML;
+            [Bindable]
+            public var myLevel:int;
+            private var targetLevel:int;
+            private var playerName:int;
+            [Bindable]
+            public var myPlayerId:int;
+            
+            [Bindable]
+			private var cur_page:int = 1;
+			private var page_size:int = 10;
+			[Bindable]
+			private var total_page:int = 0;
+			public var agreeOrNotPopupBox:AgreeOrNotPopupBox;
+			[Bindable]
+			private var inviteArr:ArrayCollection=new ArrayCollection();//邀请列表
+			
+			[Bindable]
+			private var applyArr:ArrayCollection=new ArrayCollection();//申请列表
+			
+			
+			
+			private var memberArr:ArrayCollection = new ArrayCollection();//所有成员的数据集
+			
+			[Bindable]
+			private var curShowArr:ArrayCollection=new ArrayCollection();//当前显示的数据集
+			
+			[Bindable]
+			private var dataInScreen:ArrayCollection=new ArrayCollection();//当前datagrid显示的数据
+			
+			
+			private var officerArr:ArrayCollection=new ArrayCollection();//官员数据集
+			[Bindable]
+			private var isShowOfficerOnly:Boolean=false;
+			private var allianceObj:AllianceInfoDataBean;
+			
+			private var officer_of_alliance:int=0;
+			private var elder_of_alliance:int=0;
+			private var vice_chief_of_alliance:int=0;
+			
+			private var curApplyPlayerId:int;
+			
+			private function init():void{
+				this.creatApplyXml();
+				this.agreeOrNotPopupBox=PopupContainer.instance.agreeOrNotPopupBox;
+				this.agreeOrNotPopupBox.agreeApply=this.agreeApply;
+				this.agreeOrNotPopupBox.refuseApply=this.refuseApply;
+				this.agreeOrNotPopupBox.checkOutFunciton=this.checkOutFunciton;
+			}
+			
+			
+			public function refresh():void{
+				ControllerFactory.getInstance().getAllianceController().getAllianceMemberList(onGetAllianceMemberList,false);
+				this.myLevel=GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight;
+				this.myPlayerId=GameContext.instance.getPlayerObj().getPlayerInfo().id;
+				this.allianceObj=AllianceHelper.instance.allianceObj;
+				this.isShowOfficerOnly=false;
+				this.officer_of_alliance=0;
+				this.elder_of_alliance=0;
+				this.vice_chief_of_alliance=0;
+				this.targetLevel=0;
+				if(this.initialized){
+					this.nameInput.text="";
+				}
+				this.getAppliedPlayerList();
+				this.getInvitedPlayerList();
+			}
+			
+			
+			private function dataRefresh():void{
+				ControllerFactory.getInstance().getAllianceController().getAllianceMemberList(onGetAllianceMemberUpdate,false);
+				this.myLevel=GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight;
+				this.myPlayerId=GameContext.instance.getPlayerObj().getPlayerInfo().id;
+				this.isShowOfficerOnly=false;
+				this.officer_of_alliance=0;
+				this.elder_of_alliance=0;
+				this.vice_chief_of_alliance=0;
+				this.targetLevel=0;
+				if(this.initialized){
+					this.nameInput.text="";
+				}
+				this.getAppliedPlayerList();
+				this.getInvitedPlayerList();
+			}
+			
+			
+			private function onGetAllianceMemberUpdate(event:AllianceMemberListResponse):void{
+				if(event.isSuccess()){
+					memberArr = event.memberInfoArray;
+					sortMemberArr();
+					countOfficer();
+					
+					this.curShowArr.removeAll();
+					if(isShowOfficerOnly){
+						for(var i:int=0;i<this.officerArr.length;i++){
+							this.curShowArr.addItem(this.officerArr[i]);
+						}
+						this.total_page=Math.ceil(this.officerArr.length/this.page_size);
+						this.cur_page=this.cur_page<=this.total_page?this.cur_page:(this.total_page==0?0:this.cur_page-1);
+					}else{
+						for(var j:int=0;j<this.memberArr.length;j++){
+							this.curShowArr.addItem(this.memberArr[j]);
+						}
+						this.total_page=Math.ceil(this.memberArr.length/this.page_size);
+						this.cur_page=this.cur_page<=this.total_page?this.cur_page:(this.total_page==0?0:this.cur_page-1);
+					}
+					showData(cur_page);
+				}
+			}
+			
+			public function set getLeagueInfoBean(allianceObj:AllianceInfoDataBean):void{
+				this.allianceObj=allianceObj;
+			}
+			
+			private function onGetAllianceMemberList(event:AllianceMemberListResponse):void{
+				if(event.isSuccess()){
+					memberArr = event.memberInfoArray;
+					sortMemberArr();
+					countPage();
+					countOfficer();
+				}
+			}
+			
+			private function sortMemberArr():void{
+				var sort:Sort = new Sort();
+
+				//默认是按照升序排序的
+//				sort.fields = [new SortField("allianceRight",true,true),new SortField("lastLogoutTime"),new SortField("ranking")];
+				sort.fields = [new SortField("allianceRight",true,true),new SortField("rank")];
+//				sort.fields = [new SortField("allianceRight")];
+				//如果按照降序排序，需要修改一下
+				//sort.fields = [new SortField("name",true,true)];
+				
+				//如果先降序（ID）后升序（name），就这样写，以此类推
+				//sort.fields = [new SortField("userID",true,true),new SortField("name")];
+				memberArr.sort=sort;
+				memberArr.refresh();
+
+			}
+			
+			//计算总页数
+			private function countPage():void{
+				this.curShowArr.removeAll();
+				if(isShowOfficerOnly){
+					for(var i:int=0;i<this.officerArr.length;i++){
+						if(PlayerInfoDataBean(this.officerArr[i]).lastLogoutTime==0){
+							this.curShowArr.addItem(this.officerArr[i]);
+						}
+					}
+					this.total_page=Math.ceil(this.curShowArr.length/this.page_size);
+					this.cur_page=this.curShowArr.length>0?1:0;
+				}else{
+					for(var j:int=0;j<this.memberArr.length;j++){
+						this.curShowArr.addItem(this.memberArr[j]);
+					}
+					this.total_page=Math.ceil(this.memberArr.length/this.page_size);
+					this.cur_page=this.memberArr.length>0?1:0;
+				}
+				showData(cur_page);
+			}
+			
+			//显示数据
+			private function showData(page:int):void{
+				this.dataInScreen.removeAll();
+				if(this.curShowArr.length>0){
+					var end:int=page*this.page_size>this.curShowArr.length?this.curShowArr.length:page*this.page_size;
+					for(var i:int=(page-1)*this.page_size;i<end;i++){
+						this.dataInScreen.addItem(this.curShowArr[i]);
+					}	
+				}
+			}	
+			
+			//统计官员
+			private function countOfficer():void{
+				this.officerArr.removeAll();
+				if(this.memberArr.length>0){
+					for(var i:int=0;i<this.memberArr.length;i++){
+						if(PlayerInfoDataBean(this.memberArr[i]).allianceRight>AllianceConstant.ALLIANCE_TITLE_MEMBER){
+							this.officerArr.addItem(this.memberArr[i]);
+							if(PlayerInfoDataBean(this.memberArr[i]).allianceRight==AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF){
+								this.vice_chief_of_alliance++;
+							}
+							if(PlayerInfoDataBean(this.memberArr[i]).allianceRight==AllianceConstant.ALLIANCE_TITLE_ELDER){
+								
+								this.elder_of_alliance++;
+							}
+							if(PlayerInfoDataBean(this.memberArr[i]).allianceRight==AllianceConstant.ALLIANCE_TITLE_OFFICER){
+								this.officer_of_alliance++;
+							}
+						}
+					}
+				}
+			}
+			
+		
+			
+			 public function showMenu(event:MouseEvent,playerName:int,allianceRight:int):void {
+			 	this.targetLevel=allianceRight;
+			 	creatXml(allianceRight);
+			 	if(allianceRight!=AllianceConstant.ALLIANCE_TITLE_CHIEF){
+				 	this.playerName=playerName;
+	                myMenu= Menu.createMenu(this, myMenuData, false);
+	                myMenu.labelField="@label";
+	                myMenu.addEventListener("itemClick", menuHandler);
+	                
+	                // Calculate position of Menu in Application's coordinates. 
+	                point1.x=event.currentTarget.mouseX;
+	                point1.y=event.currentTarget.mouseY;                
+	                point1=event.currentTarget.localToGlobal(point1);
+	                myMenu.show(point1.x - 25, point1.y + 25);
+			 	}
+            }
+            public function showApplyMenu(event:MouseEvent,playerId:int,playerName:String):void {
+//            	this.curApplyPlayerId=playerName;
+//            	this.applyMenu=Menu.createMenu(this, this.applyMenuData, false);
+//            	this.applyMenu.labelField="@label";
+//                this.applyMenu.addEventListener("itemClick", applyMenuHandler);
+//                point1.x=event.currentTarget.mouseX;
+//                point1.y=event.currentTarget.mouseY;                
+//                point1=event.currentTarget.localToGlobal(point1);
+//                this.applyMenu.show(point1.x + 20, point1.y);
+                
+
+				this.agreeOrNotPopupBox.show(playerId,playerName);
+				 point1.x=event.currentTarget.mouseX;
+                point1.y=event.currentTarget.mouseY;                
+                point1=event.currentTarget.localToGlobal(point1);
+		        this.agreeOrNotPopupBox.setPos(point1.x + 20, point1.y);
+		        stage.addEventListener(MouseEvent.MOUSE_DOWN,onStageClick);
+            }
+            private function onStageClick(event:MouseEvent):void{
+				if(agreeOrNotPopupBox.hitTestPoint(event.stageX,event.stageY)){
+					return;
+				}
+				else{
+					agreeOrNotPopupBox.remove();
+				}
+				stage.removeEventListener(MouseEvent.MOUSE_DOWN,onStageClick);
+			}
+            
+             private function applyMenuHandler(event:MenuEvent):void  {
+             	var str:String=String(event.item.@data);
+             	if(str=="alliance.agree"){
+             		this.agreeApply(curApplyPlayerId);
+             	}else if(str=="alliance.dissent"){
+             		this.refuseApply(curApplyPlayerId);
+             	}
+             }
+            
+            private function menuHandler(event:MenuEvent):void  {
+//                AlertWin.show("Label: " + event.item.@label, "Clicked menu item");
+				var str:String=String(event.item.@data);
+				var allianceLv:int=AllianceConstant.ALLIANCE_TITLE_MEMBER;
+				switch(str){
+					case "alliance.demise"://禅让
+						if(this.targetLevel==AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF){
+							MyAlert.show(MultiLang.msg("alliance.demise.submitTip",getLeagueMemberName(this.playerName)),sureToDemise);
+						}else{
+							MyAlert.show(MultiLang.msg("alliance.demiseToviceChief"));
+						}
+						
+					break;
+					
+					case "alliance.depose"://免职
+						ControllerFactory.getInstance().getAllianceManagementController().setPowerAlliance(this.playerName,AllianceConstant.ALLIANCE_TITLE_MEMBER,callback);
+					break;
+					
+					case "alliance.kickOut"://开除
+						if(this.targetLevel==AllianceConstant.ALLIANCE_TITLE_MEMBER){
+							MyAlert.show(MultiLang.msg("alliance.kickOut.submitTip",getLeagueMemberName(this.playerName)),sureToKickOut);
+						}else{
+							MyAlert.show(MultiLang.msg("alliance.cannotKickOut"));
+						}
+						
+					break;
+					
+					case "alliance.vicehost"://副盟主
+						if(this.vice_chief_of_alliance<AllianceConstant.VICE_CHIEF_FOR_ALLIANCE_LIMIT){
+							allianceLv=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF;
+							ControllerFactory.getInstance().getAllianceManagementController().setPowerAlliance(this.playerName,AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF,callback);
+						}else{
+							MyAlert.show(MultiLang.msg("alliance.viceChiefIsfull"));
+						}
+					
+					break;
+					
+					case "alliance.presbyter"://长老
+						if(this.elder_of_alliance<AllianceConstant.ELDER_FOR_ALLIANCE_LIMIT){
+							allianceLv=AllianceConstant.ALLIANCE_TITLE_ELDER;
+							ControllerFactory.getInstance().getAllianceManagementController().setPowerAlliance(this.playerName,AllianceConstant.ALLIANCE_TITLE_ELDER,callback);
+						}else{
+							MyAlert.show(MultiLang.msg("alliance.elderIsfull"));
+						}
+					break;
+					
+					case "alliance.officer"://官员
+						if(this.officer_of_alliance<AllianceConstant.OFFICER_FOR_ALLIANCE_LIMIT){
+							allianceLv=AllianceConstant.ALLIANCE_TITLE_OFFICER;
+							ControllerFactory.getInstance().getAllianceManagementController().setPowerAlliance(this.playerName,AllianceConstant.ALLIANCE_TITLE_OFFICER,callback);
+						}else{
+							MyAlert.show(MultiLang.msg("alliance.offerIsfull"));
+						}
+					break;
+					
+					default:
+					MyAlert.show(event.item.@data);
+
+				}
+				
+				function sureToKickOut(_true:Boolean):void{
+					if(_true){
+						ControllerFactory.getInstance().getAllianceManagementController().kickOut(playerName,kickOutCallback);
+					}
+				}
+				
+				function sureToDemise(_true:Boolean):void{
+					if(_true){
+						ControllerFactory.getInstance().getAllianceManagementController().setPowerAlliance(playerName,AllianceConstant.ALLIANCE_TITLE_CHIEF,demiseCallback);
+					}
+				}
+				
+				
+				
+				function kickOutCallback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						var str:String=MultiLang.msg('alliance.event.kickOutEvent',GameContext.instance.getPlayerObj().getPlayerInfo().playerName,getLeagueMemberName(playerName));
+						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,str));
+						dataRefresh();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+				
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						var str:String=MultiLang.msg('alliance.event.titleSetEvent',AllianceEventResolveLabel.getLeagueTitle(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight),GameContext.instance.getPlayerObj().getPlayerInfo().playerName,getLeagueMemberName(playerName),AllianceEventResolveLabel.getLeagueTitle(allianceLv));
+						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,str));
+						dataRefresh();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+				function demiseCallback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF;
+						var str:String=MultiLang.msg('alliance.event.chiefTransferEvent',GameContext.instance.getPlayerObj().getPlayerInfo().playerName,getLeagueMemberName(playerName));
+						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,str));
+						dataRefresh();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+            }
+            
+            private function creatApplyXml():void{
+            	var dataString:String="<root>";
+            	dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.agree")+"\""+" data="+"\""+"alliance.agree"+"\"/>";
+            	dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.dissent")+"\""+" data="+"\""+"alliance.dissent"+"\"/>";
+            	dataString+="</root>";
+            	this.applyMenuData=XML(dataString);
+            }
+            
+            private function creatXml(level:int):void{
+            	var dataString:String="<root>";
+            	if(myLevel>AllianceConstant.ALLIANCE_TITLE_OFFICER&&level<AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF&&(myLevel-level)>1){
+					dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.elevate")+"\""+" data="+"\""+"alliance.elevate"+"\">";
+					if(myLevel>=AllianceConstant.ALLIANCE_TITLE_CHIEF&&level<AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF){
+						dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.vicehost")+"\""+" data="+"\""+"alliance.vicehost"+"\"/>";
+					}
+					if(myLevel>=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF&&level<AllianceConstant.ALLIANCE_TITLE_ELDER){
+						dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.presbyter")+"\""+" data="+"\""+"alliance.presbyter"+"\"/>";
+					}
+					if(level<AllianceConstant.ALLIANCE_TITLE_OFFICER){
+						dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.officer")+"\""+" data="+"\""+"alliance.officer"+"\"/>";
+					}
+					dataString+="</menuitem>";
+            	}
+            	if(myLevel==AllianceConstant.ALLIANCE_TITLE_CHIEF&&level==AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF){
+            		dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.demise")+"\""+" data="+"\""+"alliance.demise"+"\"/>";
+            	}
+            	if(myLevel>level&&level>AllianceConstant.ALLIANCE_TITLE_MEMBER){
+            		dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.depose")+"\""+" data="+"\""+"alliance.depose"+"\"/>";
+            	}
+            	if(myLevel>level&&myLevel>AllianceConstant.ALLIANCE_TITLE_OFFICER){
+					dataString+="<menuitem label="+"\""+MultiLang.msg("alliance.kickOut")+"\""+" data="+"\""+"alliance.kickOut"+"\"/>";
+            	}
+            	dataString+="</root>";
+            	myMenuData=XML(dataString);
+            }
+            
+            /**
+			 * 每页的切换
+			 */ 
+			private function turnPage(p:int):void{
+				var n:int = cur_page;
+				this.cur_page += p;
+				if (cur_page >=1 && cur_page <= total_page) {
+					showData(cur_page);
+				} else {
+					cur_page = n;
+				}
+			}
+			
+			private function gotoTargetPage(p:int):void{
+				if(p<=0){
+					p=1;
+				}
+				if(p>total_page){
+					p=total_page;
+				}
+				if (p>0 && p<=total_page) {
+					cur_page = p;
+					showData(cur_page);
+				}
+			}
+			
+
+			/*回调函数 ，获取玩家联盟职位名称 */
+			private function getLeagueLevelName(bean:Object,column:DataGridColumn):String{
+				var playerInfoBean:PlayerInfoDataBean=bean as PlayerInfoDataBean;
+				var levelName:String="";
+				switch(playerInfoBean.allianceRight){
+					case AllianceConstant.ALLIANCE_TITLE_MEMBER:
+						levelName=MultiLang.msg('alliance.regular');
+						break;
+					case AllianceConstant.ALLIANCE_TITLE_OFFICER:
+						levelName=MultiLang.msg('alliance.officer');
+						break;
+					case AllianceConstant.ALLIANCE_TITLE_ELDER:
+						levelName=MultiLang.msg('alliance.presbyter');
+						break;
+					case AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF:
+						levelName=MultiLang.msg('alliance.vicehost');
+						break;
+					case AllianceConstant.ALLIANCE_TITLE_CHIEF:
+						levelName=MultiLang.msg('alliance.leader');
+						break;
+					default:
+						levelName=MultiLang.msg('alliance.regular');
+				}
+				return levelName;			
+			}
+			
+			//只显示官员
+			private function showOfficerHandle():void{
+				this.isShowOfficerOnly=this.showOfficerCheckBox.selected;
+				this.countPage();
+			}
+			
+			//查找玩家处理
+			private function checkMember():void{
+				if(this.nameInput.text!=""){
+					var find:Boolean=false;
+					for(var i:int=0;i<this.memberArr.length;i++){
+						if(PlayerInfoDataBean(this.memberArr[i]).playerName.toLocaleLowerCase()==this.nameInput.text.toLocaleLowerCase()){
+							this.dataInScreen.removeAll();
+							this.dataInScreen.addItem(this.memberArr[i]);
+							this.total_page=Math.ceil(this.dataInScreen.length/this.page_size);
+							this.cur_page=this.dataInScreen.length>0?1:0;
+							find=true;
+							break;
+						}
+					}
+					if(!find){
+						MyAlert.show(MultiLang.msg("alliance.noCheckMember"));
+					}
+				}else{
+					MyAlert.show(MultiLang.msg("alliance.checkOutNameIsNull"));
+				}
+				
+			}
+			
+			//弹出玩家信息面板
+			public function showPlayerInfo(data:Object):void{
+				var playerInfoBean:PlayerInfoDataBean=PlayerInfoDataBean(data);
+				if(this.allianceObj!=null){
+					playerInfoBean.leagueName=this.allianceObj.name;
+				}
+				PlayerInfoView.show(playerInfoBean);
+			}
+			
+			//取消邀请
+			public function cancelInvite(playerId:int):void{
+				ControllerFactory.getInstance().getAllianceManagementController().cancelInvite(playerId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+					   getInvitedPlayerList();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			//查看玩家信息
+			public function checkOutFunciton(playerName:String):void{
+				ControllerFactory.getInstance().getRankController().getPlayerRank(playerName,1,10,RankConstant.PLAYER_RANK_TITLE,onGetPlayerRankList);
+				 function onGetPlayerRankList(event:RankPlayerDataResponse):void{
+					if(event.isSuccess()){
+						if(event.beansArray.length>0){
+							for each(var p:PlayerInfoDataBean in event.beansArray){
+								if(p.playerName==playerName){
+									PlayerInfoView.show(p,false,true,agreeApply,refuseApply);
+									break;
+								}
+							}
+						}
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			
+			
+			//通过申请
+			public function agreeApply(playerId:int):void{
+				var amountsLimit:int=0;
+				amountsLimit=this.allianceObj.limit==0?GameRuleHelper.instance.getLeagueRule(this.allianceObj.allianceLev).memberLimit:this.allianceObj.limit;
+				if(this.memberArr.length+1>amountsLimit){
+					MyAlert.show(MultiLang.msg("alliance.error.membersLimit"));
+					return;
+				}
+				ControllerFactory.getInstance().getAllianceManagementController().agreeApply(playerId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						for each(var player:AllianceApplyBean in applyArr){
+							if(player.playerId==playerId){
+								EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,MultiLang.msg('alliance.event.joinEvent',player.playerName)));
+								break;
+							}
+						}
+						dataRefresh();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			private function getLeagueMemberName(playerId:int):String{
+				var name:String="";
+				for each(var player:PlayerInfoDataBean in this.memberArr){
+					if(player.id==playerId){
+						name=player.playerName;
+						break;
+					}
+				}
+				return name;
+			}
+			
+			//拒绝申请
+			public function refuseApply(playerId:int):void{
+				ControllerFactory.getInstance().getAllianceManagementController().refuseApply(playerId,callback);
+				function callback(event:CommonResponse):void{
+					if(event.isSuccess()){
+						getAppliedPlayerList();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			//获取申请列表
+			private function getAppliedPlayerList():void{
+				ControllerFactory.getInstance().getAllianceManagementController().getAppliedPlayerList(callback,false);
+				function callback(event:AllianceApplyListResponse):void{
+					if(event.isSuccess()){
+						applyArr.removeAll();
+						if(event.allianceApplyArray.length>0){
+							applyArr=event.allianceApplyArray;
+						}
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			//获取邀请列表
+		 	private function getInvitedPlayerList():void{
+		 		ControllerFactory.getInstance().getAllianceManagementController().getInvitedPlayerList(callback,false);
+				function callback(event:AllianceInviteListResponse):void{
+					if(event.isSuccess()){
+						inviteArr.removeAll();
+						if(event.allianceInviteArray.length>0){
+							inviteArr=event.allianceInviteArray;
+						}
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+		 	}
+            	
+         
+			
+		]]>
+	</mx:Script>
+	<mx:DataGrid dataProvider="{dataInScreen}" left="210" top="25" right="0" bottom="36" headerHeight="22" rowHeight="25"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" useRollOver="false">
+		<mx:columns>
+			<mx:DataGridColumn dataField="playerName" headerText="{MultiLang.msg('alliance.member')}"/>
+			<mx:DataGridColumn dataField="allianceRight" headerText="{MultiLang.msg('alliance.post')}" labelFunction="getLeagueLevelName" width="60"/>
+			<mx:DataGridColumn dataField="rank" headerText="{MultiLang.msg('public.label.ranking')}" width="50"/>
+			<mx:DataGridColumn dataField="prestiges" headerText="{MultiLang.msg('public.label.prestige')}"/>
+			<mx:DataGridColumn dataField="cityCount" headerText="{MultiLang.msg('label.city')}" width="45"/>
+			<mx:DataGridColumn dataField="allianceContribute" headerText="{MultiLang.msg('alliance.label.alliancecontribute')}"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('alliance.lastTimeOnline')}" width="110">
+				<mx:itemRenderer>
+					<mx:Component>
+						<alliance:AllianceTimeLabel lastTime="{data}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn dataField="" headerText="{MultiLang.msg('dak.action')}" width="80">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="2" right="2" horizontalGap="2" horizontalAlign="center" verticalAlign="middle" height="22" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Script>
+								<![CDATA[
+									import roma.common.valueObject.PlayerInfoDataBean;
+									import roma.common.constants.AllianceConstant;
+									import views.windows.functionWins.friendly.PlayerInfoView;
+									import roma.util.MultiLang;
+								]]>
+							</mx:Script>
+							<mx:Button label="{MultiLang.msg('public.label.checkOut')}" click="parentDocument.showPlayerInfo(data)"  styleName="secondaryBtn" width="35" height="18"/>
+							<mx:Button label="{MultiLang.msg('dak.action')}" click="parentDocument.showMenu(event,data.id,data.allianceRight)" width="40"
+								enabled="{(parentDocument.myLevel==AllianceConstant.ALLIANCE_TITLE_OFFICER||data.id==parentDocument.myPlayerId||data.allianceRight>=parentDocument.myLevel)?false:true}" 
+								styleName="secondaryBtn" height="18"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox horizontalGap="8" right="0" bottom="11" verticalAlign="middle" left="0" verticalScrollPolicy="off" horizontalScrollPolicy="off" horizontalAlign="right">
+		<mx:CheckBox id="showOfficerCheckBox" label="{MultiLang.msg('alliance.showOnlineOfficerOnly')}" click="showOfficerHandle()" selected="{isShowOfficerOnly}"/>
+
+		
+		<mx:HBox  horizontalAlign="right" verticalAlign="middle"  visible="{total_page>0?true:false}" includeInLayout="{this.total_page>0?true:false}" horizontalGap="2">
+			<mx:Label text="{MultiLang.msg('public.label.page')}" styleName="darkCommonStyle" visible="{total_page>2}" includeInLayout="{total_page>2}"/>
+			<mx:TextInput width="50" restrict="0-9" id="targetPageInput" visible="{total_page>2}" includeInLayout="{total_page>2}" textAlign="center"/>
+			<mx:Button label="{MultiLang.msg('public.page.goto')}" styleName="commomNormalBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(targetPageInput.text==''?0:int(targetPageInput.text))"/>
+			<mx:Spacer width="3" includeInLayout="{total_page>2}"/>
+			<mx:Button styleName="minBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(1)"/>
+			<mx:Button  id="previousBtn" styleName="previousBtn" click="turnPage(-1)"/>
+			<mx:Label text="{cur_page}/{total_page}"/>
+			<mx:Button id="nextBtn" styleName="nextBtn" click="turnPage(1)"/>
+			<mx:Button styleName="maxBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(total_page)"/>
+		</mx:HBox>
+		
+		<mx:HBox verticalAlign="middle">
+			<mx:Label text="{MultiLang.msg('alliance.inputName')}:"/>
+			<mx:TextInput width="130" id="nameInput"/>
+			<mx:Button label="{MultiLang.msg('alliance.checkOut')}" click="checkMember()"/>
+		</mx:HBox>
+	</mx:HBox>
+	<mx:Canvas label="成员申请" width="208" left="0" top="25" styleName="subContentBG" height="165">
+		<mx:VBox verticalGap="0" left="10" right="10" top="10" bottom="10">
+			<mx:Canvas width="100%" height="22" styleName="dataGridHeaderBG">
+				<mx:Label width="100%" text="{MultiLang.msg('alliance.label.memberApply')}" textAlign="center" styleName="darkCommonStyle"/>
+			</mx:Canvas>
+			<mx:DataGrid dataProvider="{this.applyArr}" width="100%" height="100%" rowHeight="22"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" showHeaders="false" backgroundAlpha="0" borderStyle="none">
+				<mx:columns>
+					<mx:DataGridColumn dataField="playerName" headerText="{MultiLang.msg('alliance.lastTimeOnline')}" width="130"/>
+					<mx:DataGridColumn dataField="playerName" headerText="{MultiLang.msg('dak.action')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox left="2" right="2" top="2" bottom="2" horizontalGap="2" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+									<mx:Script>
+										<![CDATA[
+											import roma.common.constants.AllianceConstant;
+											import roma.util.MultiLang;
+										]]>
+									</mx:Script>
+									<mx:Button label="{MultiLang.msg('dak.action')}" 
+										styleName="secondaryBtn"
+										click="parentDocument.showApplyMenu(event,data.playerId,data.playerName)" 
+										enabled="{(parentDocument.myLevel>AllianceConstant.ALLIANCE_TITLE_MEMBER)?true:false}" 
+										height="100%"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas width="208" top="191" bottom="36" left="0" styleName="subContentBG">
+		<mx:VBox verticalGap="0" left="10" top="10" bottom="10" right="10">
+			<mx:Canvas width="100%" height="22" styleName="dataGridHeaderBG">
+				<mx:Label width="100%" text="{MultiLang.msg('allinace.inviteWinTitle')}" textAlign="center" styleName="darkCommonStyle"/>
+			</mx:Canvas>
+			<mx:DataGrid dataProvider="{this.inviteArr}" width="100%" height="100%" rowHeight="22"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" showHeaders="false" backgroundAlpha="0" borderStyle="none">
+				<mx:columns>
+					<mx:DataGridColumn dataField="playerName" headerText="{MultiLang.msg('alliance.lastTimeOnline')}" width="130"/>
+					<mx:DataGridColumn dataField="playerName" headerText="{MultiLang.msg('dak.action')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox left="2" right="2" top="2" bottom="2" horizontalGap="2" horizontalAlign="center" verticalAlign="middle"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+									<mx:Script>
+										<![CDATA[
+											import roma.common.constants.AllianceConstant;
+											import roma.util.MultiLang;
+										]]>
+									</mx:Script>
+									<mx:Button label="{MultiLang.msg('public.label.cancel')}" 
+										click="parentDocument.cancelInvite(data.playerId)" 
+										enabled="{(parentDocument.myLevel>AllianceConstant.ALLIANCE_TITLE_MEMBER)?true:false}" 
+										height="100%" styleName="secondaryBtn"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>

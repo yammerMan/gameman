@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:util="views.util.*" title="{MultiLang.msg('alliance.allianceInfo')}" setPopUp="false"
+	width="325" height="330">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.alliance.AllianceInfoDataResponse;
+			import views.windows.functionWins.alliance.outOfAlliance.OutAllianceWin;
+			import roma.common.valueObject.RankLeagueBean;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.rank.RankLeagueResponse;
+			import roma.common.valueObject.AllianceInviteBean;
+			import roma.message.EvtDispacther;
+			import roma.resource.LogoData;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.common.constants.AllianceConstant;
+			import mx.collections.ArrayCollection;
+			import roma.util.PopupWinManager;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var allianceObj:RankLeagueBean; 
+			[Bindable]
+			private var topLogoSource:*;
+			
+			[Bindable]
+			private var middleLogoSource:*;
+			
+			
+			[Bindable]
+			private var bottomLogoSource:*;
+			
+			[Bindable]
+			private var allianceInviteBean:AllianceInviteBean;
+			
+			override public function refresh():void{
+				if(this.initialized){
+					
+				}
+			} 
+
+  			
+  			//获取联盟信息
+  			public function getLeagueInfo(data:Object):void{
+  				this.allianceInviteBean=AllianceInviteBean(data);
+  				ControllerFactory.getInstance().getOutOfAllianceController().getLeagueInfo(this.allianceInviteBean.allianceId,callback);
+  				//获取成功之后再调用这个方法this.getImage();
+  				/**
+				 * 联盟排名列表相应
+				 */ 
+				 function callback(event:AllianceInfoDataResponse):void{
+					if(event.isSuccess()){
+						allianceObj=event.leagueInfo;
+						getImage();
+					}else{
+						MyAlert.showError(event);
+					}
+				}
+  			}
+  			
+  			//接受邀请
+  			private function acceptInvite(allianceId:int):void{
+  				ControllerFactory.getInstance().getOutOfAllianceController().acceptInvite(allianceId,callback);
+  				function callback(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						closeWinHandle();
+  						EvtDispacther.instance.eventDispatch(Alliance.WINDOW_SHOW);
+  					}else{
+						MyAlert.showError(event);
+					}
+  				}
+  			}
+  			//拒绝邀请
+  			private function refuseInvite(allianceId:int):void{
+  				ControllerFactory.getInstance().getOutOfAllianceController().refuseInvite(allianceId,callback);
+  				function callback(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						closeWinHandle();
+  						EvtDispacther.instance.eventDispatch(OutAllianceWin.WINDOW_SHOW);
+  					}else{
+						MyAlert.showError(event);
+					}
+  				}
+  			}
+  			
+  			private function closeWinHandle():void{
+				this.visible=false;
+			}
+
+  			
+  			//获取联盟logo
+  			private function getImage():void{
+  				this.visible=true;
+  				if(this.allianceObj!=null){
+					var logoCode:int=this.allianceObj.logo;
+					var topIndex:int=logoCode>>16;
+					var middleIndex:int=logoCode<<16>>24;
+					var bottomIndex:int=logoCode<<24>>24;
+					
+					this.topLogoSource=LogoData(ImgManager.instance.getLeagueTopLogos()[topIndex]).source;
+					this.middleLogoSource=LogoData(ImgManager.instance.getLeagueMiddleLogos()[middleIndex]).source;
+					this.bottomLogoSource=LogoData(ImgManager.instance.getLeagueBottomLogos()[bottomIndex]).source;
+				}	
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas id="allianceMes" top="36" height="140" styleName="alphaBlackBG" left="22" right="22">
+		<mx:Canvas width="123" height="121" left="10" verticalCenter="0">
+			<mx:Image left="0" right="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.bottomLogoSource}" width="102" height="102"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.middleLogoSource}" width="102" height="102"/>
+			<mx:Image  horizontalCenter="0" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{this.topLogoSource}" width="102" height="102"/>
+		</mx:Canvas>
+		<mx:VBox height="121" verticalGap="-1" verticalCenter="0" left="137" right="5">
+			<mx:Label id="leagueName" text="{allianceObj.name}" width="100%" textAlign="center" fontWeight="bold"/>
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('alliance.leader')}: " width="60" textAlign="right"/>
+				<mx:Label id="allianceLeader" text="{allianceObj.leader}" width="100%" />	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Label text="{MultiLang.msg('alliance.member')}: " width="60" textAlign="right"/>
+				<mx:Label id="allianceMembers" text="{this.allianceObj.member}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%" >
+				<mx:Label text="{MultiLang.msg('public.label.level')}: " width="60" textAlign="right"/>
+				<mx:Label id="allianceLevel" text="{allianceObj.level}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%">
+				<mx:Label text="{MultiLang.msg('ranking.label.ranking')}: " width="60" textAlign="right"/>
+				<mx:Label id="allianceRanking" text="{allianceObj.rank}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+			<mx:HBox width="100%">
+				<mx:Label text="{MultiLang.msg('label.horne')}: " width="60" textAlign="right"/>
+				<mx:Label id="allianceHonor" text="{allianceObj.prestiges}" width="100%"/>	
+			</mx:HBox>
+			<mx:HRule width="90%" />
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas id="allianceDescView" top="178" bottom="42" left="22" styleName="mainWindowContentBG" right="22">
+		<mx:HBox left="0" horizontalGap="0" top="0" styleName="tecTitleBG" right="0" height="25">
+			<mx:Spacer width="5"/>
+			<mx:Label text="{MultiLang.msg('public.label.describe')}"/>
+		</mx:HBox>
+		<mx:TextArea left="1" right="1" top="24" bottom="0" text="{allianceObj.desc}" editable="false"/>
+	</mx:Canvas>
+	<mx:HBox bottom="17" left="22" right="22" horizontalGap="2" horizontalAlign="center">
+		<mx:Button label="{MultiLang.msg('alliance.acceptInvite')}" width="50%" click="acceptInvite(this.allianceInviteBean.allianceId)"/>
+		<mx:Button label="{MultiLang.msg('alliance.refuseInvite')}" width="50%" click="refuseInvite(this.allianceInviteBean.allianceId)"/>
+		
+	</mx:HBox>
+</functionWins:BasePopUpWindow>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow xmlns:functionWins="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" styleName="popUpWinBG" width="100%" height="100%" 
+	creationComplete="init()" xmlns:intelligence="views.windows.functionWins.intelligence.*" title="{MultiLang.msg('intelligence.title')}"
+	xmlns:windows="views.windows.*" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.*" xmlns:obj="views.windows.functionWins.intelligence.obj.*" xmlns:items="views.windows.functionWins.mail.ReportUi.battleResult.items.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.player.BattleFieldObj;
+			import roma.common.valueObject.PairValueBean;
+			import views.PopupWindows;
+			import roma.common.constants.HeroManConstants;
+			import roma.logic.object.hero.HeroObj;
+			import roma.logic.object.player.OtherArmyObj;
+			import roma.common.constants.FieldConstant;
+			import views.spreadUI.MyAlert;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.constants.BattleConstants;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.ForceBean;
+			import mx.utils.ObjectProxy;
+			import roma.util.MultiLang;
+			import roma.common.controller.army.BattleArmysInfoResponse;
+			import mx.collections.ArrayCollection;
+			import roma.common.constants.TroopForConstants;
+			import roma.common.constants.TroopConstant;
+			import roma.logic.object.castle.TFHelper;
+			import roma.resource.ImgManager;
+			
+			public static var WINDOW_SHOW:String = "battleSituationDetail.show";
+			[Bindable]
+			private var attackArmysArray:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var defendArmysArray:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var techArray:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var troopsIconObj:ObjectProxy = new ObjectProxy();
+			
+			[Bindable]
+			private var battleObj:BattleFieldObj;
+			[Bindable]
+			private var army_bean:ForceBean;
+			[Bindable]
+			private var vrHeight:int = 260;
+			
+			override public function refresh():void{
+				battleObj = BattleFieldObj(this.winData);
+				battleObj.isInSelected = false;
+				ControllerFactory.getInstance().getArmyController().getBattleArmysInfo(battleObj.battleWildBean.targetId, battleObj.battleWildBean.battleId, onGetBattleArmysInfo);
+			}
+			
+			override public function destroy():void{
+				
+			}
+			
+			private	function onGetBattleArmysInfo(event:BattleArmysInfoResponse):void
+			{
+				if (event.isSuccess())
+				{
+					setSituationList(event);
+				}
+				else
+				{
+					MyAlert.showError(event);
+				}
+			}
+
+			private function setSituationList(obj:BattleArmysInfoResponse):void{
+				attackArmysArray.removeAll();
+				defendArmysArray.removeAll();
+				
+				if(battleObj.isDefend){
+					if(battleObj.battleWildBean.targetFieldType != FieldConstant.TYPE_CITY){
+						for each(var c:CastleObj in GameContext.instance.getPlayerObj().castelArray){
+							for each(var h:HeroObj in c.heroManager.heroArray){
+								if(h.heroInfo.status == HeroManConstants.STATUS_GUARD){
+									if(h.heroInfo.targetFieldId == battleObj.battleWildBean.targetId){
+										var a1:ForceBean = herosToForceBean(h);
+										defendArmysArray.addItem(a1);
+									}
+								}
+							}
+						}
+					}
+					if(GameContext.instance.getPlayerObj().isYourField(battleObj.battleWildBean.targetId)){
+						var others:ArrayCollection =GameContext.instance.getPlayerObj().otherArmyManager.getLeagueArmyArrayInField(battleObj.battleWildBean.targetId);
+						for each(var other:OtherArmyObj in others){
+							var a2:ForceBean = othersToForceBean(other);
+							defendArmysArray.addItem(a2);
+						}
+					}
+				}
+				
+				// 需要加入科技，英雄等级不应该为零（没有时），idField也不应该为零（没有时），兵种没有的干脆就为-1
+				for each(var a:ForceBean in obj.attackArmysArray){
+					if(a != null){
+						attackArmysArray.addItem(a);
+					}
+				}
+				for each(var d:ForceBean in obj.defendArmysArray){
+					if(d != null && d.king != null){
+						defendArmysArray.addItem(d);
+					}
+				}
+				vrHeight = Math.max(attackArmysArray.length,defendArmysArray.length)*69<260?260:Math.max(attackArmysArray.length,defendArmysArray.length)*69;
+			}
+			
+			private function herosToForceBean(o:HeroObj):ForceBean{
+				var a:ForceBean = new ForceBean();
+				a.castleName = o.castleObj.name;
+				a.castleFieldId = o.castleObj.idField;
+				a.heroManLevel = o.heroInfo.level;
+				a.troopsArray = o.armyManager.troopsArray;
+				return a;
+			}
+			
+			private function othersToForceBean(o:OtherArmyObj):ForceBean{
+				var a:ForceBean = new ForceBean();
+				a.castleName = o.belongCastle;
+				a.king = o.king;
+				a.heroManLevel = o.heroInfoBean.level;
+				a.troopsArray = o.bean.troopsArray;
+				return a;
+			}
+			
+			private function init():void{
+				troopsIconObj.t_archers = TFHelper.instance.getTroopSmallIconClass(TroopForConstants.T_ARCHERS);
+				troopsIconObj.t_ballistas = TFHelper.instance.getTroopSmallIconClass(TroopForConstants.T_BALLISTAS);
+				troopsIconObj.t_cavalry = TFHelper.instance.getTroopSmallIconClass(TroopForConstants.T_CAVALRY);
+				troopsIconObj.t_onagers = TFHelper.instance.getTroopSmallIconClass(TroopForConstants.T_ONAGERS);
+				troopsIconObj.t_triarii = TFHelper.instance.getTroopSmallIconClass(TroopForConstants.T_TRIARII);
+				troopsIconObj.t_urban_cohort = TFHelper.instance.getTroopSmallIconClass(TroopForConstants.T_URBAN_COHORT);
+			}
+			
+			private function onReturn():void{
+				PopupWindows.openFuncWin(IntelligenceWin.WINDOW_SHOW);
+			}
+		]]>
+	</mx:Script>
+	<windows:WindowTitle onCloseFun="{onCloseBtnClick}" winTitle="{MultiLang.msg('battleSituation.label')}"/>
+	<mx:Canvas styleName="mainWindowContentBG" left="13" right="13" height="25" top="30">
+		<intelligence:BattleLableRender battleText="{battleObj}" battleColor="{battleObj}" left="20"/>
+	</mx:Canvas>
+	
+	<mx:Canvas styleName="subContentBG" top="55" left="12" right="12" bottom="44">
+		<mx:Canvas top="12" left="12" right="12" bottom="12" styleName="whiteBGwithBorder" horizontalScrollPolicy="off">
+			<mx:VBox width="100%" horizontalScrollPolicy="off" >
+			<mx:HBox width="100%" horizontalGap="2">
+				<mx:TileList dataProvider="{attackArmysArray}" width="50%" height="{70*attackArmysArray.length}" borderStyle="none" paddingLeft="5" rowHeight="70" 
+					columnCount="1" selectable="false" useRollOver="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:VBox verticalScrollPolicy="off" verticalGap="0" paddingTop="0">
+								<obj:ArmyInfo troopsBean="{data}"/>
+								<mx:HRule width="100%" />
+							</mx:VBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+				<mx:VRule height="{vrHeight*.98}" horizontalCenter="0"/>
+				<mx:TileList dataProvider="{defendArmysArray}" width="50%" height="{70*defendArmysArray.length}" borderStyle="none" paddingLeft="5" rowHeight="70" 
+					columnCount="1" selectable="false" useRollOver="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:VBox verticalScrollPolicy="off" verticalGap="0" paddingTop="0">
+								<obj:ArmyInfo troopsBean="{data}"/>
+								<mx:HRule width="100%" />
+							</mx:VBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+			</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+	<mx:Button label="{MultiLang.msg('public.label.return')}" bottom="17" right="20" width="150" height="23" click="{onReturn()}"/>
+</functionWins:BaseFunctionWindow>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Tile horizontalGap="2" verticalGap="2"
+	creationComplete="init()"
+	width="230" height="82"
+	xmlns:mx="http://www.adobe.com/2006/mxml" >
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.TroopForConstants;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.logic.object.hero.HeroObj;
+			private var uiArray:Array = new Array(
+				new SoldierLogoWithBGUI(),
+				new SoldierLogoWithBGUI(),
+				new SoldierLogoWithBGUI(),
+				new SoldierLogoWithBGUI(),
+				new SoldierLogoWithBGUI(),
+				new SoldierLogoWithBGUI()
+			);
+			private var soldierTypeArr:Array=new Array(
+				TroopForConstants.T_TRIARII,
+				TroopForConstants.T_CAVALRY,
+				TroopForConstants.T_URBAN_COHORT,
+				TroopForConstants.T_ARCHERS,
+				TroopForConstants.T_BALLISTAS,
+				TroopForConstants.T_ONAGERS
+			);
+			
+			private function init():void {
+//				for each (var ui:SoldierLogoWithBGUI in this.uiArray) {
+//					this.addChild(ui);
+//				}
+				for (var i:int = 0; i< 6; i++) {
+					SoldierLogoWithBGUI(this.uiArray[i]).setSoldierinitTpye(this.soldierTypeArr[i]);
+					this.addChild(this.uiArray[i]);
+				}
+			}
+			
+			public function set hero(obj:HeroObj):void {
+				for (var i:int = 0; i< 6; i++) {
+					var ui:SoldierLogoWithBGUI = SoldierLogoWithBGUI(this.uiArray[i]);
+					if(obj!=null){
+						ui.troopBean = HeroTroopBean(obj.armyManager.troopsArray[i]);
+					}else{
+						ui.troopBean=null;
+					}
+					
+				}
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Tile>

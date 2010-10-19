@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="65" creationComplete="refreshClass()" xmlns:ReportUi="views.windows.functionWins.mail.ReportUi.battleResult.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import views.spreadUI.castleIcon.CastleIconPanel;
+			import roma.message.EvtDispacther;
+			import roma.logic.object.building.impl.TrainningField;
+			import roma.util.ImageHandle;
+			import views.windows.buildings.trainningField.TrainningFieldWin;
+			import views.spreadUI.MyAlert;
+			import views.PopupWindows;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.building.BaseBuilding;
+			import views.spreadUI.tips.CommonTooltip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.util.FiltersUtil;
+			import mx.utils.ObjectProxy;
+			import views.windows.functionWins.mail.bean.BattleTroopType;
+			import roma.logic.GameContext;
+			import roma.logic.object.player.PlayerObj;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.CompCache;
+			
+			[Bindable]
+			private var troopsB:BattleTroopType;
+			[Bindable]
+			private var troopsList:ArrayCollection = new ArrayCollection();
+			private var playerObj:PlayerObj = GameContext.instance.getPlayerObj();
+			[Bindable]
+			private var isMyHeros:Boolean = false;
+			[Bindable]
+			private var _isTraining:Boolean = false;
+			private var commonTooltip:CommonTooltip = ToolTipContainer.instance.commonTooltip;
+			
+			private var troopCache:CompCache = new CompCache(6);
+			[Bindable]
+			private var castleFromStr:String = "";
+			
+			public function set troopsBean(b:Object):void{
+				playerObj = GameContext.instance.getPlayerObj();
+				troopsB = BattleTroopType(b);
+				refreshClass();
+				if(troopsB.isSelfArmy){
+					isMyHeros = true;
+				}else{
+					isMyHeros = false;
+				} 
+				if(troopsB.cityName != null){
+					castleFromStr = troopsB.cityName+GameContext.getFieldPostionString(troopsB.castleFieldId);
+				}
+			}
+			
+			public function set isTraining(isTrue:Boolean):void{
+				_isTraining = isTrue;
+			}
+			
+			private function refreshClass():void{
+				 if(this.initialized){
+					this.commonTooltip.width = 200;
+					troopsList.removeAll();
+					for each(var b:ObjectProxy in troopsB.troops){
+						if(b.count != -1){
+							troopsList.addItem(b);
+						}
+					} 
+				} 
+			}
+			
+			private function onCallInjured():void{
+				if(troopsB.castleFieldId!=GameContext.instance.getPlayerObj().getCurCastleObj().idField){
+					CastleIconPanel.instance.gotoTown(troopsB.castleFieldId);
+				}
+				var callBuilding:BaseBuilding = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_TRAINNINGS);
+				if(callBuilding)
+				{
+					PopupWindows.openBuildingInfoWin(TrainningFieldWin.WINDOW_SHOW,callBuilding,"cureWin");
+				}
+				else{
+					MyAlert.show(MultiLang.msg('building.isNotExist'));
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas width="100%" height="97%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox width="95" height="100%" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{troopsB.heroName}" textAlign="center" height="20" styleName="titleBordLabel"/>
+			<!--mx:Label text="({troopsB.lordName})" textAlign="center" height="20" styleName="{isMyHeros?'titleNameLabel':'titleBordLabel'}"/-->
+			<mx:Canvas width="80" height="40" styleName="smallLogoBG" verticalScrollPolicy="off" horizontalScrollPolicy="off" visible="{isMyHeros}" includeInLayout="{isMyHeros}">
+				<mx:Image width="74" height="34" scaleContent="true" mouseOut="{this.commonTooltip.onMouseOut()}"
+				updateComplete="ImageHandle.onLoadComplete(event)"
+				mouseOver="{this.commonTooltip.setTip(MultiLang.msg('label.city')+':'+castleFromStr);}"
+				mouseMove="this.commonTooltip.onMouseMove(event)" source="{ImgManager.clazz(troopsB.heroUrlPath)}" verticalCenter="0" horizontalCenter="0"/>
+				<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" top="1" left="1"
+					updateComplete="ImageHandle.onLoadComplete(event)" visible="{!troopsB.isNpcHeroForCastle}"/>
+				<mx:Label x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center" text="{troopsB.heroLevel}" visible="{!troopsB.isNpcHeroForCastle}"/>
+				<mx:Label width="100%" textAlign="right" text="+{troopsB.heroExp}" height="20" color="0x72ff00"  right="2" bottom="2" visible="{!troopsB.isNpcHeroForCastle}" fontWeight="bold" fontSize="14" fontFamily="Tahoma,宋体" filters="{[FiltersUtil.glowFilter]}"/>
+			</mx:Canvas>
+			<mx:Label text="{troopsB.lordName}" visible="{!isMyHeros}" includeInLayout="{!isMyHeros}"/>
+		</mx:VBox>
+		<mx:Canvas width="300" top="0" left="85" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:TileList id="troopsContainer" backgroundAlpha="0" borderStyle="none"
+			 selectable="false" useRollOver="false" rowCount="1" rowHeight="65" columnWidth="40" columnCount="7" paddingTop="5" verticalAlign="middle" dataProvider="{troopsList}">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ReportUi:TroopsItemUI troopUnitBean="{data}" width="38"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:TileList>
+		</mx:Canvas>
+		<mx:Button styleName="cureBtn" width="25" height="25" right="15" click="onCallInjured()" visible="{_isTraining==true?false:isMyHeros}" toolTip="{MultiLang.msg('hospital.troop.cure.tooltip')}"/>
+	</mx:Canvas>
+	<mx:HRule width="100%" bottom="0" styleName="bufferBarVRule"/>
+</mx:Canvas>

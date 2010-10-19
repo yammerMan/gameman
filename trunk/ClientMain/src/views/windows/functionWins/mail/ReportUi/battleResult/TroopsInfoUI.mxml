@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" 
+	xmlns:ReportUi="views.windows.functionWins.mail.ReportUi.battleResult.*" 
+	verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.FieldConstant;
+			import roma.common.constants.BattleConstants;
+			import views.windows.functionWins.mail.bean.BattleResultType;
+			import mx.utils.ObjectProxy;
+			import views.windows.functionWins.mail.bean.BattleTroopType;
+			import mx.collections.ArrayCollection;
+			import roma.util.FiltersUtil;
+			import roma.util.MultiLang;
+			import roma.util.CompCache;
+			import views.windows.functionWins.mail.ReportUi.battleResult.HeroInfo;
+			
+			[Bindable]
+			private var castleObj:BattleResultType;
+			[Bindable]
+			private var isDefensed:Boolean = false;
+			[Bindable]
+			private var troopsList:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			public var isTraining:Boolean = false;
+			
+			public function set attackBean(c:BattleResultType):void{
+				castleObj = c;
+				troopsList = c.attackerTroop;
+				isTraining = c.battleMission == BattleConstants.ARMY_MISSION_TRAINNING&&c.battleFieldType==FieldConstant.TYPE_NPC_FIELD;
+				isDefensed = false;
+			}
+			
+			public function set defenseBean(c:BattleResultType):void{
+				castleObj = c;
+				troopsList = c.defenderTroop;
+				isTraining = c.battleMission == BattleConstants.ARMY_MISSION_TRAINNING;
+				isDefensed = true;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:VBox horizontalAlign="center" width="100%" verticalGap="1">
+		<ReportUi:DefenseUI visible="{isDefensed?(castleObj.wall != null):false}" includeInLayout="{isDefensed?(castleObj.wall != null):false}" castle="{castleObj}" />
+		<mx:TileList dataProvider="{troopsList}" height="{70*troopsList.length}" borderStyle="none" paddingLeft="5" rowHeight="70" 
+			columnCount="1" width="100%" backgroundAlpha="0" selectable="false" useRollOver="false">
+			<mx:itemRenderer>
+				<mx:Component>
+					<ReportUi:HeroInfo troopsBean="{data}" isTraining="{outerDocument.isTraining}"/>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:TileList>
+		<!--mx:VBox id="heroContainer" width="100%" verticalGap="1" paddingLeft="5"/-->
+	</mx:VBox>
+</mx:Canvas>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="30" horizontalGap="0" verticalAlign="middle" styleName="mainWindowContentBG" xmlns:ns1="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.CastleObj;
+			import roma.logic.object.building.impl.Dak;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.common.constants.GeneralConstants;
+			import roma.message.events.DakChangeEvent;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.valueObject.PostTransportBean;
+			import roma.common.valueObject.CityBean;
+			import roma.logic.GameContext;
+			import roma.resource.ImgManager;
+			import roma.common.valueObject.DakBean;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var dakBean:PostTransportBean;
+			[Bindable]
+			private var cityName:String;
+			[Bindable]
+			private var _buildingObj:Dak;//当前建筑的BuildingObj
+			[Bindable]
+			private var curCastle:CastleObj;
+			
+			public function setDakBean(dak:PostTransportBean):void{
+				this.dakBean=dak;
+				this.curCastle=GameContext.instance.getPlayerObj().getCurCastleObj();
+				if(this.curCastle.cityId==dakBean.startCastleId){
+					cityName=GameContext.instance.getPlayerObj().getCastleObjById(dakBean.targetCastleId).name;
+				}
+				if(this.curCastle.cityId==dakBean.targetCastleId){
+					cityName=GameContext.instance.getPlayerObj().getCastleObjById(dakBean.startCastleId).name;
+				}	
+			}
+			
+			public function set buildingObj(obj:BaseBuilding):void{
+				this._buildingObj=Dak(obj);
+			}
+			
+			private function refreshTransport():void
+			{
+				this._buildingObj.refreshTransport(dakBean,int(foodInput.text)*10,int(woodInput.text)*10,int(stoneInput.text)*10,int(ironInput.text)*10);
+			}
+			
+			private function deleteTransport():void
+			{
+				this._buildingObj.deleteTransport(dakBean);	
+			}
+		]]>
+	</mx:Script>
+	<mx:Label text="{dakBean.startCastleId==this.curCastle.cityId?MultiLang.msg('dak.outputLine'):MultiLang.msg('dak.inputLine')}" width="95" textAlign="center" toolTip="{dakBean.startCastleId==this.curCastle.cityId?MultiLang.msg('dak.outputLine.tip'):MultiLang.msg('dak.inputLine.tip')}"/>
+	<mx:Image width="15" height="15" source="{dakBean.startCastleId==this.curCastle.cityId?ImgManager.clazz('dak.comeOut.icon'):ImgManager.clazz('dak.income.icon')}"
+		updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Label width="110" text="{this.cityName}" textAlign="center"></mx:Label>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0" text="{dakBean.foods/10}" id="foodInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0" text="{dakBean.woods/10}"  id="woodInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0" text="{dakBean.stones/10}"  id="stoneInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0" text="{dakBean.irons/10}"  id="ironInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:HBox width="100%" height="100%" horizontalAlign="left" verticalAlign="middle">
+		<mx:Button label="{MultiLang.msg('public.label.update')}" styleName="shopForBuyBtn" click="refreshTransport()"/>
+		<mx:Button styleName="dakCancleBtn" click="deleteTransport()" toolTip="{MultiLang.msg('dak.supplyLine.cancel.tip')}"/>
+	</mx:HBox>
+	
+</mx:HBox>

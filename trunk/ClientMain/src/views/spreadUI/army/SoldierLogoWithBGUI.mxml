@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas
+	styleName="heroArmyBG" 
+	width="72" height="39"
+	xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:army="views.spreadUI.army.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.common.constants.TroopForConstants;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.logic.object.hero.HeroObj;
+
+			[Bindable]
+			public var troopBean:HeroTroopBean;
+			[Bindable]
+			private var teamName:String;
+			[Bindable]
+			private var teamAdd:String;
+			public function setSoldierinitTpye(t:int):void{
+				switch(t){
+					case TroopForConstants.T_TRIARII:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"I";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontLeft");
+					break;
+					
+					case TroopForConstants.T_CAVALRY:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"II";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontCenter");
+					break;
+					
+					case TroopForConstants.T_URBAN_COHORT:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"III";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontRight");
+					break;
+					
+					case TroopForConstants.T_ARCHERS:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"IV";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearLeft");
+					break;
+					
+					case TroopForConstants.T_BALLISTAS:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"V";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearCenter");
+					break;
+					
+					case TroopForConstants.T_ONAGERS:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"VI";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearRight");
+					break;
+					default:
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="64" horizontalCenter="0" height="32" verticalCenter="0"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Label horizontalCenter="0" top="0" styleName="darkCommonStyle" text="{this.teamName}"/>
+		<mx:Label horizontalCenter="0" bottom="0" styleName="darkCommonStyle" text="{this.teamAdd}"/>
+	</mx:Canvas>
+	<army:SoldierLogoUI x="4" y="3"
+		count="{this.troopBean.count}"
+		troop="{this.troopBean.troopType}"
+		visible="{this.troopBean.count>0}"/>
+</mx:Canvas>

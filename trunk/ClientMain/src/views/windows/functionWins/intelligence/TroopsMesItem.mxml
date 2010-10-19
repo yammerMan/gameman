@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="22" borderStyle="none">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.BattleHelper;
+			import roma.util.MultiLang;
+			import roma.common.constants.ScoutConstants;
+			import roma.common.constants.TroopForConstants;
+			import roma.common.constants.BattleConstants;
+			import views.windows.functionWins.mail.bean.BattleTroopType;
+			import roma.common.valueObject.HeroTroopBean;
+			import mx.utils.ObjectProxy;
+			import roma.common.valueObject.ForceBean;
+			
+			[Bindable]
+			private var troopObj:ObjectProxy = new ObjectProxy();
+			[Bindable]
+			private var troopsMesBean:ForceBean;
+			
+			public function set troopsMes(mes:Object):void{
+				troopsMesBean = ForceBean(mes);
+				for each(var t:HeroTroopBean in mes.troopsArray){
+					switch(t.troop){
+						case TroopForConstants.T_ARCHERS:
+						if(t.count<0){
+							troopObj.t_archers = BattleHelper.instance.getBattleVagueType(t.count);
+						}else{
+							troopObj.t_archers = t.count>0?t.count:0;
+						}
+						break;
+						case TroopForConstants.T_BALLISTAS:
+						if(t.count<0){
+							troopObj.t_ballistas = BattleHelper.instance.getBattleVagueType(t.count);
+						}else{
+							troopObj.t_ballistas = t.count>0?t.count:0;
+						}
+						break;
+						case TroopForConstants.T_CAVALRY:
+						if(t.count<0){
+							troopObj.t_cavalry = BattleHelper.instance.getBattleVagueType(t.count);
+						}else{
+							troopObj.t_cavalry = t.count>0?t.count:0;}
+						break;
+						case TroopForConstants.T_ONAGERS:
+						if(t.count<0){
+							troopObj.t_onagers = BattleHelper.instance.getBattleVagueType(t.count);
+						}else{
+							troopObj.t_onagers = t.count>0?t.count:0;}
+						break;
+						case TroopForConstants.T_TRIARII:
+						if(t.count<0){
+							troopObj.t_triarii = BattleHelper.instance.getBattleVagueType(t.count);
+						}else{
+							troopObj.t_triarii = t.count>0?t.count:0;
+							}
+						break;
+						case TroopForConstants.T_URBAN_COHORT:
+						if(t.count<0){
+							troopObj.t_urban_cohort = BattleHelper.instance.getBattleVagueType(t.count);
+						}else{
+							troopObj.t_urban_cohort = t.count>0?t.count:0;
+						}
+						break;
+						
+					}
+				}
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Label left="5" height="22" text="{troopsMesBean.king}"/>
+	<mx:HBox left="100" horizontalGap="0">
+		<mx:Label width="40" height="22" text="{troopObj.t_triarii}" textAlign="center"/>
+		<mx:Label width="40" height="22" text="{troopObj.t_cavalry}" textAlign="center"/>
+		<mx:Label width="40" height="22" text="{troopObj.t_urban_cohort}" textAlign="center"/>
+		<mx:Label width="40" height="22" text="{troopObj.t_archers}" textAlign="center"/>
+		<mx:Label width="40" height="22" text="{troopObj.t_ballistas}" textAlign="center"/>
+		<mx:Label width="40" height="22" text="{troopObj.t_onagers}" textAlign="center"/>
+	</mx:HBox>
+</mx:Canvas>

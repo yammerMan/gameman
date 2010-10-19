@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" height="115">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var resManager:CastleResourceManager;
+			
+			override public function refresh():void {
+				this.resManager = GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+			} 
+			
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.support')}" styleName="titleBordLabel"/>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.support.current')}"/>
+			<mx:Label text="{this.resManager.support}"/>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.grievance.current')}"/>
+			<mx:Label text="{this.resManager.complaint}"/>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.support.change')}"/>
+			<mx:Label text="{this.resManager.supportDir}"/>
+		</mx:HBox>
+	</mx:VBox>
+	
+</BaseTip>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseFunctionWindow 
+	creationComplete="init()"
+	width="700" height="386"
+	title="{MultiLang.msg('military.newArmy.title')}" 
+	xmlns="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:military="views.windows.functionWins.military.*"
+	xmlns:army="views.spreadUI.army.*"
+	horizontalCenter="0"
+	verticalCenter="0" 
+	xmlns:diplomacy="views.windows.functionWins.diplomacy.*" 
+	xmlns:hero="views.windows.functionWins.hero.*" >
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.common.constants.HeroManConstants;
+			import roma.common.constants.BattleConstants;
+		]]>
+	</mx:Script>
+	<mx:Script source="GoingToWarWin_.as"/>
+	<mx:HBox x="10" horizontalGap="2" verticalAlign="middle" top="32" label="城堡选择">
+		<mx:Label text="{MultiLang.msg('buff.label.belong')}:" styleName="titleBordLabel"/>
+		<mx:ComboBox id="cityCom" width="150" dataProvider="{cityComData}" labelField="name" change="onCitySelected(event)"/>
+	</mx:HBox>
+	
+	<mx:HBox label="目标" top="32" verticalAlign="middle" right="10" horizontalGap="2">
+		<mx:Label text="{MultiLang.msg('military.newArmy.target')}:" styleName="titleBordLabel"/>
+		<mx:Button label="{mapTileData.fieldName}" click="{onShowPositionList(event)}" styleName="comboBoxBtn" 
+			id="menuBtn"  width="150" enabled="{mapTileData.isJoin?false:true}" textAlign="left"/>
+	</mx:HBox>
+	
+	<mx:Canvas top="58" bottom="12" width="219" styleName="subContentBG" left="12">
+		<mx:DataGrid top="11" bottom="11" left="11" rowHeight="22" dataProvider="{heroArray}" showHeaders="false" right="11">
+			<mx:columns>
+				<mx:DataGridColumn>
+					<mx:itemRenderer>
+						<mx:Component>
+							<hero:HeroItemUI click="{outerDocument.onHeroSelected(data)}" heroObj="{data}" />
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:Canvas>
+	
+	<military:HeroSituationInfo id="heroInfo" label="英雄界面" top="58" width="457" height="170" right="12"/>
+	
+	<mx:Canvas y="229" width="457" height="118" right="12" label="军队界面" styleName="subContentBG"
+		enabled="{!(isAttackMission == false || mapTileData.isNpc == true)}" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox height="100%" width="100%" label="" verticalGap="5" horizontalAlign="center" left="12" top="15" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:HBox width="95%" left="5" label="行军时间及通知联盟" horizontalGap="2">
+				<mx:Label text="{MultiLang.msg('military.costTime')}:" styleName="titleBordLabel" toolTip="{MultiLang.msg('battleSituation.battleTime.desc')}"/>
+				<mx:Label text="{isJoin?'':moveNeedTimeStr}" styleName="titleLable" width="70"/>
+				<mx:HBox horizontalGap="2" toolTip="{MultiLang.msg('battleSituation.battleNotice.desc')}">
+					<mx:Label text="{MultiLang.msg('military.newArmy.notice')}: " styleName="titleBordLabel"/>
+					<mx:CheckBox id="appealAllianceCB" enabled="{isJoin?false:true}" label="{MultiLang.msg('public.label.alliance')}"/>
+					<mx:CheckBox id="appealFriendsCB" enabled="{isJoin?false:true}" label="{MultiLang.msg('friendly.label.friendly')}"/>
+				</mx:HBox>
+			</mx:HBox>
+
+			<mx:Canvas left="5" width="95%">
+				<mx:Label text="{MultiLang.msg('military.retreatContdition')}:" styleName="titleBordLabel" toolTip="{MultiLang.msg('battleSituation.retreatFactor.desc')}"/>
+				<mx:Canvas top="22" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:HBox top="0" width="100%" verticalAlign="middle" horizontalGap="-1">
+						<mx:CheckBox id="cb_lostLimit" label="{MultiLang.msg('military.lostLimit')}"/>
+						<mx:TextInput id="ti_lostLimit" enabled="{cb_lostLimit.selected}" width="28" maxChars="2" restrict="0-9"/>
+						<mx:Label text="%" styleName="titleLable"/>
+						<mx:Spacer width="3"/>
+						<mx:CheckBox id="cb_closeInAllDead" label="{MultiLang.msg('military.closeInAllDead')}"/>
+					</mx:HBox>
+					<mx:CheckBox top="22" id="cb_longDistanceAllDead" label="{MultiLang.msg('military.longDistanceAllDead')}"/>
+				</mx:Canvas>
+			</mx:Canvas>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Button label="{isJoin?MultiLang.msg('battleSituation.join.btnLabel'):MultiLang.msg('military.newArmy.send')}" click="onSendBtnClick()" height="22" 
+		bottom="12" id="createArmyBtn" width="110" right="150" enabled="{curHero!=null}"/>
+</BaseFunctionWindow>

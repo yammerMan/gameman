@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="602" height="327" xmlns:herosMansion="views.windows.functionWins.hero.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.hero.HeroObj;
+			[Bindable]
+			private var curHero:HeroObj;
+			public function set hero(hero:HeroObj):void{
+				this.curHero=hero;
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas label="英雄属性、加点等" left="0" width="265" top="1" bottom="1" styleName="subContentBG">
+		<herosMansion:HeroAttribute id="heroProperty" curHeroObj="{curHero}" left="11" right="11" top="11" bottom="11"/>
+	</mx:Canvas>
+	<mx:Canvas label="有英雄的时候" top="1" bottom="1" left="267" right="1" styleName="subContentBG">
+		<herosMansion:HeroSubPropertyView id="heroTroops" hero="{curHero}" left="1" top="5" right="1" bottom="5"/>
+	</mx:Canvas>
+</mx:Canvas>

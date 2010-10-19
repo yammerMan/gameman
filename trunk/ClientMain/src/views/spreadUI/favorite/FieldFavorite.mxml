@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="280" styleName="baseTooltip" xmlns:favorite="views.spreadUI.favorite.*" creationComplete="init()" height="120">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+
+	<mx:Script source="FieldFavoriteas.as"/>
+	<mx:VBox left="5" top="5" right="5" verticalGap="0" bottom="5">
+		<mx:Label width="100%" text="{MultiLang.msg('market.favoritesCoor')}" textAlign="center" styleName="titleBordLabel"/>
+		<mx:HRule width="100%" styleName="bufferBarVRule"/>
+		<mx:DataGrid id="_dataGrid" 
+		draggableColumns="false" 
+		resizableColumns="false" 
+		sortableColumns="false" top="5" 
+		backgroundAlpha="0.0"
+		dataProvider="{this.dataArray}" 
+		left="5" rowCount="10" styleName="borderSkin" right="5" width="100%" height="100%" showHeaders="false">		
+	
+		<mx:columns>
+			<!--mx:DataGridColumn headerText="{Lang.msg('townHall.coordinate')}" 
+				dataField="idField" 
+				editable="false" 
+				labelFunction="convertCoord"
+				width="70" color="0x000000"/>
+			<mx:DataGridColumn 
+				headerText="{Lang.msg('hero.name')}" 
+				dataField="remark" 
+				editable="true" 
+				id="columnName" color="0x000000"/-->
+			<mx:DataGridColumn editable="false">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox horizontalAlign="center" verticalAlign="middle" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<favorite:FavHandle fieldData="{data}" remark="{outerDocument.newRemark}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:Canvas>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="55" height="55" styleName="smallBuildingLogoBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+		]]>
+	</mx:Script>
+	<mx:Image left="8" top="8" right="8" bottom="8" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	
+</mx:Canvas>

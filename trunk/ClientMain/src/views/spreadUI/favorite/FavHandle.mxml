@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalGap="3" width="270" creationComplete="init()" click="clickHandle()" verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:ns1="views.spreadUI.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import roma.message.events.FieldSelectEvent;
+			import mx.core.UITextField;
+			import roma.message.events.MsgEvent;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import mx.events.MenuEvent;
+			import mx.controls.Menu;
+			import roma.message.EvtDispacther;
+			import roma.util.MultiLang;
+			import roma.message.events.FavoriteEvent;
+			import roma.common.valueObject.FieldCollectBean;
+			
+			private var point1:Point=new Point();
+
+			public static const MODIFY_REMARK_NAME:String = "modify.remark.name";
+			
+			private var _remark:String;
+			private var myMenu:Menu;
+			private var myMenuData:XML;
+			
+			[Bindable]
+			private var bean:FieldCollectBean;
+			[Bindable]
+			private var fieldAdd:String;
+						
+			private function init():void{
+				this.creatXml();
+				EvtDispacther.instance.addEventListener(MODIFY_REMARK_NAME,judgeModify);
+				this.disText.addEventListener(MouseEvent.DOUBLE_CLICK,doubleClick);
+			}
+			
+			public function set fieldData(data:Object):void{
+				this.bean = data as FieldCollectBean;
+				this.fieldAdd=this.getAdd(this.bean.fieldId);
+			}
+			
+			/* 获取野地地址 */
+			private function getAdd(idField:int):String{
+				return "["+int(idField/10000)+","+int(idField%10000)+"]";
+			}
+			
+			public function set remark(r:String):void{
+				this._remark = r;
+			}
+			
+			/* 允许修改备注 */
+			private function allowModify():void{
+//				focusManager.setFocus(this.disText); 
+				setModifyable(true);
+				EvtDispacther.sendEvent(MODIFY_REMARK_NAME,this.bean.remark);	
+			}
+			
+			/* 判断是否为当前收藏，是就修改 */
+			private function judgeModify(event:MsgEvent):void{
+				if(this.bean==null)return;
+				if(this.bean.remark==String(event.data)){
+//					this.confirmBtn.visible=true;
+//					this.disText.editable = true;
+//					this.disText.setTextInputEditable(true);
+//					this.disText.alpha=1;
+//					this.isChange = true;	
+//					this.showSureBtn=true;
+//					focusManager.setFocus(this.deleteBtn);
+//					this.disText.setSelection(0,this.disText.text.length);	
+//					focusManager.setFocus(this.disText); 			
+				}else{
+
+//					this.disText.text=this.bean.remark;
+					removeModifyState();
+//					disText.text=this.bean.remark;
+					this.disText.textString=this.bean.remark;
+				}
+			}
+			/* 取消修改状态 */
+			private function removeModifyState():void{
+				setModifyable(false);
+			}
+					
+			/* 更改收藏备注 */
+			private function updateFavorite():void {
+				if(!this.initialized) return;
+				FavoriteEvent.updateFavorite(FieldFavorite.UPDATE_FAVORITE,this.bean,this.disText.getTextInputText());
+				removeModifyState();
+			}
+			
+			/* 删除收藏 */
+			private function deleteFavorite():void{
+				FavoriteEvent.deleteFavorite(FieldFavorite.DELETE_FAVORITE,this.bean);
+			}	
+			
+			private function creatXml():void{
+	        	var dataString:String="<root>";
+	        	dataString+="<menuitem label="+"\""+MultiLang.msg("playInfo.modify")+"\""+" data="+"\""+"playInfo.modify"+"\"/>";
+	        	dataString+="<menuitem label="+"\""+MultiLang.msg("friends.deleteMember")+"\""+" data="+"\""+"friends.deleteMember"+"\"/>";
+	        	dataString+="</root>";
+	        	this.myMenuData=XML(dataString);
+	        }
+	        
+	         public function showMenu(event:MouseEvent):void {
+                myMenu= Menu.createMenu(this, myMenuData, false);
+                myMenu.labelField="@label";
+                myMenu.addEventListener("itemClick", menuHandler);
+                
+                // Calculate position of Menu in Application's coordinates. 
+  
+                point1.x=event.currentTarget.mouseX;
+                point1.y=event.currentTarget.mouseY;                
+                point1=event.currentTarget.localToGlobal(point1);
+                myMenu.show(point1.x - 25, point1.y + 25);
+            }
+            
+           private function menuHandler(event:MenuEvent):void  {
+				var str:String=String(event.item.@data);
+				switch(str){
+					case "playInfo.modify"://修改
+						allowModify();
+					break;
+					
+					case "friends.deleteMember"://删除
+						deleteFavorite();	
+					break;
+					default:
+				}
+           }
+           
+	       private function doubleClick(event:MouseEvent):void{
+	       		this.gotoPoint();
+	       }
+
+        /* 跳到地图坐标 */
+        private function gotoPoint():void{
+			var posX:int = this.bean.fieldId/10000;
+			var posY:int  = this.bean.fieldId%10000;
+			DiamondWorldMap2.instance.goPoint(posX,posY);
+        }
+        
+//        private function onFocusIn(event:Event):void {
+//        	if(isChange){
+//				var ti:TextInput = TextInput(event.currentTarget);
+//				ti.setSelection(0,ti.text.length);
+//        	}
+//		}
+		
+		private function clickHandle():void{
+			EvtDispacther.instance.dispatchEvent(new FieldSelectEvent(FieldSelectEvent.FIELD_COLLECT_CHANGE,this.bean));
+		}
+		private function setModifyable(boo:Boolean):void{
+			deleteBtn.visible=!boo;
+			deleteBtn.includeInLayout=!boo;
+			confirmBtn.visible=boo;
+			confirmBtn.includeInLayout=boo;
+			this.disText.setTextInputEditable(boo);	
+		}
+           
+		]]>
+	</mx:Script>
+	
+	<mx:Label width="65" text="{this.fieldAdd}" click="gotoPoint()" styleName="taskCommonLabel"/>
+	<ns1:ModifyTextInput textString="{this.bean.remark}" id="disText" width="140" enterHandle="updateFavorite()" doubleClickEnabled="true">
+	</ns1:ModifyTextInput>
+	<!--mx:TextInput 
+		id="disText" text="{this.bean.remark}" alpha="0"  
+		width="140" editable="false" textAlign="center" 
+		focusIn="onFocusIn(event)" doubleClickEnabled="true" mouseEnabled="true" enterHandle="updateFavorite()"/-->
+		
+	<!--删除收藏-->	
+	<mx:Button  id="deleteBtn" 
+		width="50" height="18" 
+		click="showMenu(event)" 
+		styleName="secondaryBtn" 
+	    label="{MultiLang.msg('buff.tooltip.set')}" visible="true" includeInLayout="true"/>
+	<!--确认更改-->	
+	<mx:Button  id="confirmBtn" 
+		width="50" height="18" 
+		click="updateFavorite()" 
+		styleName="secondaryBtn" 
+	    label="{MultiLang.msg('public.label.sure')}" visible="false" includeInLayout="false"/>
+</mx:HBox>

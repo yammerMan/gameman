@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="183" height="97" styleName="BuildingAlphaWindow" verticalScrollPolicy="off" horizontalScrollPolicy="off" click="doBuy(event)" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import framework.game.MouseCursorManager;
+			import roma.message.events.BuyItemEvent;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.tips.ItemOrigintip;
+			import roma.util.ImageHandle;
+			import mx.collections.ArrayCollection;
+			import roma.logic.RomaConstants;
+			import roma.util.FiltersUtil;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.ItemRule;
+			
+			[Bindable]
+			private var rule:ItemRule
+			
+			[Bindable]
+			private var itemBean:MaterialBean;
+			
+			private var itemDescTooptip:ItemDescTooptip = ToolTipContainer.instance.itemDescTooptip;
+			private var isBuyOne:Boolean=true;
+			[Bindable]
+			private var specialIcon:Class;
+			[Bindable]
+			public var isSpecialItem:Boolean=false;
+			[Bindable]
+			private var isShowCount:Boolean=false;
+			
+			private function init():void{
+				this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+				this.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+				this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
+				specialIcon=MultiLang.clazz("shop.specialIcon");
+			}
+						
+			public function setRule(itemRule:ItemRule):void {
+				this.rule = itemRule;
+				if(this.rule==null){
+					this.visible=false;
+				}else{
+					this.visible=true;
+				}
+			}
+			
+			public function refreshItemCount():void {
+				if(this.rule!=null){
+					this.itemBean = GameContext.instance.getPlayerObj().itemManager.getMaterialBeanById(this.rule.itemId);
+				}
+				if(this.itemBean!=null){
+					this.isShowCount=this.itemBean.count>0?true:false;
+				}else{
+					this.isShowCount=false;
+				}
+			}
+			
+			private function doBuyOne():void {
+				EvtDispacther.instance.dispatchEvent(new BuyItemEvent(BuyItemEvent.EVENT_NAME_BUY_ONE,this.rule));
+				
+			}	
+			
+			private function doBuy(event:MouseEvent):void {
+				if(event.currentTarget==this.buyItemBtn){
+					isBuyOne=false;
+					EvtDispacther.instance.dispatchEvent(new BuyItemEvent(BuyItemEvent.EVENT_NAME,this.rule));
+				}else{
+					if(isBuyOne){
+						if(Shop.isClickByOne){
+							EvtDispacther.instance.dispatchEvent(new BuyItemEvent(BuyItemEvent.EVENT_NAME_BUY_ONE,this.rule));	
+						}else{
+							EvtDispacther.instance.dispatchEvent(new BuyItemEvent(BuyItemEvent.EVENT_NAME,this.rule));
+						}
+						
+					}else{
+						isBuyOne=true;
+					}
+				}
+				
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event);
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				this.itemDescTooptip.onMouseMove(event);
+			}
+			
+			private function onMouseOut(event:MouseEvent):void{
+				this.itemDescTooptip.onMouseOut();
+			}
+		]]>
+	</mx:Script>
+	<mx:Label
+		text="{this.rule.name}" textAlign="center" bottom="2" horizontalCenter="0" styleName="titleNameLabel"/>
+	<mx:Canvas  styleName="bigBuildingLogo" 
+		 width="140" height="68" bottom="21" horizontalCenter="0">
+			<mx:Image source="{this.rule.itemIcon}"  id="imageField"
+				top="4" left="4" scaleY="{60/67}" scaleX="{132/150}" updateComplete="ImageHandle.onLoadComplete(event)" right="4" bottom="4"/>
+			<mx:Image top="0" left="0" source="{this.specialIcon}" visible="{isSpecialItem}"/>
+	</mx:Canvas>
+	
+	<mx:Canvas mouseChildren="false" right="12" top="6" visible="{this.isShowCount}">
+		<mx:Image source="{ImgManager.clazz('item.countBG.icon')}" right="0" top="0" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Label  text="{this.itemBean!=null?this.itemBean.count:'0'}" styleName="titleLevelLabel" right="0" top="5" textAlign="center" width="30"/>
+	</mx:Canvas>
+	<mx:Canvas bottom="26" height="21" left="25" right="25" styleName="alphaBlackcolorBG">
+		<mx:HBox horizontalGap="2">
+			<mx:Label text="{this.rule.price}" styleName="normalBoldLabel" filters="{[FiltersUtil.glowFilter]}"/>
+			<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:HBox>
+		<mx:Button label="{MultiLang.msg('public.label.bulk')}" styleName="shopForBuyBtn" right="1" 
+		verticalCenter="0" height="18" id="buyItemBtn" click="doBuy(event)"/>
+	</mx:Canvas>
+</mx:Canvas>

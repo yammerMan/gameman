@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" xmlns:townHall="views.windows.buildings.townHall.*">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import roma.logic.CaesaryConfig;
+			import mx.controls.Alert;
+			import views.spreadUI.playerInfo.PasswordInput;
+			import mx.controls.Button;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			public var giveUpLabel:String = MultiLang.msg("townHall.giveUpBtn.label");
+			[Bindable]
+			private var fieldsList:ArrayCollection = new ArrayCollection();
+			private var cityId:int = 0;
+			
+			public function show():void{
+				this.fieldsList = GameContext.instance.getPlayerObj().getCurCastleObj().fieldManager.fieldObjArray;
+				this.cityId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+			}
+			
+			private function init():void{
+				this.show();
+			}
+			
+			public function onGiveUpField(id:int):void{
+				MyAlert.show(MultiLang.msg('field.giveUp.warm'),giveUp);
+				function giveUp(isTrue:Boolean):void{
+					if(isTrue){
+						ControllerFactory.getInstance().getCityController().giveUpSelfField(cityId,id,giveUpSelfFieldResponse);
+					}
+				}	
+				function giveUpSelfFieldResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("townHall.giveUp.success"));
+					}else{MyAlert.showError(event);}
+				}
+			}
+			
+			private function onGiveUpCity(param:String):void{
+				if(GameContext.instance.getPlayerObj().getCurCastleObj().hasTroopOccur()){
+					MyAlert.show(MultiLang.msg('townHall.cannotGiveUp.hasHeroOccur'));
+					return;
+				}
+				else if(GameContext.instance.getPlayerObj().getCityCount()<=1){
+					MyAlert.show(MultiLang.msg('townHall.cannotGiveUp.onlyCastle'));
+					return;
+				}
+				ControllerFactory.getInstance().getCityController().giveupCity(cityId,param,giveUpCityResponse);
+			
+				function giveUpCityResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						
+						var idField:int = GameContext.instance.getPlayerObj().getCurCastleObj().idField;
+						var fx:int = idField/10000;
+						var fy:int = idField%10000;
+						DiamondWorldMap2.instance.setCenterPoint(fx,fy);
+						
+						MainContainer.instance.risePlay(MultiLang.msg("townHall.giveUp.success"));
+					}
+					else{
+						MyAlert.showError(event);
+					}
+				}
+			} 
+		]]>
+	</mx:Script>
+	<mx:Canvas width="220" top="3" left="0" bottom="37" styleName="subContentBG">
+		<mx:Label text="{MultiLang.msg('townHall.giveUpCity.title')}" top="20" left="20" styleName="titleBordLabel"/>
+		<mx:TextArea htmlText="{MultiLang.msg('townHall.giveUpCity.desc')}" top="40" left="20" bottom="50" right="20" focusEnabled="false" editable="false" styleName="discritionTextArea"/>
+		<mx:TextInput id="passwordText" bottom="80" visible="false" displayAsPassword="true"/>
+		<mx:Button label="{MultiLang.msg('townHall.giveUpCityBtn.label')}" bottom="25" horizontalCenter="0" click="{PasswordInput.show(onGiveUpCity)}"/>
+	</mx:Canvas>
+	<mx:DataGrid right="0" width="534" top="3" bottom="37" dataProvider="{fieldsList}" rowHeight="22" editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" useRollOver="false" selectable="false">
+		<mx:columns>
+			<mx:DataGridColumn dataField="fieldName" headerText="{MultiLang.msg('townHall.field')}">
+			</mx:DataGridColumn>
+			<mx:DataGridColumn dataField="idField" headerText="{MultiLang.msg('townHall.coordinate')}">
+				<mx:itemRenderer>
+					<mx:Component>
+						<townHall:TownFieldLabel coor="{data.idField}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn dataField="fieldLevel" headerText="{MultiLang.msg('public.label.level')}"/>
+			<!--mx:DataGridColumn dataField="updateType" headerText="{Lang.msg('alliance.status')}"/-->
+			<mx:DataGridColumn dataField="idField" headerText="{MultiLang.msg('dak.action')}">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" height="22" horizontalAlign="center" verticalAlign="middle">
+							<mx:Button label="{outerDocument.giveUpLabel}" click="{outerDocument.onGiveUpField(data.idField)}" styleName="secondaryBtn" height="18"/>
+						</mx:HBox>	
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+</mx:Canvas>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="30" height="45" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:troopCountLabel="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import roma.common.valueObject.HeroManBean;
+			import mx.core.UIComponent;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.common.valueObject.PairValueBean;
+			import roma.logic.object.hero.HeroObj;
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.TFHelper;
+			import roma.resource.ImgManager;
+			
+			private var heroArr:ArrayCollection;
+			[Bindable]
+			private var _hero:HeroManBean;
+			
+			[Bindable]
+			private var count:int =0;
+			
+			[Bindable]
+			public var _troop:int;
+			[Bindable]
+			private var iconClass:String;
+			[Bindable]
+			private var troop_name:String;
+			
+			
+			
+			private function init():void{
+			
+			}
+			public function set troop(troop:int):void{
+				this._troop=troop;
+				iconClass=TFHelper.instance.getTroopSmallIconClass(this.troop);
+				troop_name=TFHelper.instance.getTfName(this.troop);
+				
+			}
+			public function get troop():int{
+				return this._troop;
+			}
+			
+			public function refresh(heroArr:ArrayCollection):void {
+				if(heroArr.length>0){
+					this.heroArr=heroArr;
+					this._hero=this.heroArr[0];
+				}else{
+					this.heroArr=null;
+					this._hero=null;
+				}
+				this.count=0;
+				this.getArmyConut();
+				
+			}
+			
+			private function getArmyConut():void{
+				if(!this.heroArr.length>0){
+					return;
+				}
+				for(var j:int=0;j<this.heroArr.length;j++){
+					if(this.heroArr[j]!=null){
+						for(var i:int=0;i<HeroManBean(this.heroArr[j]).troopsArray.length;i++){
+							if(HeroTroopBean(HeroManBean(this.heroArr[j]).troopsArray[i]).troopType==this._troop){
+								this.count+=HeroTroopBean(this._hero.troopsArray[i]).count;
+							}
+						}
+					}
+				}
+			}
+			
+		
+		]]>
+	</mx:Script>
+	<mx:Image left="0" top="0" right="0" bottom="15" source="{ImgManager.clazz('background.troopSmallBg')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Image source="{this.iconClass}" left="0" top="0" updateComplete="ImageHandle.onLoadComplete(event)" toolTip="{this.troop_name+' '+this.count}"/>
+	<troopCountLabel:TroopCountLabel text="{this.count}" bottom="0" horizontalCenter="0" width="30" textAlign="center"/>
+</mx:Canvas>

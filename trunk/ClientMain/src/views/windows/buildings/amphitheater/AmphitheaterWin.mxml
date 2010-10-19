@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow 
+	creationComplete="init()"
+	xmlns:buildings="views.windows.buildings.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*" 
+	xmlns:upgradWin="views.windows.buildings.townHall.*" xmlns:popups="views.spreadUI.popups.*" xmlns:amphitheater="views.windows.buildings.amphitheater.*" xmlns:ui="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.building.impl.Amphitheater;
+			import roma.common.constants.HeroManConstants;
+			import roma.common.constants.HeroManConstants;
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="amphitheaterWin_.as"/>
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="tbClick(event)" dataProvider="{buttonTitle}" />
+		<ns1:MulHRule/>
+	</mx:VBox>
+	<mx:HBox left="{buttonBar.width+5}" horizontalGap="2">
+		<mx:Button label="{MultiLang.msg('market.refresh')}" 
+			click="{onRefresh()}" 
+			enabled="{this.buildingObj.level>0}" 
+			/>
+		<mx:Button  label="{MultiLang.msg('hero.myHeroList')}" click="gotoHerosMansionWin()" toolTip="{MultiLang.msg('hero.myHeroList.tip')}"/>
+	</mx:HBox>
+	
+	<mx:ViewStack id="myViewstack" bottom="0" left="0" right="0" top="28">
+	<mx:Canvas label="酒馆列表" width="100%" height="100%">
+		<mx:DataGrid dataProvider="{heroList}" id="heroListDG" width="100%" top="0" bottom="30" headerHeight="22" rowHeight="21" resizableColumns="false" draggableColumns="false"  sortableColumns="false">
+			<mx:columns>
+				<mx:DataGridColumn dataField="name" headerText="{MultiLang.msg('hero.hero')}">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.name}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="level" headerText="{MultiLang.msg('public.label.level')}" width="40">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.level}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="potentiality" headerText="hero.potentiality.label" headerRenderer="views.spreadUI.TooltipLabel" width="90">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.potentiality}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="manages" headerText="hero.politics" headerRenderer="views.spreadUI.TooltipLabel">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.manages}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="powers" headerText="hero.attack" headerRenderer="views.spreadUI.TooltipLabel">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.powers}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="stratagems" headerText="hero.defence" headerRenderer="views.spreadUI.TooltipLabel">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.stratagems}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="loyalties" headerText="hero.loyaty" headerRenderer="views.spreadUI.TooltipLabel">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.loyalties}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="level" headerText="hero.employmentFee" width="95" headerRenderer="views.spreadUI.TooltipLabel">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.level*1000}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="level" headerText="hero.salary" headerRenderer="views.spreadUI.TooltipLabel">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.level*20}" tStyle="{data.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn dataField="id" headerText="{MultiLang.msg('dak.action')}" width="60">
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:HBox width="100%" horizontalAlign="center" height="21" verticalAlign="middle">
+								<mx:Script>
+									<![CDATA[
+										import roma.util.MultiLang;
+									]]>
+								</mx:Script>
+								<mx:Button label="{MultiLang.msg('public.label.checkOut')}" width="44" height="17" styleName="secondaryBtn" click="{outerDocument.heroShow(data)}"/>
+							</mx:HBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:HBox bottom="10" left="10">
+			<mx:Label text="{MultiLang.msg('amphitheatre.nextRefresh.TimeLeft')}"/>
+			<ns1:LeftTimeForDisLabel callBackFunction="{callTimeLeftBack}" leftTimeForDis="{refreshTimeLeft}"/>
+		</mx:HBox>
+	</mx:Canvas>
+	
+	<mx:Canvas label="锻练列表" width="100%" height="100%">
+		<mx:Canvas width="275" top="0" bottom="30" styleName="subContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:VBox left="18" top="23" verticalGap="0" right="12" bottom="23" verticalScrollPolicy="off" horizontalScrollPolicy="off"> 
+				<mx:TextArea styleName="discritionTextArea" htmlText="{MultiLang.msg('amphitheatre.train.disc',trainLimit)}" width="100%" height="170" editable="false"/>
+				<mx:HBox width="100%" horizontalAlign="center" horizontalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:VBox width="100%" horizontalAlign="center" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Button label="{MultiLang.msg('amphitheatre.addTrainLimit')}" id="processBtn" click="addTrainProc(event)" visible="{this.isEffect}" includeInLayout="{this.isEffect}"/>
+						<mx:Button label="{MultiLang.msg('amphitheatre.addTrainLimitTime')}" id="prolongBtn" click="addTrainProc(event)" visible="{!this.isEffect}" includeInLayout="{!this.isEffect}"/>
+					</mx:VBox>
+					<mx:Spacer width="14"/>
+				</mx:HBox>
+				<mx:HBox id ="timeContainer" horizontalGap="2" visible="{!this.isEffect}" includeInLayout="{!this.isEffect}">
+					<mx:Label text="{MultiLang.msg('public.label.remainTime')}" styleName="titleBordLabel"/>
+					<ui:LeftTimeLabel leftTime="{this.processTime}" />
+				</mx:HBox>
+		</mx:VBox>
+			
+		</mx:Canvas>
+		<mx:DataGrid dataProvider="{heroTemperList}" left="277" right="0" top="0" bottom="30" headerHeight="22" rowHeight="21" resizableColumns="false" draggableColumns="false"  sortableColumns="false" selectable="false">
+			<mx:columns>
+				<mx:DataGridColumn headerText="{MultiLang.msg('hero.name')}" width="85">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.heroInfo.name}" tStyle="{data.heroInfo.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="{MultiLang.msg('hero.temper.temperType')}" width="85">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel temperType="{data.heroInfo.growthType}" tStyle="{data.heroInfo.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="{MultiLang.msg('hero.temper.temperTime')}" width="50">
+					<mx:itemRenderer>
+						<mx:Component>
+							<amphitheater:HeroRenderLabel text="{data.heroInfo.growthLastHours}" tStyle="{data.heroInfo.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="{MultiLang.msg('public.label.remainTime')}" width="85">
+					<mx:itemRenderer>
+						<mx:Component>
+							<ns1:LeftTimeLabel leftTime="{data.heroInfo.growthEndTime}" tStyle="{data.heroInfo.potentiality>0}"/>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="{MultiLang.msg('alliance.status')}" dataField="heroStatus" width="70">
+				</mx:DataGridColumn>
+				<mx:DataGridColumn width="110" headerText="{MultiLang.msg('dak.action')}">
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:HBox width="110" height="22" horizontalAlign="center" verticalAlign="middle" horizontalGap="1" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+								<ns1:ButtonRender heroTemperBtnLabel="{!outerDocument.checkStatus(data.heroInfo.status)?0:1}" width="60"
+									click="{outerDocument.temperOrSpeedUp(data,!outerDocument.checkStatus(data.heroInfo.status)?0:1)}"/>
+								<ns1:ButtonRender heroTemperBtnLabel="{!outerDocument.checkStatus(data.heroInfo.status)?2:3}" 
+									click="{outerDocument.cancelOrShow(data,!outerDocument.checkStatus(data.heroInfo.status)?2:3)}"/>
+							</mx:HBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:Canvas>
+	
+	<upgradWin:UpgradingWin id="upgradingWin" label="升级条件"
+		width="100%" height="100%"  
+		buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

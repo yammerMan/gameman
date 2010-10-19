@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="72" height="39" styleName="heroArmyBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.TroopForConstants;
+			import roma.util.MultiLang;
+			import roma.util.ImageHandle;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var _troop_type:int;
+			[Bindable]
+			public var troopCount:int;
+			[Bindable]
+			private var teamName:String;
+			[Bindable]
+			private var teamAdd:String;
+			
+			public function set troopBean(bean:HeroTroopBean):void {
+				if(bean !=null){
+					this._troop_type = bean.troopType;
+					this.troopCount = bean.count;
+				}else{
+					this.troopCount =0;
+				}
+			}
+			
+			public function set troop_type(t:int):void{
+				this._troop_type=t;
+				switch(t){
+					case TroopForConstants.T_TRIARII:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"I";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontLeft");
+					break;
+					
+					case TroopForConstants.T_CAVALRY:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"II";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontCenter");
+					break;
+					
+					case TroopForConstants.T_URBAN_COHORT:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"III";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontRight");
+					break;
+					
+					case TroopForConstants.T_ARCHERS:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"IV";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearLeft");
+					break;
+					
+					case TroopForConstants.T_BALLISTAS:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"V";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearCenter");
+					break;
+					
+					case TroopForConstants.T_ONAGERS:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"VI";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearRight");
+					break;
+					default:
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="64" horizontalCenter="0" height="32" verticalCenter="0"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Label horizontalCenter="0" top="0" styleName="darkCommonStyle" text="{this.teamName}"/>
+		<mx:Label horizontalCenter="0" bottom="0" styleName="darkCommonStyle" text="{this.teamAdd}"/>
+	</mx:Canvas>
+	<mx:Canvas styleName="smallLogoBG" width="64" horizontalCenter="0" height="32" verticalCenter="0" visible="{this.troopCount>0?true:false}" verticalScrollPolicy="off" horizontalScrollPolicy="off">		
+		<mx:Image source="{TFHelper.getTroopIconClass(this._troop_type)}" 
+			left="3" top="3" right="3" bottom="3"
+			updateComplete="ImageHandle.onLoadComplete(event)"
+			/>
+		<mx:Label text="{this.troopCount}"  width="60" 
+			bottom="0" styleName="titleLevelLabel"
+			filters="{[FiltersUtil.glowFilter]}" horizontalCenter="0" textAlign="right"/>
+	</mx:Canvas>
+</mx:Canvas>

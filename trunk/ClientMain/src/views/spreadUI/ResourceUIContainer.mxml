@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="110" height="50" styleName="alphaBlackBG" xmlns:ns1="views.spreadUI.*">
+	<ns1:ImageContainer left="4" top="4" width="42" height="42">
+	</ns1:ImageContainer>
+	<mx:VBox right="4" top="2" verticalGap="-10" horizontalAlign="right">
+		<mx:Label text="28000"/>
+		<mx:Label text="400"/>
+	</mx:VBox>
+	<mx:Button styleName="addBtn" right="4" bottom="4"/>
+	
+</mx:Canvas>

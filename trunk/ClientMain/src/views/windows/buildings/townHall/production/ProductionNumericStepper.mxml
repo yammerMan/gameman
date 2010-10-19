@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" height="100%" xmlns:ns1="views.spreadUI.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import roma.logic.object.castle.ResourceObj;
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.ProductionNumericStepper");
+			[Bindable]
+			private var steperMaxNum:int;
+			public var onDataChangeHandle:Function;
+			private var effectValue:int;
+			public function get value():int{
+				return mySteper.effectValue;
+			}
+			public function set value(val:int):void{
+				this.mySteper.effectValue=val
+			}
+			public function set maxNum(max:int):void{
+				steperMaxNum=max;
+			}
+			private function reCheckNum(val:int):void{
+				if(mySteper.effectValue>steperMaxNum){
+					mySteper.effectValue=steperMaxNum;
+				}
+				effectValue=mySteper.effectValue;
+				if(this.onDataChangeHandle != null){
+					this.onDataChangeHandle.apply(this,[this.effectValue]);
+				}
+			}
+			
+			private function init():void{
+				this.mySteper.reSize(78);
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox height="100%" width="100%" horizontalGap="0" horizontalAlign="center" verticalAlign="middle">
+		<!--mx:NumericStepper width="73" id="mySteper" maximum="{steperMaxNum}" change="reCheckNum(event)" height="22"/-->
+		<ns1:NumericStepperCustom maxValue="{steperMaxNum}" id="mySteper" onInputDataChange="reCheckNum" height="22">
+		</ns1:NumericStepperCustom>
+		
+		<mx:Label text="%"/>
+	</mx:HBox>
+</mx:Canvas>

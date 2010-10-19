@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="365" height="268" xmlns:spreadUI="views.spreadUI.*" styleName="popUpWinBG" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import views.spreadUI.MyAlert;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.PairValueBean;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.logic.rule.BaseRule;
+			import roma.message.events.ProduceEvent;
+			import roma.data.ProduceResourceData;
+			import roma.logic.rule.TroopRule;
+			import roma.logic.object.castle.TFHelper;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import mx.collections.ArrayCollection;
+			import roma.util.PopupWinManager;
+			import roma.util.MultiLang;
+			
+			public static var instance:DestructPanel;
+
+			private static var log:ILogger = Log.getLogger("views.spreadUI.troop.DestructPanel");
+			public var produceResourceData:ProduceResourceData = new ProduceResourceData();
+
+			[Bindable]
+			private var dataArr:ArrayCollection;
+			[Bindable]
+			public var imgSrc:String;
+			[Bindable]
+			public var txt:String;
+			
+			[Bindable]
+			public var posseNum:int;
+		
+			private var _rule:TroopRule;
+			private var troopNumBean:PairValueBean;
+			
+			private function init():void{
+				this.numberStepper.refresh();
+			}
+			
+			public static function show(result:RuleCheckResult,rule:BaseRule):void{
+				if(instance == null){
+					instance = new DestructPanel();
+				}
+				
+				instance.setRule(rule);
+				instance.setResult(result);
+				PopupWinManager.instance.addPopup(instance);
+			}
+			
+			public function setRule(rule:BaseRule):void{
+				this._rule =rule as TroopRule;
+				this.troopNumBean = GameContext.instance.getPlayerObj().getCurCastleObj().troopManager.getTroopByTypeId(this._rule.troop);
+
+				this.imgSrc = TFHelper.instance.getTfIcon(this._rule.troop);	
+				this.txt = MultiLang.msg('public.disband');
+			}
+			
+			public function setResult(result:RuleCheckResult):void{
+				produceResourceData.ruleResult = result;
+				produceResourceData.reCalcDataArrayForDisband(posseNum);
+				dataArr = produceResourceData.dataArr; 
+			}
+			
+			/**更新当前资源*/
+			public function updateCurResource():void{
+				this.produceResourceData.updateResource();
+				this.posseNum = this.troopNumBean.value;
+			}
+			
+			private function calcReturnResource(num:int):void{
+				this.produceResourceData.reCalcDataArrayForDisband(num);
+			}  
+			
+			public function destructJudge():void{
+				if(this.posseNum <=0){
+					MyAlert.show(MultiLang.msg('tf.public.amount',TFHelper.instance.getTfName(this.troopNumBean.typeId)));
+					return;
+				}
+				
+				if(this.numberStepper.effectValue<=0){
+					MyAlert.show(MultiLang.msg('public.least.input.one',TFHelper.instance.getTfName(this.troopNumBean.typeId)));
+					return;
+				}
+				
+				if(numberStepper.effectValue>0){
+					MyAlert.show(MultiLang.msg("troop.disband.sure",numberStepper.effectValue,TFHelper.instance.getTfName(this.troopNumBean.typeId)),destruct);
+					return;
+				}
+			}
+			
+			public function destruct(_true:Boolean):void{
+				if(_true){
+					ProduceEvent.destruct(TroopTypeList.EVENT_DISBAND,this._rule.troop,this.numberStepper.effectValue);
+				}
+			}
+
+			public function removePopup():void{
+				PopupWinManager.instance.removePopup(instance);
+			}
+		]]>
+	</mx:Script>
+	<mx:Button horizontalCenter="0" top="6" styleName="popUpWinTitleBtn"/>
+	<mx:Label horizontalCenter="0" top="6" text="{this.txt}" styleName="titleLabel"/>
+	<mx:Button right="22" click="removePopup()" styleName="closeBtn" top="5"/>
+	<mx:DataGrid height="107" width="335" rowCount="4" rowHeight="21" x="15" y="36" 
+		sortableColumns="false" resizableColumns="false" draggableColumns="false" 
+		selectable="false" dataProvider="{dataArr}" headerHeight="22" verticalScrollPolicy="off">
+		<mx:columns>
+			<mx:DataGridColumn  headerText="{MultiLang.msg('public.get.resource')}" dataField="typeName" width="100"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.get.amount')}" dataField="requestAmount"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.amount')}" dataField="curAmount"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Canvas width="335" height="86" verticalCenter="54" horizontalCenter="0" styleName="subContentBG">
+		<mx:Canvas  styleName="smallLogoBG" width="80" height="40" x="18" y="21">
+			<mx:Image source="{this.imgSrc}"  id="iconCon"
+				scaleY="{34/46}" scaleX="{74/102}" 
+				updateComplete="ImageHandle.onLoadComplete(event)" top="3" left="3" right="3" bottom="3"/>
+		</mx:Canvas>
+		<mx:Label y="58" text="{MultiLang.msg('public.possess')}: {this.posseNum}" left="200" right="0"/>
+		<mx:Label width="60"  x="125" text="{this.txt}:" top="30" textAlign="right"/>
+		<spreadUI:MyNumericStepper id ="numberStepper" x="193" onInputDataChange="calcReturnResource" top="26" maxValue="{this.posseNum}" intValue="{this.posseNum}"/>
+	</mx:Canvas>
+	<mx:Button bottom="12" horizontalCenter="0" label="{MultiLang.msg('public.label.sure')}" click="destructJudge()" width="100" textAlign="center"/>
+</mx:Canvas>

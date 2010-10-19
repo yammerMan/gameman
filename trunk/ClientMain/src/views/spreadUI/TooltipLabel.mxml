@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Label xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+		override public function set text(value:String):void{
+			this.toolTip=MultiLang.msg(value+".tip");
+			value=MultiLang.msg(value);
+			super.text=value;
+		}
+		]]>
+	</mx:Script>
+</mx:Label>

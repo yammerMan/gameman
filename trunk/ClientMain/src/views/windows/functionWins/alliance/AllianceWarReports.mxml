@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ui="views.spreadUI.*" xmlns:mail="views.windows.functionWins.mail.*">
+<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.ReportUi.ReportManager;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import mx.rpc.xml.SimpleXMLDecoder;
+			import mx.utils.XMLUtil;
+			import roma.common.constants.FieldConstant;
+			import roma.logic.object.field.FieldHelper;
+			import roma.common.valueObject.LetterBean;
+			import roma.common.controller.mail.LetterResponse;
+			import roma.common.controller.mail.LetterListResponse;
+			import roma.common.constants.LetterConstant;
+			import roma.common.controller.alliance.MilitaryListResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var vsSelectedIndex:int=0;
+			[Bindable]
+			private var warDataList:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			public var lookUpStr:String = MultiLang.msg('public.label.checkOut');
+			
+			[Bindable]
+			private var cur_page:int = 1;
+			private var page_size:int = 10;
+			[Bindable]
+			private var total_page:int = 0;
+			[Bindable]
+			private var curLetterBean:LetterBean;
+			[Bindable]
+			private var xmlObj:Object = {};
+			
+			public var readYet:int=LetterConstant.HAS_READ;
+			
+			private var isAll:Boolean = false;
+			
+			public function destroy():void{
+			
+			}
+			private function init():void{
+			}
+			
+			public function refresh():void{
+				isAll=false;
+				cur_page = 1;
+				total_page = 1;
+				vsSelectedIndex=0;
+				readLetter();
+			}
+			
+			private function readLetter():void{
+				ControllerFactory.getInstance().getLetterController().receiveLetterList(cur_page, LetterConstant.MAIL_ALLIANCE_BATTLE_REPORT,page_size,onReceiveMail,false);
+				
+			}
+			
+			/**
+			 * 接收信件列表返回
+			 */ 
+			private function onReceiveMail(event:LetterListResponse):void{
+				warDataList.removeAll();
+				
+//				warDataList = event.lettersArray;
+				total_page = event.totalPage;
+				cur_page = event.pageNo;
+				for each(var b:LetterBean in event.lettersArray) {
+					var aBean:AllianceLetterBean=new AllianceLetterBean(b);
+					aBean.isAttack=parserAttack(aBean.title);
+					aBean.title = parserTitle(aBean.title);
+					warDataList.addItem(aBean);
+				} 
+			}
+			
+			private function parserTitle(str:String):String {
+				return ReportManager.parseTitleStr(str,true);
+			}
+			
+			private function parserAttack(str:String):Boolean {
+				return ReportManager.parseIsAttack(str);
+			}
+			
+			private function getTargetStr(idField:int , fieldType:int , cityName:String):String {
+				var fx:int = idField / 10000;
+				var fy:int = idField % 10000;
+				
+				var fieldStr:String = "[" + fx + "," + fy + "]";
+				
+				if (fieldType == FieldConstant.TYPE_CITY) {
+					return cityName + fieldStr;
+				} else {
+					return FieldHelper.getFieldName(fieldType) + fieldStr;
+				}
+			}
+			
+			/**
+			 * 每页的切换
+			 */ 
+			private function turnPage(p:int):void{
+				var n:int = cur_page;
+				cur_page += p;
+				if (cur_page >=1 && cur_page <= total_page) {
+					readLetter();
+				} else {
+					cur_page = n;
+				}
+			}
+			
+			private function gotoTargetPage(p:int):void{
+				if(p<=0){
+					p=1;
+				}
+				if(p>total_page){
+					p=total_page;
+				}
+				if (p>0 && p<=total_page) {
+					cur_page = p;
+					readLetter();
+				}
+			}
+			
+			/**
+			 * 调出信件详细信息
+			 */ 
+			public function onSeeAbout(bean:LetterBean):void{
+				this.curLetterBean = bean;
+				ControllerFactory.getInstance().getLetterController().readLetter(bean.mailId,true,onReadMailDetail);
+				this.vsSelectedIndex=1;
+			}
+			
+	
+			/**
+			 * 读信件返回
+			 */ 
+			private function onReadMailDetail(event:LetterResponse):void{
+				this.curLetterBean.content = event.mailBean.content;
+				var xmlDoc:XMLDocument = XMLUtil.createXMLDocument(event.mailBean.content);
+				var d:SimpleXMLDecoder = new SimpleXMLDecoder(true);
+		        xmlObj = d.decodeXML(xmlDoc);
+				this.curLetterBean.isRead=LetterConstant.HAS_READ;
+			}
+			
+		/**
+		 * 选择全部信件
+		 */ 
+		protected function onSelectAll():void{
+			this.isAll = !this.isAll;
+			if (this.warDataList!=null) {
+				for each(var bean:LetterBean in this.warDataList) {
+					bean.selected = this.isAll;
+			    }
+			}
+		}
+	
+		/**
+		 * 删除选中的信件
+		 */ 
+		protected function onDelectMailSelected():void{
+			if (this.warDataList!=null) {
+				var str:String = "";
+				for each(var b:LetterBean in this.warDataList) {
+					if (b.selected) {
+						if(str.length > 0){
+							str += ",";
+						}
+						str += b.mailId;
+					}						
+				}
+			}
+			if (str.length>0){
+				ControllerFactory.getInstance().getLetterController().deleteMails(LetterConstant.MAIL_ALLIANCE_BATTLE_REPORT,str,onMailDelete);
+			}
+		}
+	
+		/**
+		 * 删除信件返回
+		 */ 
+		private function onMailDelete(event:CommonResponse):void{
+			if (event.isSuccess()){
+				this.readLetter();
+				this.isAll=false;
+				this.cur_page=1;
+				this.total_page=1;
+			} else {
+				MyAlert.showError(event);
+			}
+		}
+	
+		]]>
+	</mx:Script>
+	<mx:ViewStack height="100%" width="100%" selectedIndex="{vsSelectedIndex}">
+		<mx:Canvas width="100%" height="100%">
+			<mx:DataGrid dataProvider="{warDataList}" id="inboxDG"
+				top="25" bottom="43" left="0" right="0" headerHeight="22" rowHeight="26"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center">
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.subject')}" dataField="title">
+						<mx:itemRenderer>
+							<mx:Component>
+								<ui:ColorStyle text="{data.title}" myLabelStyle="{parentDocument.readYet}" systemLabelStyle="{data.isAttack==true?2:0}" textAlign="center"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.time')}" dataField="receiveTime" width="120">
+						<mx:itemRenderer>
+							<mx:Component>
+								<ui:TransLabel timeData="{data.receiveTime}" lableFontWeight="{parentDocument.readYet}"/>
+							</mx:Component>							
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="mailid" width="60">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox paddingTop="0" width="100%" height="26" horizontalAlign="center" verticalAlign="middle">
+									<ui:ButtonRender btnLable="{parentDocument.lookUpStr}" click="parentDocument.onSeeAbout(data)"/>
+								</mx:HBox>			
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+			<mx:HBox left="0" bottom="11" horizontalGap="2" right="0" styleName="mainWindowContentBG" height="30" verticalAlign="middle">
+				<mx:Spacer width="5"/>
+				<mx:Label text="{MultiLang.msg('mail.msg.timeLimit')}" verticalCenter="0"/>
+			</mx:HBox>
+			<mx:HBox horizontalAlign="right" verticalAlign="middle" right="5" bottom="13" visible="{this.total_page>0}" includeInLayout="{this.total_page>0}" horizontalGap="2">
+				<mx:Label text="{MultiLang.msg('public.label.page')}" styleName="darkCommonStyle" visible="{total_page>2}" includeInLayout="{total_page>2}"/>
+				<mx:TextInput width="50" restrict="0-9" id="targetPageInput" visible="{total_page>2}" includeInLayout="{total_page>2}" textAlign="center"/>
+				<mx:Button label="{MultiLang.msg('public.page.goto')}" styleName="commomNormalBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(targetPageInput.text==''?0:int(targetPageInput.text))"/>
+				<mx:Spacer width="3" includeInLayout="{total_page>2}"/>
+				<mx:Button styleName="minBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(1)"/>
+				<mx:Button  id="toLeftBtn" styleName="previousBtn" click="this.turnPage(-1)"/>
+				<mx:Label text="{this.cur_page}/{this.total_page}"/>
+				<mx:Button id="toRightBtn" styleName="nextBtn" click="this.turnPage(1)"/>
+				<mx:Button styleName="maxBtn" visible="{total_page>2}" includeInLayout="{total_page>2}" click="gotoTargetPage(total_page)"/>
+			</mx:HBox>
+		</mx:Canvas>
+		
+		<mx:Canvas height="100%" width="100%">
+			<mail:ResportDetail width="100%" receiveTime="{curLetterBean.receiveTime}" reportTitle="{curLetterBean.mailId}" reportBean="{this.xmlObj}" top="25" bottom="5"/>
+			<mx:HBox bottom="12" horizontalAlign="right" verticalAlign="middle" right="10">
+				<mx:Button label="{MultiLang.msg('public.label.return')}" styleName="" width="120" click="this.vsSelectedIndex=0"/>
+			</mx:HBox>
+		</mx:Canvas>
+	</mx:ViewStack>
+</mx:Canvas>

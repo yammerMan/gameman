@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*" title="{MultiLang.msg('playInfo.modifyLogo')}"
+	width="394" height="272" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import views.PopupWindows;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.constants.PlayerConstant;
+			import roma.common.constants.GeneralConstants;
+			import mx.controls.RadioButton;
+			import roma.logic.rule.GameRuleHelper;
+			import views.spreadUI.MyAlert;
+			import roma.util.ItemUseHandle;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.logic.GameContext;
+			import roma.resource.LogoData;
+			import mx.collections.ArrayCollection;
+			import roma.util.ImageHandle;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			
+			public static const WINDOW_SHOW:String = "playerLogWin.show";
+			private static var log:ILogger = Log.getLogger("views.windows.functionWins.playInfo.ModifyPlayerLogoWin");
+			private var logoArrayIndex:int = 0;
+			private var face_arr:ArrayCollection;
+			[Bindable]
+			private var logoSource:String;
+			private var logoUrl:String;
+			private var playerSex:int;
+			public var changeLogoFun:Function;
+			
+			private var famaleArr:ArrayCollection;
+			private var maleArr:ArrayCollection;
+			
+			private var curlogoData:LogoData;
+			
+			override public function refresh():void{
+				this.resetArr();
+			}
+			
+			private function init():void{
+				var circleMask:Sprite=new Sprite();
+				circleMask.graphics.beginFill(0,0);
+				circleMask.graphics.drawCircle(49,50,50);
+				circleMask.graphics.endFill();
+				this.PlayerLogo.addChild(circleMask);
+				this.PlayerLogo.mask = circleMask;
+			}
+			
+			 private function changeLogo(delta:int):void {
+		    	this.logoArrayIndex += delta;
+		    	if (this.logoArrayIndex < 0 ) {
+		    		this.logoArrayIndex = this.face_arr.length-1;
+		    	} else if (this.logoArrayIndex >= this.face_arr.length ) {
+		    		this.logoArrayIndex = 0;
+		    	}
+				this.resetLogoData();
+		    }
+		    private function resetLogoData():void {
+		    	if(this.face_arr!=null){
+					var logoData:LogoData = this.face_arr[this.logoArrayIndex] as LogoData;
+					this.logoSource = logoData.source;
+					this.logoUrl = logoData.name;
+		    		
+		    	}
+			}
+			private function resetArr():void{
+				this.famaleArr=ImgManager.instance.getPlayerLogos(GeneralConstants.FEMALE);
+				this.maleArr=ImgManager.instance.getPlayerLogos(GeneralConstants.MALE);
+				var found:Boolean=false;
+				this.logoUrl = GameContext.instance.getPlayerObj().getPlayerInfo().logoUrl;
+				this.logoArrayIndex = 0;
+				for each(var maleLogo:LogoData in this.maleArr){
+				for(var i:int=0;i<this.maleArr.length;i++){
+					var logoData:LogoData = this.maleArr[i] as LogoData;
+					if(logoData.name==this.logoUrl){
+						this.logoArrayIndex = i;
+						this.face_arr=this.maleArr;
+						this.playerSex=GeneralConstants.MALE;
+						this.maleRadio.selected=true;
+						this.curlogoData=logoData;
+						found=true;
+						break;
+					}
+				}
+				if(found==false){
+					for(var j:int=0;j<this.famaleArr.length;j++){
+						var logoDataf:LogoData = this.famaleArr[j] as LogoData;
+						if(logoDataf.name==this.logoUrl){
+								this.logoArrayIndex = j;
+								this.face_arr=this.famaleArr;
+								this.playerSex=GeneralConstants.FEMALE;
+								this.femaleRadio.selected=true;
+								this.curlogoData=logoDataf;
+								found=true;
+								break;
+							}
+						}
+					}
+				}
+//				this.face_arr = ImgManager.instance.getPlayerLogos(GameContext.instance.getPlayerObj().getPlayerInfo().sex);
+//				for(var i:int=0;i<this.face_arr.length;i++){
+//					var logoData:LogoData = this.face_arr[i] as LogoData;
+//					if(logoData.name==this.logoUrl){
+//						this.logoArrayIndex = i;
+//						break;
+//					}
+//				}
+				
+				this.resetLogoData();
+			}
+			
+			private function selectSex(event:MouseEvent):void{
+				this.logoArrayIndex=0;
+				if(event.target == maleRadio){
+					this.face_arr = this.maleArr;
+					this.playerSex = GeneralConstants.MALE;
+				}
+				else{
+					this.face_arr = this.famaleArr;
+					this.playerSex = GeneralConstants.FEMALE;
+				}
+				resetLogoData();
+			}
+			
+			private function onSubmit():void{
+				if(!GameContext.instance.getPlayerObj().getPlayerInfo().everChangeLogo){
+					modifyPlayerLogo();
+				}else{
+					MyAlert.show(MultiLang.msg("playInfo.modifyLogo.tip"),sureToMOdify);
+				}
+				function sureToMOdify(_true:Boolean):void{
+					if(_true){
+						ItemSelectSpeedUpWin.show(ItemResManager.playerChangeLogoItemArrayCollection,doModify,null);	
+					}else{
+						PopupWindows.closeAll();
+					}	
+				}
+				
+  				function doModify(itemrule:ItemRule):void{
+					modifyPlayerLogo();
+				}
+			}
+			
+			private function modifyPlayerLogo():void{
+				if(this.curlogoData!=null){
+					if(this.curlogoData.name==logoUrl){
+						PopupWindows.closeAll();
+						return;
+					}
+				}
+				ControllerFactory.getInstance().getPlayerController().changeLogo(logoUrl,playerSex,onChangeLogo);
+  				function onChangeLogo(event:CommonResponse):void{
+  					if(event.isSuccess()){
+  						GameContext.instance.getPlayerObj().getPlayerInfo().everChangeLogo=true;
+  						PopupWindows.closeAll();
+  						MainContainer.instance.risePlay(MultiLang.msg('playInfo.changeLogo.success'));
+  					}
+  					else{
+  						MyAlert.showError(event);
+  					}
+  				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas top="30" right="11" bottom="11" left="11" styleName="subContentBG">
+		<mx:VBox height="100%" verticalAlign="middle" horizontalAlign="center" horizontalCenter="0" verticalCenter="0">
+			<mx:HBox width="100%" verticalAlign="middle">
+				<mx:Button styleName="previousBtn" click="changeLogo(-1)"/>
+				<mx:Canvas width="123" height="121">
+					<mx:Image left="0" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" top="0" bottom="0" right="0"/>
+					<mx:Image source="{this.logoSource}" updateComplete="ImageHandle.onLoadComplete(event);" id="PlayerLogo" left="10" right="10" top="10" bottom="10"/>
+				</mx:Canvas>
+				<mx:Button styleName="nextBtn" click="changeLogo(1)"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:RadioButton id="maleRadio" label="{MultiLang.msg('public.label.male')}" groupName="sexRadio" click="selectSex(event)"/>
+				<mx:RadioButton id="femaleRadio" label="{MultiLang.msg('public.label.female')}" groupName="sexRadio" click="selectSex(event)"/>
+			</mx:HBox>
+			<mx:Button label="{MultiLang.msg('public.label.sure')}" width="130" click="onSubmit()"/>
+		</mx:VBox>
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow>

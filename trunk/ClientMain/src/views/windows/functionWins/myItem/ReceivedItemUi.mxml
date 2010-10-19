@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="96" height="48" styleName="bigBuildingLogo" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.logic.rule.GameRuleHelper;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.logic.GameContext;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.ItemRule;
+			
+			[Bindable]
+			private var rule:ItemRule;
+			
+			[Bindable]
+			private var itemName:String;
+			
+			[Bindable]
+			private var itemBean:MaterialBean;
+			
+			private var itemDescTooptip:ItemDescTooptip = ToolTipContainer.instance.itemDescTooptip;
+			public function setBean(bean:MaterialBean):void {
+				this.itemBean = bean;
+				this.rule = GameRuleHelper.instance.getItemRuleById(bean.id);
+				this.itemName=this.rule.name;
+			}
+			
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event);
+			}
+		]]>
+	</mx:Script>
+	<mx:Image
+		mouseOver="onMouseOver(event)" 
+		mouseOut="this.itemDescTooptip.onMouseOut()" 
+		mouseMove="this.itemDescTooptip.onMouseMove(event)"
+		source="{this.rule.itemIcon}" left="4" top="4" scaleY="{40/67}" scaleX="{88/150}" updateComplete="ImageHandle.onLoadComplete(event)" right="4" bottom="4"/>
+	<mx:Canvas width="100%" height="100%" mouseChildren="false" mouseEnabled="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Label
+			text="{this.itemBean!=null?'x'+this.itemBean.count:'0'}" textAlign="center" 
+			filters="{[FiltersUtil.glowFilter]}"
+			left="0" right="0" top="8" styleName="goodNumberLable"/>
+		<mx:Label text="{this.itemName}" bottom="2" left="0" right="0" 
+			filters="{[FiltersUtil.glowFilter]}"
+			styleName="titleLevelLabel" textAlign="center"/>
+	</mx:Canvas>
+	
+</mx:Canvas>

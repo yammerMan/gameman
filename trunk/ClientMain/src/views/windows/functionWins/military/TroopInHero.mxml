@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTroopAtAssign xmlns="views.windows.functionWins.military.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:army="views.spreadUI.army.*" width="72" height="39">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.rule.TroopRule;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.util.MultiLang;
+			import roma.common.constants.TroopForConstants;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.message.EvtDispacther;
+			import mx.events.DragEvent;
+			import roma.logic.object.hero.HeroObj;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.util.FiltersUtil;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.valueObject.PairValueBean;
+			
+			[Bindable]
+			public var value:HeroTroopBean;
+			
+			public var isSecond:Boolean = false;
+			
+			public var position:int;
+			public var heroObj:HeroObj;
+			
+			[Bindable]
+			private var teamName:String;
+			[Bindable]
+			private var teamAdd:String;
+
+			public function setTroop(hero:HeroObj, position:int):void {
+				this.value = hero.armyManager.troopsArray[position];
+				this.heroObj = hero;
+			}
+			
+			override public function isCanDrag():Boolean {
+				if(this.value !=null){
+					return (this.value.count >0);
+				}
+				return false;
+			} 
+
+			override protected function isCanEnter(obj:BaseTroopAtAssign):Boolean {
+				if (obj === this) {
+					return false;
+				}
+				
+				if (obj is TroopInHero) {
+					//如果拖动的块是英雄的部队,只要位置对，就可以拖动
+					var th:TroopInHero = TroopInHero(obj);
+					if (TFHelper.isMeleeTroopPostion(th.value.position) && TFHelper.isMeleeTroopPostion(this.value.position) ||
+						!TFHelper.isMeleeTroopPostion(th.value.position) && !TFHelper.isMeleeTroopPostion(this.value.position) ) {
+						//如果位置都是远程，或者位置都是近战，可以拖入
+						return true;
+					}
+				} else {
+					//如果拖入的是城堡的部队，这需要分辨当前块是否有兵，
+					var tc:TroopInCastle = TroopInCastle(obj);
+					if (this.value.count>0) {
+						//如果有兵，需要保证兵种一致
+						if (tc.troop == this.value.troopType) {
+							return true;
+						}
+					} else {
+						if (TFHelper.isMeleeTroopPostion(this.value.position) && TFHelper.isMeleeTroop(tc.troop) ||
+							!TFHelper.isMeleeTroopPostion(this.value.position) && !TFHelper.isMeleeTroop(tc.troop) ) {
+							//如果无兵，需要保存位置是正确的
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
+			/**
+			 * 英雄能接受的，从英雄那边拖过来的，或者从城堡那边拖过来的
+			 */
+			override protected function dropHandler():void {
+				var obj:BaseTroopAtAssign = AssignHelper.instance.dragObj;
+				if (obj is TroopInHero) {
+					//从英雄那边拖过来的
+					var th:TroopInHero = TroopInHero(obj);
+//					if(th.value.troop == 0 || this.value.troop==0)return;
+					var thtr:TroopRule = GameRuleHelper.instance.getTroopRule(th.value.troopType);
+					var tr:TroopRule = GameRuleHelper.instance.getTroopRule(this.value.troopType);
+					if (this.value.count>0 && th.value.count>0 && this.value.troopType!= th.value.troopType) {
+						// 判断当前英雄统帅力是否足够
+						if(this.heroObj.leadership<this.heroObj.armyManager.calcTroopStrength()+(th.value.count*thtr.population-this.value.count*tr.population)){
+		 					MyAlert.show(MultiLang.msg("military.don't.swap",heroObj.heroInfo.name));
+							return;
+						}
+						//如果是不同兵种的，则直接交换
+						ControllerFactory.getInstance().getArmyController().heroTroopSwapPosition(
+							GameContext.instance.getPlayerObj().getCurCastleObj().cityId,
+							this.heroObj.heroInfo.id, this.value.position,
+							th.heroObj.heroInfo.id , th.value.position,
+							onHeroTroopSwapPositionResponse);
+					} else {
+						//如果是相同兵种，或者其他一个位置是空的，这需要调整数字
+						if(this.heroObj.heroInfo.id==th.heroObj.heroInfo.id){//同一个英雄
+							if (th.isSecond) {
+								AssignHelper.instance.betweenHero.betweenHero(th, this,this.isSecond);
+							} else {
+								AssignHelper.instance.betweenHero.betweenHero(this, th,isSecond);
+							}
+						}else{
+							if (th.isSecond) {
+								AssignHelper.instance.betweenHero.betweenHero(this, th,isSecond);
+							} else {
+								AssignHelper.instance.betweenHero.betweenHero(th, this,this.isSecond);
+							}
+						}
+						
+						EvtDispacther.sendEvent(EvtDispacther.ASSIGN_TROOP_DROP , AssignHelper.instance.betweenHero);
+					}
+				} else {
+					var tc:TroopInCastle = TroopInCastle(obj);
+					AssignHelper.instance.betweenCastleAndHero.betweenCastleAndHero(this , tc,false);
+					EvtDispacther.sendEvent(EvtDispacther.ASSIGN_TROOP_DROP , AssignHelper.instance.betweenCastleAndHero);
+				}
+			}
+			
+			private function onHeroTroopSwapPositionResponse(event:CommonResponse):void {
+				if (!event.isSuccess()) {
+					MyAlert.showError(event);
+				}
+			}
+			
+			public function setSoldierinitTpye(type:int):void{
+				switch(type){
+					case 0:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"I";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontLeft");
+					break;
+					
+					case 1:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"II";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontCenter");
+					break;
+					
+					case 2:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"III";
+						this.teamAdd=MultiLang.msg("hero.armyTip.frontRight");
+					break;
+					
+					case 3:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"IV";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearLeft");
+					break;
+					
+					case 4:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"V";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearCenter");
+					break;
+					
+					case 5:
+						this.teamName=MultiLang.msg("hero.armyTip.division")+" "+"VI";
+						this.teamAdd=MultiLang.msg("hero.armyTip.rearRight");
+					break;
+					default:
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas width="64" horizontalCenter="0" height="32" verticalCenter="0"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:Label horizontalCenter="0" top="0" styleName="darkCommonStyle" text="{this.teamName}"/>
+		<mx:Label horizontalCenter="0" bottom="0" styleName="darkCommonStyle" text="{this.teamAdd}"/>
+	</mx:Canvas>
+	<army:SoldierLogoUI x="4" y="3"
+		count="{this.value.count}"
+		troop="{this.value.troopType}"/>
+</BaseTroopAtAssign> 

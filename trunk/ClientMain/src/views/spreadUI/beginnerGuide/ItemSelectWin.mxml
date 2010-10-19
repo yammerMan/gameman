@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns="view.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"  width="366" height="484" styleName="popUpWinBG" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ns1="views.spreadUI.*" creationComplete="init()">
+<mx:Script>
+	<![CDATA[
+		import views.spreadUI.speedUp.ItemWin;
+		import views.BeginnerGuide;
+		import roma.message.EvtDispacther;
+		import roma.util.JavaScriptHelper;
+		import roma.common.valueObject.WorkerTrainningBean;
+		import roma.logic.object.tech.BaseTechObj;
+		import roma.logic.object.building.BaseBuilding;
+		import roma.message.events.PublicEvent;
+		import mx.core.Application;
+		import roma.util.FiltersUtil;
+		import roma.util.MultiLang;
+		import views.spreadUI.MyAlert;
+		import roma.common.valueObject.MaterialBean;
+		import roma.common.controller.shop.UseMaterialResultResponse;
+		import roma.message.events.GoodsSelectEvent;
+		import roma.logic.rule.GameRuleHelper;
+		import roma.logic.object.player.ItemResManager;
+		import roma.common.controller.CommonResponse;
+		import roma.common.action.ControllerFactory;
+		import roma.logic.GameContext;
+		import mx.logging.ILogger;
+		import mx.logging.Log;
+		import roma.util.PopupWinManager;
+		import views.MainContainer;
+		import roma.common.valueObject.ArchitectureBean;
+		import mx.collections.ArrayCollection;
+		import roma.util.CompCache;
+		import roma.logic.rule.ItemRule;
+	
+		public static var instance:ItemSelectWin;
+
+		private static var log:ILogger = Log.getLogger("views.mainFrame.speedUp.ItemSelectSpeedUpWin");
+	
+		private var cacheUi:CompCache = new CompCache(20);
+		
+		private var itemIdArrayCollection:ArrayCollection; 
+		private var onSelectFunc:Function;
+		private var cancelFunc:Function;
+		private var callBack:Function;
+		
+		public function show(itemIdArray:ArrayCollection , onSelectFunc:Function=null, parent:DisplayObject = null,cancel:Function=null,callBack:Function =null ):void {
+			onSelectFunc = onSelectFunc;
+			itemIdArrayCollection = itemIdArray;
+			cancelFunc= cancel;
+			callBack = callBack;
+			
+			onInitialized();
+			
+			this.x = (1000-this.width)/2;
+			this.y = (600-this.height)/2;
+			
+			this.visible = true;
+		}
+		
+		private function init():void{
+			instance = this;
+		}
+		
+		public function onInitialized():void {
+			log.debug(this.className + " onInitialized()");
+			if (this.initialized) {
+				this.refresh();
+			}
+		}
+		
+		private function refresh():void {
+			this.itemContainer.removeAllChildren();
+			this.cacheUi.reset();
+			
+			for (var i:int=0; i<this.itemIdArrayCollection.length; i++) {
+				var itemId:String = String(itemIdArrayCollection.getItemAt(i));
+				var item:ItemRule = GameRuleHelper.instance.getItemRuleById(itemId);
+
+				if(item !=null){
+					var ui:ItemWin = cacheUi.getUI(ItemWin) as ItemWin;
+					ui.itemRule=item;
+					ui.itemBean=getMaterialBean(item.itemId);
+					itemContainer.addChild(ui);
+				} else {
+					log.warn("找不到物品{0}的定义", itemId);
+				}
+			}
+		}		
+		
+		private function onSelect(event:GoodsSelectEvent):void {
+			if(event.itemRule!=null){
+				log.debug( this.className + ".onSelect(" + event.itemRule.name  + ")");
+				if (this.onSelectFunc!=null) {
+					//如果有回调函数，则回调
+					onSelectFunc.apply(this , [event.itemRule]);
+					this.closeWin();
+				} else {
+					//如果没有回调函数，则直接使用
+					this.awardItemHandle(event.itemRule.itemId);
+				}
+			}else{
+				if (cancelFunc!=null) {
+					cancelFunc.apply(this);
+					this.closeWin();
+				}
+			}
+		}
+		
+		private function awardItemHandle(itemId:String):void {
+			ControllerFactory.getInstance().getShopController().usePlayerItem(GameContext.instance.getPlayerObj().getCurCastleObj().cityId,itemId,onUseItemBackHandle);
+		
+			function onUseItemBackHandle(event:UseMaterialResultResponse):void {
+				if (event.isSuccess()) {
+					if(callBack !=null){
+						callBack.apply(this);
+					}
+					closeWin();
+					var rule:ItemRule = GameRuleHelper.instance.getItemRuleById(itemId);
+					JavaScriptHelper.instance.addItemLog(1 , rule , itemId);
+				} else {
+					MyAlert.show(MyAlert.msg(event.errorMsg));
+				}
+			}
+		}
+		
+		private function getMaterialBean(itemId:String):MaterialBean {
+			var i:MaterialBean = null ;
+			for each(var bean:MaterialBean in GameContext.instance.getPlayerObj().itemManager.itemArray) {
+				if (bean.id == itemId) {
+					i = bean;
+				}
+			}
+			return i;
+		} 
+
+		public function closeWin():void {
+			this.visible = false;
+		} 
+	]]>
+</mx:Script>
+	<mx:VBox top="33" height="434" right="15" left="15" id="itemContainer"  horizontalScrollPolicy="off" verticalScrollPolicy="on" horizontalGap="1" verticalGap="1"/>
+	<mx:Button  click="closeWin()" styleName="closeBtn" top="5" right="25"/>
+	<ns1:TitleBar horizontalCenter="0" top="3" winTitle="{MultiLang.msg('myItems.pleaseSelect')}">
+	</ns1:TitleBar>
+</mx:Canvas>

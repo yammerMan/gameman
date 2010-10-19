@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var _textString:String;
+			[Bindable]
+			private var textInputEditable:Boolean=false;
+			public var textInputChangeHandle:Function;
+			
+			public var enterHandle:Function;
+			
+			private function init():void{
+				this.inputText.restrict="^<>";
+			}
+			
+			private function textInputChange(event:Event):void{
+	 			if(textInputChangeHandle!=null){
+	 				textInputChangeHandle.apply(this,[event]);
+	 			}
+			}
+			public function setTextInputEditable(boo:Boolean):void{
+				this.textInputEditable=boo;
+				if(boo){
+					inputText.text=_textString;
+					inputText.setSelection(0,inputText.text.length);
+					inputText.setFocus();
+				}else{
+					inputTextLabel.text=inputText.text;
+				}
+			}
+			public function set textString(str:String):void{
+				_textString=str;
+				this.inputText.text=str;
+				this.inputTextLabel.text=str;
+			}
+			
+			public function get textString():String{
+				return _textString;
+			}
+			
+			private function doEnter():void{
+				if(enterHandle!=null){
+					enterHandle.apply(this);
+				}
+			}
+			
+			public function getTextInputText():String{
+				if(this.initialized){
+					return inputText.text;
+				}
+				return "";
+			}
+			
+			public function setMaxValue(max:int):void{
+				inputText.maxChars=max;
+			}
+			
+			public function set modifyColor(value:String):void{
+				inputText.setStyle("color",value);
+				inputTextLabel.setStyle("color",value);
+			}
+		]]>
+	</mx:Script>
+	<mx:TextInput id="inputText" text="{_textString}" visible="{textInputEditable}" includeInLayout="{textInputEditable}"  width="100%" textAlign="center" styleName="titleBordLabel" change="textInputChange(event)" paddingLeft="5" height="20" enter="doEnter()"/>
+	<mx:Label id="inputTextLabel" text="{_textString}" width="100%" selectable="true" textAlign="center" styleName="titleBordLabel" visible="{!textInputEditable}" includeInLayout="{!textInputEditable}"/>
+</mx:Canvas>

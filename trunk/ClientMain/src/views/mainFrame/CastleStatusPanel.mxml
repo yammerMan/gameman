@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	creationComplete="init()" 
+	height="100%" width="100%"
+	cacheAsBitmap="true" 
+	kerning="true" xmlns:castle="views.spreadUI.*" xmlns:ns1="views.spreadUI.castleStatus.*" verticalScrollPolicy="off" horizontalScrollPolicy="off" 
+	xmlns:mainFrame="views.mainFrame.*" visible="{isShowCastleStatus}">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.HeroManConstants;
+			import gs.TweenLite;
+			import gs.easing.Back;
+			import views.spreadUI.castleStatus.ScoutActionStatusUI;
+			import views.spreadUI.castleStatus.MyScoutTimeCacheBean;
+			import roma.logic.object.player.ScoutTeamObj;
+			import roma.message.events.HerosEvent;
+			import roma.common.constants.WorkerConstant;
+			import views.spreadUI.castleStatus.ResourceBuildingStatusUI;
+			import roma.common.valueObject.WorkerTrainningBean;
+			import roma.message.events.ShowMyArmyTipEvent;
+			import roma.message.events.ShowOtherArmyTipEvent;
+			import views.spreadUI.castleStatus.OtherArmyTimeCacheBean;
+			import views.spreadUI.castleStatus.MyArmyTimeCacheBean;
+			import views.spreadUI.castleStatus.OtherArmyActionStatusUI;
+			import roma.logic.object.player.OtherArmyObj;
+			import views.spreadUI.castleStatus.MyArmyActionStatusUI;
+			import roma.util.MultiLang;
+			import views.spreadUI.castleStatus.ArmyActionStatusUI;
+			import roma.logic.object.hero.HeroObj;
+			import roma.message.events.TecStatusChangeEvent;
+			import roma.common.events.TechUpdate;
+			import views.spreadUI.castleStatus.TecStatusUI;
+			import roma.logic.object.tech.BaseTechObj;
+			import views.spreadUI.castleStatus.GamePlayerBuffUI;
+			import views.spreadUI.castleStatus.BuildingStatusUI;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.logic.CaesaryConfig;
+			import views.spreadUI.MyAlert;
+			import roma.message.events.BuffBarEvent;
+			import roma.util.CompCache;
+			import roma.common.valueObject.ArchitectureBean;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.util.BufferHandle;
+			import roma.message.events.BuildingStatusChangeEvent;
+			import roma.message.EvtDispacther;
+			import mx.collections.ArrayCollection;
+			import roma.logic.GameContext;
+
+			[Bindable]
+			private var buildBtnTip:String = "";
+			[Bindable]
+			private var attributeBtnTip:String = "";
+
+			[Bindable]
+			private var buildingArray:ArrayCollection=new ArrayCollection();//当前城在建建筑
+			//民用科技
+			private var peopleTechAry:ArrayCollection = new ArrayCollection();
+			//军用科技
+			private var armyTechAry:ArrayCollection = new ArrayCollection();
+
+			[Bindable]
+			private var armyArray:ArrayCollection;//当前城出动军队
+			
+			//我军军队动态
+			private var outSideArmyArray:ArrayCollection= new ArrayCollection();
+			//盟军军队动态
+			private var friendsArmyArray:ArrayCollection= new ArrayCollection();
+			//敌军军队动态
+			private var enemyArmyArray:ArrayCollection= new ArrayCollection();
+			// 侦查部队的状态
+			private var scoutArmyArray:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var config:CaesaryConfig = CaesaryConfig.instance;
+			[Bindable]
+			private var showWorkerVBox:Boolean=false;
+			
+			private var my_timer:Timer = new Timer(1000);
+			
+			private var builindingCache:CompCache = new CompCache(10);
+			
+			private var tecCache:CompCache = new CompCache(10);
+			private var armyActionCache:CompCache = new CompCache(20);
+			private var myArmyActionStatusCache:CompCache=new CompCache(20);
+			private var otherActionStatusCache:CompCache=new CompCache(20);
+			private var workerStatusCache:CompCache=new CompCache(4);
+			private var scoutStatusCache:CompCache = new CompCache(20);
+			
+			[Bindable]
+			private var isShowCastleStatus:Boolean = false;
+			[Bindable]
+			private var isShow:Boolean = false;
+			
+			private function init():void {
+				this.checkBuildingStatus();
+				this.checkTecStatus();
+				this.checkArmyActionStatus();
+				this.getWorkerStatus();
+				
+				var buildingChangeHandle:Function = function(event:Event):void {
+					checkBuildingStatus();
+				}
+				var tecChangeHandle:Function = function(event:Event):void {
+					checkTecStatus();
+				}
+				var cityChangeHandle:Function=function(event:Event):void{
+					checkBuildingStatus();
+					checkTecStatus();
+					getWorkerStatus();
+				}
+				var onArmyActionStatusChange:Function=function(event:Event):void{
+					checkArmyActionStatus();
+				}
+				
+				var onHeroManUpdateResponse:Function=function(event:HerosEvent):void{
+					checkArmyActionStatus();
+				}
+				
+				var onWorkerStatusChange:Function=function(event:Event):void{
+					getWorkerStatus();
+				}
+				
+				EvtDispacther.instance.addEventListener(BuildingStatusChangeEvent.EVENT_NAME,buildingChangeHandle);
+				EvtDispacther.instance.addEventListener(TecStatusChangeEvent.EVENT_NAME,tecChangeHandle);
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT , cityChangeHandle);
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_STATUS_CHANGE, onArmyActionStatusChange);
+				EvtDispacther.instance.addEventListener(HerosEvent.HERO_UPDATE,onHeroManUpdateResponse);
+				EvtDispacther.instance.addEventListener(ShowOtherArmyTipEvent.SHOWO_THERARMYTIP, onShowOtherArmyTip);
+				EvtDispacther.instance.addEventListener(ShowMyArmyTipEvent.SHOW_MYARMYTIP, onShowMyArmyTip);
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.ENEMY_ARMY_CHANGE , onArmyActionStatusChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.ALLIANCE_ARMY_CHANGE , onArmyActionStatusChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_NUM_CHUANGE, onArmyActionStatusChange);
+				EvtDispacther.instance.addEventListener(EvtDispacther.SCOUTS_CHANGE,onArmyActionStatusChange);
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.TRAINING_WORKER,onWorkerStatusChange);
+				
+				if(config.showBuffStatus){
+					inProgressShowBtn.visible= false;
+					inProgressHideBtn.visible = true;
+				}
+			}
+			
+			private function onShowOtherArmyTip(event:ShowOtherArmyTipEvent):void{
+				this.cityConditionTip.setCityCondition(event.otherArmyObj.bean.heroInfo.name,event.otherArmyObj.bean.castleName,event.otherArmyObj.bean.targetFieldName,event.otherArmyObj.bean.arriveTime,event.otherArmyObj.bean.castleFieldId,event.otherArmyObj.bean.targetFieldId);
+				this.cityConditionTip.x=event.curMouseEvent.stageX+10;
+				this.cityConditionTip.y=event.curMouseEvent.stageY-50;
+				this.config.showArmyTip=true;
+			}
+			
+			private function onShowMyArmyTip(event:ShowMyArmyTipEvent):void{
+				this.cityConditionTip.setCityCondition(event.heroObj.heroInfo.name,event.heroObj.castleObj.name,event.heroObj.heroInfo.targetFieldName,event.heroObj.heroInfo.arriveTime,event.heroObj.castleObj.idField,event.heroObj.heroInfo.targetFieldId);
+				this.cityConditionTip.setMyHeroObj(event.heroObj);
+				this.cityConditionTip.x=event.curMouseEvent.stageX+10;
+				this.cityConditionTip.y=event.curMouseEvent.stageY-50;
+				this.config.showArmyTip=true;
+			}
+			
+			public function reFresh():void{
+				this.config.showArmyTip=false;
+				this.checkBuildingStatus();
+				this.checkTecStatus();
+				this.getWorkerStatus();
+			}
+			
+			
+			
+			private function addAllArrayToTarget(startArr:ArrayCollection,targetArr:ArrayCollection):void{
+				if(startArr.length>0){
+					for(var i:int=0;i<startArr.length;i++){
+						targetArr.addItem(startArr.getItemAt(i));
+					}
+				}
+			}
+			
+			/*获取当前行军动态*/ 
+			public function checkArmyActionStatus():void{
+				var armyCacheArr:Array=new Array();
+				this.friendsArmyArray.removeAll();
+				this.enemyArmyArray.removeAll();
+				this.myArmyActionStatusCache.reset();
+				this.otherActionStatusCache.reset();
+				this.armyVBox.removeAllChildren();
+				
+				this.scoutArmyArray = GameContext.instance.getPlayerObj().armyManager.scoutTempList;
+				this.outSideArmyArray = GameContext.instance.getPlayerObj().armyManager.heroOutSideList;
+				this.friendsArmyArray =GameContext.instance.getPlayerObj().otherArmyManager.getLeagueArmyArray();
+				this.enemyArmyArray =GameContext.instance.getPlayerObj().otherArmyManager.getEnemyArmyArray();
+				if(this.outSideArmyArray.length>0){
+					for each(var obj:HeroObj in this.outSideArmyArray){
+						if(!(obj.heroInfo.status ==HeroManConstants.STATUS_GUARD||obj.heroInfo.status ==HeroManConstants.STATUS_GROWTH||obj.heroInfo.status ==HeroManConstants.STATUS_BACKWARD||obj.heroInfo.status ==HeroManConstants.STATUS_FORWARD||obj.heroInfo.status ==HeroManConstants.STATUS_IN_BATTLE_FIELD))continue;
+						if(obj.heroInfo.status == HeroManConstants.STATUS_GROWTH){
+							armyCacheArr.push(new MyArmyTimeCacheBean(obj.heroInfo.growthEndTime,obj));
+						}else{
+							armyCacheArr.push(new MyArmyTimeCacheBean(obj.heroInfo.arriveTime,obj));
+						}
+					}	
+				}
+				if(this.friendsArmyArray.length>0){
+					for each(var friendsObj:OtherArmyObj in this.friendsArmyArray){
+						armyCacheArr.push(new OtherArmyTimeCacheBean(friendsObj.bean.arriveTime,friendsObj));
+					}	
+				}
+				if(this.enemyArmyArray.length>0){
+					for each(var enemyObj:OtherArmyObj in this.enemyArmyArray){
+						armyCacheArr.push(new OtherArmyTimeCacheBean(enemyObj.bean.arriveTime,enemyObj));
+					}
+				}
+				if(this.scoutArmyArray.length>0){
+					for each(var scoutO:ScoutTeamObj in this.scoutArmyArray)
+						armyCacheArr.push(new MyScoutTimeCacheBean(scoutO.bean.arriveTime,scoutO));
+				}
+				
+				armyCacheArr.sortOn("arriveTime", Array.NUMERIC);
+				if(armyCacheArr.length>0){
+					 for(var i:int=0;i<armyCacheArr.length;i++){
+					 	if(armyCacheArr[i] is MyArmyTimeCacheBean){
+							var myArmyActionStatusUI:MyArmyActionStatusUI = MyArmyActionStatusUI(this.myArmyActionStatusCache.getUI(MyArmyActionStatusUI));
+							myArmyActionStatusUI.setHeroObj(MyArmyTimeCacheBean(armyCacheArr[i]).dataObj);
+							myArmyActionStatusUI.refresh();
+							this.armyVBox.addChild(myArmyActionStatusUI);
+					 	}
+					 	if(armyCacheArr[i] is OtherArmyTimeCacheBean){
+							var otherArmyActionStatusUI:OtherArmyActionStatusUI = OtherArmyActionStatusUI(this.otherActionStatusCache.getUI(OtherArmyActionStatusUI));
+							otherArmyActionStatusUI.setOtherArmyObj(OtherArmyTimeCacheBean(armyCacheArr[i]).dataObj);
+							otherArmyActionStatusUI.refresh();
+							this.armyVBox.addChild(otherArmyActionStatusUI);
+					 	}
+					 	if(armyCacheArr[i] is MyScoutTimeCacheBean){
+					 		var scoutUi:ScoutActionStatusUI = ScoutActionStatusUI(this.scoutStatusCache.getUI(ScoutActionStatusUI));
+							scoutUi.setSoutObj(MyScoutTimeCacheBean(armyCacheArr[i]).scoutObj);
+							scoutUi.refresh();
+							this.armyVBox.addChild(scoutUi);					 		
+					 	}
+					 }
+				}
+				this.startTheTimer();
+			}
+			
+			
+			/*获取当前城所有在建建筑*/ 
+			public function checkBuildingStatus():void{
+				buildingArray.removeAll();
+				this.builindingCache.reset();
+				this.buildingVBox.removeAllChildren();
+				
+				var allBuilingArr:Array = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUnNormalBuilidngArr();
+				if(allBuilingArr.length>0){
+						
+						for each(var obj:BaseBuilding in allBuilingArr){
+							if(obj.getRemainTimeSec()>0){
+								buildingArray.addItem(obj);
+								var buildingUI:BuildingStatusUI = BuildingStatusUI(this.builindingCache.getUI(BuildingStatusUI));
+								buildingUI.setBuildingObj(obj);
+								buildingVBox.addChild(buildingUI);
+								
+							}
+					}	
+				}
+				this.startTheTimer();
+			}
+			
+			/*获取当前研究项目*/ 
+			private function checkTecStatus():void{
+				armyTechAry.removeAll();
+				peopleTechAry.removeAll();
+				this.tecVBox.removeAllChildren();
+				if(GameContext.instance.getPlayerObj().techManager.armyTechAry.length>0){				
+					for each(var obj:BaseTechObj in GameContext.instance.getPlayerObj().techManager.armyTechAry){
+						if(obj.startResearching&&obj.cityId==GameContext.instance.getPlayerObj().getCurCastleObj().cityId){
+							armyTechAry.addItem(obj);
+							var tecUI:TecStatusUI = TecStatusUI(this.tecCache.getUI(TecStatusUI));
+							tecUI.setTecObj(obj);
+							tecVBox.addChild(tecUI);
+						}
+					}	
+				}
+				if(GameContext.instance.getPlayerObj().techManager.peopleTechAry.length>0){
+//					peopleTechAry=GameContext.instance.getPlayerObj().techManager.peopleTechAry;
+					for each(var objP:BaseTechObj in GameContext.instance.getPlayerObj().techManager.peopleTechAry){
+						if(objP.startResearching&&objP.cityId==GameContext.instance.getPlayerObj().getCurCastleObj().cityId){
+							peopleTechAry.addItem(objP);
+							var tecPUI:TecStatusUI = TecStatusUI(this.tecCache.getUI(TecStatusUI));
+							tecPUI.setTecObj(objP);
+							tecVBox.addChild(tecPUI);
+						}
+					}	
+				}
+				this.startTheTimer();	
+			}
+			
+			
+			//获取当前城worker训练情况
+			private function getWorkerStatus():void {
+				this.showWorkerVBox=false;
+				CaesaryConfig.instance.isCreatingSeat=false;
+				this.workerStatusCache.reset();
+				this.workerVBox.removeAllChildren();
+				var bean:WorkerTrainningBean = GameContext.instance.getPlayerObj().getCurCastleObj().workerTrainningManager.workerTrainningBean
+				if(bean!=null){
+					var now:Number = new Date().valueOf();
+					var diff:Number = GameContext.instance.getTimeDis();	
+					var _leftTime:Number = (bean.endTime-now+diff)/1000;
+					if(_leftTime>0){
+						var workerUI:ResourceBuildingStatusUI = ResourceBuildingStatusUI(this.workerStatusCache.getUI(ResourceBuildingStatusUI));
+						workerUI.bean=bean;
+						this.workerVBox.addChild(workerUI);
+						this.showWorkerVBox=true;
+						CaesaryConfig.instance.isCreatingSeat=true;
+					}					
+				}
+				
+
+				this.startTheTimer();
+			}
+			
+			private function startTheTimer():void{
+				if(this.buildingArray.length>0||this.armyTechAry.length>0||this.peopleTechAry.length>0||this.outSideArmyArray.length>0||this.friendsArmyArray.length>0||this.enemyArmyArray.length>0||this.showWorkerVBox==true){
+					isShowCastleStatus = isShow = true;
+					castleStatusVB.x = 3;
+					if(!my_timer.running){
+						 	my_timer.addEventListener("timer", timerHandler);
+					}
+		             my_timer.start();
+				}else{
+					isShowCastleStatus = isShow = false;
+					 if(my_timer.running){
+					 	my_timer.stop();
+					 }
+				}
+			}
+			
+			/**计算时间*/
+			private function timerHandler(evt:TimerEvent):void {
+				if(this.buildingArray.length>0){
+					for each(var ui:BuildingStatusUI in this.buildingVBox.getChildren()) {
+						ui.remainingTime();
+					}
+				}
+				if(this.armyTechAry.length>0||this.peopleTechAry.length>0){
+					for each(var tecUI:TecStatusUI in this.tecVBox.getChildren()) {
+						tecUI.remainingTime();
+					}
+				}
+				if(this.outSideArmyArray.length>0||this.friendsArmyArray.length>0||this.enemyArmyArray.length>0 || this.scoutArmyArray.length>0){
+					for each(var armyActionStatusUI:ArmyActionStatusUI in this.armyVBox.getChildren()) {
+						armyActionStatusUI.remainingTime();
+					}
+				}
+				if(this.showWorkerVBox==true){
+					for each(var resourceBuildingStatusUI:ResourceBuildingStatusUI in this.workerVBox.getChildren()) {
+						resourceBuildingStatusUI.remainingTime();
+					}
+					
+					var goOn:Boolean=false;
+					var bean:WorkerTrainningBean = GameContext.instance.getPlayerObj().getCurCastleObj().workerTrainningManager.workerTrainningBean
+					if(bean!=null){
+						var now:Number = new Date().valueOf();
+						var diff:Number = GameContext.instance.getTimeDis();	
+						var _leftTime:Number = (bean.endTime-now+diff)/1000;
+						if(_leftTime>0){
+							goOn=true;
+						}					
+					}					
+					if(!goOn){
+						this.showWorkerVBox=false;
+						CaesaryConfig.instance.isCreatingSeat=false;
+					}
+				}
+	        }
+			
+			private function bufferBtnClickHandle(event:MouseEvent):void{
+				Button(event.currentTarget).selected=!Button(event.currentTarget).selected;
+				switch(event.currentTarget){
+					case this.buildBtn:
+						if(this.buildBtn.selected==true){
+							this.buildBtn.styleName="bufferBarBuildingSelectBtn";
+							this.config.showBuildingStatus = true; 
+						}else{
+							this.buildBtn.styleName="bufferBarBuildingBtn";
+							this.config.showBuildingStatus = false;			
+						}
+						this.config.showArmyAction = false; 
+						this.attributeBtn.styleName="bufferArmyBtn";
+						this.attributeBtn.selected=false;
+						break;
+					case this.attributeBtn:
+						if(this.attributeBtn.selected==true){
+							this.attributeBtn.styleName="bufferArmySelectBtn";
+							this.config.showArmyAction = true; 
+						}else{
+							this.attributeBtn.styleName="bufferArmyBtn";
+							this.config.showArmyAction = false;
+						}
+						this.config.showBuildingStatus = false; 
+						this.buildBtn.styleName="bufferBarBuildingBtn";
+						this.buildBtn.selected=false;
+						break;
+					}
+			}
+		
+			private function btnOver(event:MouseEvent):void{
+				var str:String="";
+				switch(event.currentTarget){
+					case this.buildBtn:
+						str=CaesaryConfig.instance.showBuildingStatus?MultiLang.msg("public.hideSchedule"):MultiLang.msg("public.showSchedule");
+						buildBtnTip=str;
+	//					MsgDispacther.instance.dispatchEvent(new BuffBarEvent(true,str));
+						break;
+					case this.attributeBtn:
+						str=CaesaryConfig.instance.showArmyAction?MultiLang.msg("buff.tooltip.hide"):MultiLang.msg("buff.tooltip.show");
+						attributeBtnTip=MultiLang.msg("buff.tooltip.situation",str,MultiLang.msg("buff.tooltip.armyAction"));
+	//					MsgDispacther.instance.dispatchEvent(new BuffBarEvent(true,str+' '+Lang.msg("buff.tooltip.armyAction")));
+						break;
+				}
+			}
+			
+			private function btnOut():void{
+				EvtDispacther.instance.dispatchEvent(new BuffBarEvent(false));
+			}
+			
+			private function onShowOrHide(e:MouseEvent):void{
+				isShow = true;
+				if(e.target == inProgressShowBtn){
+					TweenLite.to(castleStatusVB,0.5,{x:3,ease:Back.easeOut,onComplete:onMoveOutComplete});
+				}else if(e.target == inProgressHideBtn){
+					TweenLite.to(castleStatusVB,0.5,{x:-castleStatusVB.width,ease:Back.easeIn,onComplete:onMoveInComplete});
+				}
+				function onMoveOutComplete():void{
+					isShow = true;
+				}
+				function onMoveInComplete():void{
+					isShow = false;
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox id="castleStatusVB" verticalGap="2" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="150">
+		<mx:VBox id="buildingVBox" kerning="true" visible="{config.showBuildingStatus}"  styleName="diatropismShadeBG" includeInLayout="{config.showBuildingStatus}"/>
+		<mx:VBox id="tecVBox" kerning="true" visible="{config.showBuildingStatus}"  styleName="diatropismShadeBG" includeInLayout="{config.showBuildingStatus}"/>
+		<mx:VBox id="armyVBox" kerning="true" visible="{config.showArmyAction}"  styleName="diatropismShadeBG" includeInLayout="{config.showArmyAction}" maxHeight="250"
+			horizontalScrollPolicy="off" width="100%" verticalGap="0"/>
+		<mx:VBox id="workerVBox" kerning="true" visible="{showWorkerVBox}"  styleName="diatropismShadeBG" includeInLayout="{showWorkerVBox}"/>
+		<mx:HBox horizontalGap="2">
+			<mx:Button styleName="bufferBarBuildingSelectBtn" id="buildBtn" selected="{this.config.showBuildingStatus}" 
+				mouseOver="btnOver(event)" mouseOut="btnOut()"
+				click="bufferBtnClickHandle(event)" toolTip="{buildBtnTip}" />
+			<mx:Button styleName="bufferArmyBtn" id="attributeBtn" selected="{this.config.showArmyAction}" 
+				mouseOver="btnOver(event)" mouseOut="btnOut()" 
+				click="bufferBtnClickHandle(event)" toolTip="{attributeBtnTip}"/>
+			<mx:Button id="inProgressHideBtn" styleName="inProgressHide" bottom="0"
+				click="{onShowOrHide(event)}" visible="{isShow}"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Button id="inProgressShowBtn" styleName="inProgressShow" top="0" left="0" click="{onShowOrHide(event)}" visible="{!isShow}"/>
+	<ns1:CityConditionTip id="cityConditionTip" visible="{this.config.showArmyTip}" x="170" y="50">
+	</ns1:CityConditionTip>
+</mx:Canvas>

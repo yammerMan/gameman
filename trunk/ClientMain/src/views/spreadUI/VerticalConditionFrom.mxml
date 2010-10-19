@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	 xmlns:troop="views.spreadUI.troop.*" styleName="whiteBGwithBorder" width="150" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.troop.ConditionConstant;
+			import roma.util.MultiLang;
+			import roma.logic.object.castle.CastleLevelConditon;
+			import roma.logic.RomaConstants;
+			import roma.logic.object.castle.ResourceConditon;
+			import roma.logic.object.building.impl.Temple;
+			import roma.common.constants.BuildingConstant;
+			import roma.common.constants.TempleConstant;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.util.ClientUtil;
+			import roma.resource.ImgManager;
+			import roma.logic.rule.ruleCheck.ResourceCheck;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			
+			[Bindable]
+			private var _result:RuleCheckResult;
+			[Bindable]
+			private var golds:ResourceCheck ;
+			[Bindable]
+			private var food:ResourceCheck ;
+			[Bindable]
+			private var wood:ResourceCheck ;
+			[Bindable]
+			private var stone:ResourceCheck ;
+			[Bindable]
+			private var iron:ResourceCheck ;
+			[Bindable]
+			private var needTime:String;
+			[Bindable]
+			public var lineWidth:int = 243;
+			[Bindable]
+			public var labelWidth:int = 77;
+			[Bindable]
+			public var txtAlign:String = TextFormatAlign.CENTER;
+			
+			public var isTroop:Boolean;
+			public var buildingObj:BaseBuilding;
+			
+			[Bindable]
+			public var allShow:Boolean = true;
+			
+			public function set result(r:RuleCheckResult):void{
+				this._result = r;
+				if(this._result !=null){
+					this.golds = _result.golds;
+					this.food = _result.food;
+					this.wood =_result.wood;
+					this.stone = _result.stone;
+					this.iron = _result.iron;
+				}
+			}
+	
+			/*消耗的时间*/
+			public function set costTime(_needTime:Number):void{
+				this.needTime = MultiLang.timeFormatToString(_needTime);
+			}
+			
+			/* 城市扩建时间，立即完成 */
+			public function set timeStr(str:String):void{
+				this.needTime = str;
+			}
+			
+			/* 城市扩建资源条件 */
+			public function set resourceCondition(res:CastleLevelConditon):void{
+				this.food = res.getFood();
+				this.food.check();	
+				this.wood = res.getWoods();
+				this.wood.check();	
+				this.iron = res.getIrons();
+				this.iron.check();
+				this.stone =res.getStones();
+				this.stone.check();	
+				this.golds = res.getGolds();
+				this.golds.check();	
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Form paddingLeft="0" paddingTop="0" 
+		paddingRight="0" paddingBottom="0" verticalGap="0" horizontalGap="0" width="100%" height="100%">
+		<mx:FormItem direction="horizontal" paddingLeft="0" horizontalGap="0"  >
+			<troop:ImageLabel txtWidth="{this.labelWidth}" reqNum="{this.food.dispReq}" isMatch="{this.food.isMatch}" resIcon="{ImgManager.clazz('icon.food')}" formatAlign="{txtAlign}" conType="{ConditionConstant.FOOD}"/>
+		</mx:FormItem>
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="0" horizontalGap="0"  >
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{this.wood.dispReq}" isMatch="{this.wood.isMatch}" resIcon="{ImgManager.clazz('icon.wood')}" formatAlign="{txtAlign}" conType="{ConditionConstant.WOOD}"/>
+		</mx:FormItem>
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="0" horizontalGap="0"  >
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{this.stone.dispReq}" isMatch="{this.stone.isMatch}" resIcon="{ImgManager.clazz('icon.stone')}" formatAlign="{txtAlign}" conType="{ConditionConstant.STONE}"/>
+		</mx:FormItem>
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="0" horizontalGap="0"  >
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{this.iron.dispReq}" isMatch="{this.iron.isMatch}" resIcon="{ImgManager.clazz('icon.iron')}" formatAlign="{txtAlign}" conType="{ConditionConstant.IRON}"/>
+		</mx:FormItem>
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="0" horizontalGap="0"  >
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{this.needTime}" resIcon="{ImgManager.clazz('icon.time')}" formatAlign="{txtAlign}" conType="{ConditionConstant.TIME}"/>
+		</mx:FormItem>
+	</mx:Form>
+</mx:Canvas>

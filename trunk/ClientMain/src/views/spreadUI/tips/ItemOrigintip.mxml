@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="320" kerning="true">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.rule.ItemRule;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var rule:ItemRule;
+			[Bindable]
+			private var desc:String;
+			
+			public function setRule(itemRule:ItemRule):void {
+				this.rule = itemRule;
+				this.desc = "<p>"+rule.funcDesc+"</p>"+"<br>"+rule.itemDesc;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:HBox horizontalGap="80">
+			<mx:Label text="{this.rule.name}" styleName="titleBordLabel"/>
+			<mx:HBox right="0" visible="{this.rule.price>0}" verticalCenter="0" horizontalAlign="center">
+				<mx:Label text="{this.rule.price}"/>
+				<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:Text htmlText="{desc}" width="100%"/>
+	</mx:VBox>
+</BaseTip>

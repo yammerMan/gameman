@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" kerning="true">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.RomaConstants;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.logic.object.castle.ResourceObj;
+			
+			[Bindable]
+			protected var resObj:ResourceObj;
+			
+			[Bindable]
+			protected var resManager:CastleResourceManager;
+			
+			[Bindable]
+			public var resName:String;
+			
+			[Bindable]
+			private var type:int;
+			
+			[Bindable]
+			private var maxCap:int;
+			
+			public function setResType(type:int):void{
+				this.type=type;
+				switch (type) {
+					case RomaConstants.RES_TYPE_FOOD:
+						this.maxCap=Math.ceil(this.resManager.maxCap*this.resManager.foodStorePer/100);
+						break;
+					case RomaConstants.RES_TYPE_WOOD:
+						this.maxCap=Math.ceil(this.resManager.maxCap*this.resManager.woodStorePer/100);
+						break;
+					case RomaConstants.RES_TYPE_IRON:
+						this.maxCap=Math.ceil(this.resManager.maxCap*this.resManager.ironStorePer/100);
+						break;
+					case RomaConstants.RES_TYPE_STONE:
+						this.maxCap=Math.ceil(this.resManager.maxCap*this.resManager.stoneStorePer/100);
+						break;
+					default:
+				}
+			}
+			
+			public function setResourceObj(obj:ResourceObj):void {
+				this.resObj = obj;
+				this.resManager = GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10">
+		<mx:HBox width="100%">
+			<mx:Label text="{this.resName}"  styleName="titleBordLabel"/>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('public.label.amount')}" />
+			<mx:HBox>
+				<mx:Label  text="{int(this.resObj.curAmount)}" styleName="{this.resObj.isCapacityFull()?'clewLabel':null}"/>
+				<mx:Label text="({MultiLang.msg('public.res.full')})" styleName="NoticeLabel" visible="{this.resObj.isCapacityFull()}" includeInLayout="{this.resObj.isCapacityFull()}"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.resource.maxCap')}" />
+			<mx:Label text="{this.maxCap}" />
+		</mx:HBox>
+		<mx:HBox width="100%" label="粮食产量" visible="{this.type==RomaConstants.RES_TYPE_FOOD?true:false}" includeInLayout="{this.type==RomaConstants.RES_TYPE_FOOD?true:false}">
+			<mx:Label text="{MultiLang.msg('label.resource.foodproduce')}" />
+			<mx:Label text="{int(this.resObj.totalProduce)-int(this.resObj.troopConsume)}" styleName="{int(this.resObj.totalProduce)-int(this.resObj.troopConsume)>0?'':'NoticeLabel'}"/>
+		</mx:HBox>
+		<mx:HBox width="100%" visible="{this.type==RomaConstants.RES_TYPE_FOOD?true:false}" includeInLayout="{this.type==RomaConstants.RES_TYPE_FOOD?true:false}">
+			<mx:Label text="{MultiLang.msg('military.costFood')}" />
+			<mx:Label text="{int(this.resObj.troopConsume)}" styleName="NoticeLabel"/>
+		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label text="{MultiLang.msg('label.resource.produceRate')}" />
+			<mx:Label text="{int(this.resObj.totalProduce)}" styleName="{this.resObj.totalProduce>0?'':'NoticeLabel'}"/>
+		</mx:HBox>
+	</mx:VBox>
+</BaseTip>

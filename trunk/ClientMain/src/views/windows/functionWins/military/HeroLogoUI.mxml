@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="96" height="47" 
+	label="英雄logo" styleName="bigBuildingLogo">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.logic.object.hero.HeroObj;
+			
+			[Bindable]
+			public var hero:HeroObj;
+			
+		]]>
+	</mx:Script>
+	<mx:Image source="{this.hero==null?ImgManager.clazz('hero.noHeroIcon'):this.hero.logoClass}" left="4" scaleX="{88/104}" scaleY="{39/48}" updateComplete="ImageHandle.onLoadComplete(event)" top="4" bottom="4" right="4"/>
+	<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" left="3" top="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Label text="{hero.heroInfo.level}" x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center"/>
+	<mx:Image source="{this.hero.stateIcon}" bottom="4" left="4" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	
+</mx:Canvas>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.TFHelper;
+		
+			[Bindable]
+			private var _propDesc:String;
+			
+			public function set prop(t:int):void{
+				var n:String = TFHelper.instance.getPropName(t);
+				var d:String = TFHelper.instance.getPropDesc(t);
+				_propDesc = "<b>"+n+"</b>"+"\n"+d;	
+			}	
+			
+		]]>
+	</mx:Script>
+	<mx:Text width="200" htmlText="{_propDesc}" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5"/>
+</BaseTip>

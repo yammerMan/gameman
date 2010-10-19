@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="205" height="200">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+		]]>
+	</mx:Script>
+	<mx:Image top="40" left="47" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Button label="Sam" width="165" left="15" bottom="0" styleName="angleButton" fontFamily="Times New Roman" fontSize="18" color="#FFFFFF"/>
+	
+</mx:Canvas>

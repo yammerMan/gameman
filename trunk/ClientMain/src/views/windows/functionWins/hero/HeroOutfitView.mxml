@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="602" height="327" xmlns:ns1="views.windows.functionWins.hero.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.equip.HeroEquipsResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.hero.HeroObj;
+			[Bindable]
+			private var curHero:HeroObj;
+			public function set hero(hero:HeroObj):void{
+				this.curHero=hero;
+				//ControllerFactory.getInstance().getEquipController().getHeroEquips(this.curHero.castleObj.cityId,this.curHero.heroInfo.id,outFitHandle);
+			}
+			
+			private function outFitHandle(event:HeroEquipsResponse):void{
+				
+			}
+			
+		]]>
+	</mx:Script>
+	<ns1:HeroOutFitPropertyWin y="1" x="0" setHero="{curHero}">
+	</ns1:HeroOutFitPropertyWin>
+	<ns1:HeroOutFitItemWin right="0" y="1" setHero="{curHero}">
+	</ns1:HeroOutFitItemWin>
+	
+</mx:Canvas>

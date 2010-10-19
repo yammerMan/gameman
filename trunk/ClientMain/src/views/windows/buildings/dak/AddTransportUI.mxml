@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="30" horizontalGap="0" verticalAlign="middle" styleName="mainWindowContentBG" xmlns:ns1="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.object.building.impl.Dak;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.common.constants.GeneralConstants;
+			import roma.message.events.DakChangeEvent;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.valueObject.PostTransportBean;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.valueObject.CityBean;
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var cityArr:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var _buildingObj:Dak;//当前建筑的BuildingObj
+			private var curCastle:CastleObj;
+			public function refresh():void
+			{
+				cityArr.removeAll();
+				if (this.initialized){
+					foodInput.text=0;
+					woodInput.text=0;
+					stoneInput.text=0;
+					ironInput.text=0;
+				}
+				this.curCastle=GameContext.instance.getPlayerObj().getCurCastleObj();
+				var allCity:Array=GameContext.instance.getPlayerObj().castelArray;
+				for(var i:int=0;i<allCity.length;i++){
+					var castleObj:CastleObj=allCity[i];
+					if(castleObj.cityId!=this.curCastle.cityId){
+						var canAdd:Boolean=true;
+						if(GameContext.instance.getPlayerObj().dakManager.size()>0){
+							for(var j:int=0;j<GameContext.instance.getPlayerObj().dakManager.dakList.length;j++){
+								if(this.curCastle.cityId==PostTransportBean(GameContext.instance.getPlayerObj().dakManager.dakList[j]).startCastleId&&castleObj.cityId==PostTransportBean(GameContext.instance.getPlayerObj().dakManager.dakList[j]).targetCastleId){
+									canAdd=false;
+									break;
+								}
+							}
+						}
+						if(canAdd){
+							if(this._buildingObj.checkCanTransport(this.curCastle.cityId,castleObj.cityId)){
+								cityArr.addItem({label:castleObj.name,data:castleObj.cityId});
+							}							
+						}
+					}	
+				}
+			}
+			
+			
+			private function addTransport():void
+			{
+				this._buildingObj.addTransport(int(cityComboBox.selectedItem.data),int(foodInput.text)*10,int(woodInput.text)*10,int(stoneInput.text)*10,int(ironInput.text)*10);
+				foodInput.text=0;
+				woodInput.text=0;
+				stoneInput.text=0;
+				ironInput.text=0;
+			}
+
+			
+			public function set buildingObj(obj:BaseBuilding):void{
+				this._buildingObj=Dak(obj);
+			}
+		]]>
+	</mx:Script>
+	<mx:Label width="95" text="{MultiLang.msg('dak.outputLine')}" styleName="NoticeLabel" textAlign="center" toolTip="{MultiLang.msg('dak.outputLine.tip')}"/>
+	<mx:Image width="15" height="15" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:ViewStack width="110" height="100%" id="comboboxShow" selectedIndex="0" toolTip="{cityArr.length>0?null:MultiLang.msg('building.dak.fullLine')}">
+		<mx:Canvas width="100%" height="100%">	
+			<mx:ComboBox width="95" dataProvider="{this.cityArr}" labelField="{data.label}" verticalCenter="0" horizontalCenter="0" id="cityComboBox"></mx:ComboBox>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">	
+			<mx:Label verticalCenter="0" horizontalCenter="0" styleName="NoticeLabel" text="{MultiLang.msg('building.dak.fullLine')}" toolTip="{MultiLang.msg('building.dak.fullLine')}"/>
+		</mx:Canvas>
+	</mx:ViewStack>
+
+	
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0"  textAlign="center" id="foodInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0"  textAlign="center" id="woodInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0"  textAlign="center" id="stoneInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100" height="100%">
+		<ns1:NumberInputText width="90" horizontalCenter="0" verticalCenter="0"  textAlign="center" id="ironInput" maxLimitValue="{this._buildingObj.level*1000}"/>
+	</mx:Canvas>
+	<mx:Canvas width="100%" height="100%">
+		<mx:Button label="{MultiLang.msg('dak.addLine')}" verticalCenter="0" styleName="shopForBuyBtn" click="addTransport()" enabled="{cityArr.length>0?true:false}" left="0"/>
+	</mx:Canvas>
+	
+</mx:HBox>

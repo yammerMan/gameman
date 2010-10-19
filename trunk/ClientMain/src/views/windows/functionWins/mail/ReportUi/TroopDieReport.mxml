@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseOtherReport xmlns="views.windows.functionWins.mail.ReportUi.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.items.*" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.TFHelper;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import mx.utils.ObjectUtil;
+			import gs.plugins.VolumePlugin;
+			import mx.utils.ObjectProxy;
+			import mx.collections.ArrayCollection;
+			
+ 			override public function setReportObj(o:ObjectProxy):void{
+ 				reportObj = o;
+ 				reportDesc = MultiLang.msg('report.troopDie.desc{0}',reportObj.castleName);
+				reportObj.troopList = new ArrayCollection(); 
+				setTroopDieList(o.troopUnit);
+			} 
+			
+			private function setTroopDieList(o:Object):void{
+				if(o is ObjectProxy){
+					ArrayCollection(reportObj.troopList).addItem(o);
+				}else if(o is ArrayCollection){
+					for each(var oo:Object in o){
+						var tt:ObjectProxy = new ObjectProxy(oo);
+						reportObj.troopList.addItem(tt);
+					}
+				}
+			}
+			
+			public function getTroopName(t:int):String{
+				var str:String = "";
+				str = TFHelper.instance.getTfName(t);
+				return str;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalAlign="center" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Text text="{reportDesc}" width="100%" paddingLeft="10" textAlign="left"/>
+		<mx:HRule width="98%" styleName="bufferBarVRule"/>
+		<mx:Canvas width="95%">
+			<mx:Text text="{MultiLang.msg('report.troopDie.label')}:" width="95%"/>
+			<mx:TileList dataProvider="{reportObj.troopList}" top="22" rowCount="1" rowHeight="50" columnWidth="40" columnCount="10" paddingTop="5" 
+				verticalAlign="middle" backgroundAlpha="0" borderStyle="none" selectable="false" useRollOver="false">
+				<mx:itemRenderer>
+					<mx:Component>
+						<battleResult:TroopsItem2 troopUnit="{data}" width="38"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:TileList>
+		</mx:Canvas>
+	</mx:VBox>
+</BaseOtherReport>

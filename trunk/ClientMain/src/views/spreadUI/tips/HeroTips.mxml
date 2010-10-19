@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip width="245" height="236"
+	xmlns="views.spreadUI.tips.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.mainFrame.CastleInfo.*" 
+	xmlns:resPanel="views.spreadUI.resPanel.*"
+	xmlns:army="views.spreadUI.army.*"
+	creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.common.constants.TroopForConstants;
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.HeroTroopBean;
+			import views.spreadUI.army.SoldierView;
+			import mx.collections.ArrayCollection;
+			import roma.logic.object.hero.HeroArmyManager;
+			import roma.logic.object.hero.HeroObj;
+			import roma.resource.ImgManager;
+
+			[Bindable]
+			private var hero:HeroObj;
+			
+			private var uiArray:Array = new Array();
+			
+			private function init():void {
+				this.addTroop(TroopForConstants.T_TRIARII);
+				this.addTroop(TroopForConstants.T_CAVALRY);
+				this.addTroop(TroopForConstants.T_URBAN_COHORT);
+				this.addTroop(TroopForConstants.T_ARCHERS);
+				this.addTroop(TroopForConstants.T_BALLISTAS);
+				this.addTroop(TroopForConstants.T_ONAGERS);
+			}
+
+			public function setHeroObj(obj:HeroObj):void {
+				for (var i:int = 0; i< 6; i++) {
+					var ui:SoldierView = SoldierView(this.uiArray[i]);
+					if(obj!=null){
+						ui.troopBean = HeroTroopBean(obj.armyManager.troopsArray[i]);
+					}else{
+						ui.troopBean=null;
+					}	
+				}
+				this.hero = obj;
+				setValue(hero);
+			}
+			
+			private function addTroop(type:int):void {
+				var ui:SoldierView = new SoldierView();
+				ui.troop_type = type;
+				this.uiArray.push(ui);
+				this.viewContrainer.addChild(ui);
+			}
+			
+			private function setValue(hero:HeroObj):void{
+				this.lead.text =MultiLang.msg('hero.army.lead',hero.troopStrength,hero.leadership);
+				this.foodrequest.text =MultiLang.msg('hero.army.foodRequest',hero.armyManager.getArmyFoodRequest());
+				this.load.text =MultiLang.msg('hero.army.load',hero.armyManager.getArmyLoad());
+				this.speed.text =MultiLang.msg('hero.army.speed',hero.armyManager.getArmyMinSpeed());
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox y="5" left="5" right="0" kerning="true" horizontalAlign="left" verticalGap="4">
+		<mx:HBox  horizontalGap="1">
+			<mx:Label text="{this.hero.heroInfo.name}" color="{this.hero.heroInfo.potentiality>0?0x0082cd:0x81511c}"/>
+			<mx:Label text="{MultiLang.msg('public.label.level')} {this.hero.heroInfo.level}"/>
+			<mx:Label text="{this.hero.politics + this.hero.politicsBuffAdd}/{this.hero.powers + this.hero.powersBuffAdd}/{this.hero.defend + this.hero.defendBuffAdd}"/>
+		</mx:HBox>
+		<mx:HBox  horizontalGap="1">
+			<mx:Image source="{this.hero.stateIcon}" scaleY="{42/46}" scaleX="{90/102}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label text="{this.hero.curAction}"/>
+		</mx:HBox>
+		<mx:Label id="lead" />
+		<mx:Label id ="foodrequest"/>
+		<mx:Label id="load"/>
+		<mx:Label id="speed"/>
+		<mx:Tile id="viewContrainer" horizontalGap="2" verticalGap="2" paddingLeft="8"/>
+		<mx:Spacer height="5"/>
+	</mx:VBox>
+</BaseTip>

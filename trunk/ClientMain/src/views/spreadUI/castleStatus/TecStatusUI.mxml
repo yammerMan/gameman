@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="140" height="30" xmlns:ui="views.spreadUI.specialContainer.*" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.object.tech.BaseTechObj;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.logic.object.player.ItemResManager;
+			import roma.common.constants.BuildingConstant;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.resource.ImgManager;
+			import mx.controls.Image;
+			import roma.util.BufferHandle;
+			import roma.logic.GameContext;
+			import roma.util.ClientUtil;
+			import roma.util.MultiLang;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.common.valueObject.ArchitectureBean;
+
+			[Bindable]
+			private var _techObj:BaseTechObj;
+			[Bindable]
+			private var remainTimeStr:String;
+			[Bindable]
+			private var buildingObj:BaseBuilding;
+			
+			private var speedUpBtn:SpeedUpButton=new SpeedUpButton();
+			
+			public function setTecObj(obj:BaseTechObj):void {
+				this._techObj = obj;
+				this.remainingTime(); 
+				this.buildingObj =obj.techKind==BuildingConstant.TYPE_ACADEMY_BUILDING?GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_ACADEMY_BUILDING):GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MILITARY_INSTITUTE);
+
+			}
+			
+			private function init():void{
+				this.speedUpBtn.x=120;
+				this.speedUpBtn.y=6;
+				this.speedUpBtn.addEventListener(MouseEvent.CLICK,speedUpHandle);
+				this.addChild(this.speedUpBtn);
+			}
+			
+			private function speedUpHandle(event:MouseEvent):void{
+				this.speedUpItemSelected()
+			}
+
+			public function remainingTime():void {
+				this.remainTimeStr = MultiLang.timeFormatToString(this._techObj.getRemainTimeSec()); 			
+      		}
+      		
+      		/**加速物品选择*/
+			private function speedUpItemSelected():void{
+				ItemSelectSpeedUpWin.instance.techObj =this._techObj;
+				ItemSelectSpeedUpWin.instance.buildingObj = this.buildingObj;
+				ItemSelectSpeedUpWin.instance.speedUpType = ItemSelectSpeedUpWin.COIN_FORTECH_SPEEDUP;
+				ItemSelectSpeedUpWin.show(ItemResManager.speedTechItemArrayCollection,speedTechReserch);
+			}
+			
+			/**加速科技研究 */
+			private function speedTechReserch(rule:ItemRule=null):void{
+				if(rule !=null){
+					this.buildingObj.speedUpResearch(this._techObj.techType,rule.itemId);
+				}
+			}
+
+		]]>
+	</mx:Script>
+	<mx:VBox left="20" top="0" verticalGap="-6">
+		<mx:Label  text="{this._techObj.techName} >lv.{this._techObj.level+1}" 
+			styleName="buildingSituationLabel" 
+			filters="{[FiltersUtil.glowFilter]}" />
+		<mx:Label text="{this.remainTimeStr}" styleName="samllstyleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+	</mx:VBox>
+	
+	<!--mx:Button styleName="buildingSpeedUpBtn" right="2" verticalCenter="0" 
+		click="this.speedUpItemSelected()" toolTip="{Lang.msg('public.label.speed')}"/-->
+	<mx:UIComponent id="progressBg" width="30" height="3" bottom="2" left="3"/>
+	<mx:UIComponent id="progressBar" width="28" height="1" bottom="3" left="4"/>
+	<mx:Image left="2" verticalCenter="0" source="{ImgManager.clazz('buff.research.icon')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+</mx:Canvas>

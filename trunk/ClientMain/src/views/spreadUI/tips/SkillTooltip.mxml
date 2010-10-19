@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="200">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.troop.TroopSkillHelper;
+			
+			[Bindable]
+			private var desc:String;
+			
+			public function set skillType(type:String):void{
+				this.desc = TroopSkillHelper.instance.getSkillDesc(type);
+			}			
+		]]>
+	</mx:Script>
+	<mx:Text width="100%" paddingTop="5" paddingBottom="5"  paddingLeft="5" paddingRight="5" text="{this.desc}" horizontalCenter="0"/>
+</BaseTip>

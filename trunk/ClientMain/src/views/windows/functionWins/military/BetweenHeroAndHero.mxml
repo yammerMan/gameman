@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseFunctionWindow3
+    height="85" 
+	xmlns="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.windows.functionWins.military.*" 
+	xmlns:ns2="views.spreadUI.army.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.object.hero.HeroObj;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.castle.TFHelper;
+			
+			private var troopNum1:int ;
+			private var troopNum2:int
+			
+			private var pos1:int;
+			private var pos2:int;
+
+			[Bindable]
+			public var troop:int;
+
+			[Bindable]
+			public var hero1:HeroObj;
+
+			[Bindable]
+			public var hero2:HeroObj;
+			
+			[Bindable]
+			private var troopName:String
+			
+			private var hero2IsTarget:Boolean=false;
+			
+			private var fullOverTroop:int=0;
+			
+			private var totalArmyNum:int=0;
+
+
+			public function betweenHero(t1:TroopInHero,t2:TroopInHero,isSecondIsTarget:Boolean):void {
+				this.fullOverTroop=0;
+				this.hero1 = t1.heroObj;
+				this.hero2 = t2.heroObj;
+				
+				this.pos1 = t1.value.position;
+				this.pos2 = t2.value.position;
+				
+				this.hero2IsTarget=isSecondIsTarget;
+				this.troopNum1=t1.value.count;
+				this.troopNum2=t2.value.count;
+				this.totalArmyNum=this.troopNum1+this.troopNum2;
+				if (t1.value.count>0) {
+					this.troop = t1.value.troopType;
+				} else {
+					this.troop = t2.value.troopType;
+				}
+				if(isSecondIsTarget){
+					if(this.hero2.getMaxContain(this.troop)>0){
+						if(this.troopNum1>this.hero2.getMaxContain(this.troop)){
+							this.fullOverTroop = this.troopNum1-this.hero2.getMaxContain(this.troop);
+							this.troopNum1=this.hero2.getMaxContain(this.troop);
+						}else{
+
+						}			
+					}
+					else{
+						if(t2.heroObj.heroInfo.id == t1.heroObj.heroInfo.id){
+							this.troopNum1 =t1.value.count;
+						}else{
+							this.troopNum1=0;
+						}						
+					}
+				}else{
+					if(this.hero1.getMaxContain(this.troop)>0){
+						if(this.troopNum2>this.hero1.getMaxContain(this.troop)){
+							this.fullOverTroop = this.troopNum2-this.hero1.getMaxContain(this.troop);
+							this.troopNum2=this.hero1.getMaxContain(this.troop);
+						}else{
+						}		
+					}else{
+						if(t1.heroObj.heroInfo.id == t2.heroObj.heroInfo.id){
+							this.troopNum2=t2.value.count;
+						}else{
+							this.troopNum2 =0;
+						}
+					}
+				}
+				
+				
+				this.troopName=TFHelper.instance.getTfName(this.troop);
+			}
+
+			override public function refresh():void {
+				if(this.hero2IsTarget){
+					this.silderInput.inputData(this.troopNum1,this.troopNum2, inputCallBack);
+					if(this.hero2.getMaxContain(this.troop)>0){
+						if((this.totalArmyNum-this.troopNum2)>this.hero2.getMaxContain(this.troop)){
+							this.troopNum2+=this.hero2.getMaxContain(this.troop);
+							this.troopNum1=this.totalArmyNum-this.troopNum2;
+						}else{
+							this.troopNum2+=this.troopNum1;
+							this.troopNum1=0;
+						}			
+					}
+					else{
+						this.troopNum1=this.totalArmyNum-this.troopNum2;
+					}
+				}else{
+					this.silderInput.inputData(this.troopNum2,this.troopNum1, inputCallBack);
+					if(this.hero1.getMaxContain(this.troop)>0){
+						if((this.totalArmyNum-this.troopNum1)>this.hero1.getMaxContain(this.troop)){
+							this.troopNum1+=this.hero1.getMaxContain(this.troop);
+							this.troopNum2=this.totalArmyNum-this.troopNum1;
+						}else{
+							this.troopNum1+=this.troopNum2;
+							this.troopNum2=0;
+						}		
+					}else{
+						this.troopNum2=this.totalArmyNum-this.troopNum1;
+					}
+				}
+				
+			}
+			
+			private function inputCallBack(num1:int,num2:int):void {
+				if(this.hero2IsTarget){
+					this.troopNum1 = num1+this.fullOverTroop;
+					this.troopNum2 = num2;
+				}else{
+					this.troopNum1 = num2;
+					this.troopNum2 = num1+this.fullOverTroop;
+				}
+			}
+
+			override protected function onSubmit():void {
+				this.onCloseBtnClick();
+				var troopNum:int;
+				troopNum=this.troopNum1;
+				
+				if(troopNum>2147483647){
+					troopNum=2147483647;
+				}
+				ControllerFactory.getInstance().getArmyController().heroTroopChangeNum(
+					this.hero1.castleObj.cityId,
+					this.hero1.heroInfo.id, this.pos1,
+					this.hero2.heroInfo.id, this.pos2,
+					troopNum,
+					onHeroTroopChangeNumResponse);
+			}
+			
+			private function onHeroTroopChangeNumResponse(event:CommonResponse):void {
+				if (!event.isSuccess()) {
+					MyAlert.showError(event);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Button horizontalCenter="0"
+			click="onSubmit()"
+			label="{MultiLang.msg('public.label.sure')}" bottom="7" width="60"/>
+	<ns1:HSilderInput id="silderInput"
+	 left="0" top="0"/>
+</BaseFunctionWindow3>

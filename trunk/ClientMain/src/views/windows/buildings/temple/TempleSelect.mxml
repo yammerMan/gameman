@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="754" height="280" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.PopupWindows;
+			import roma.logic.CaesaryConfig;
+			import views.spreadUI.speedUp.ItemWin;
+			import roma.util.ClientUtil;
+			import roma.util.JavaScriptHelper;
+			import roma.util.ImageHandle;
+			import views.windows.functionWins.turntable.Turntable;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ItemRule;
+			import mx.controls.Alert;
+			import roma.common.constants.BuildingConstant;
+			import roma.common.valueObject.MaterialBean;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.TechConstant;
+			import mx.events.ItemClickEvent;
+			import mx.controls.RadioButtonGroup;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.util.CompCache;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.common.constants.TempleConstant;
+			import roma.logic.object.building.impl.Temple;
+			
+			public var templeObj:Temple;
+			private  var godType:int;
+
+			private var cache:CompCache = new CompCache(3);
+			private var godObjAry:Array =[TempleConstant.JUPITER_GOD,TempleConstant.JUNEAU_GOD,TempleConstant.MARS_GOD];
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.temple.TempleSelect");
+			
+			[Bindable]
+			private var selectedGodIcon:String;
+			[Bindable]
+			private var templeDesc:String;
+			[Bindable]
+			private var godName:String;
+			
+			private function init():void{
+				var i:int =0
+				while(i<this.godObjAry.length){
+					var ui:TempleOption = TempleOption(cache.getUI(TempleOption));
+					ui.buttonMode = true;
+					ui.useHandCursor =true;
+					ui.addEventListener(MouseEvent.MOUSE_DOWN,seselecHandler);
+					ui.typeID = godObjAry[i];
+					this.godContainer.addChild(ui);
+					i++;
+				}
+				
+				this.defaultSelected();
+			}
+			
+			public function refresh():void{
+				if(this.initialized){
+					if(this.templeObj.castle.godType <= 0){
+						this.selectGod();
+					}else{
+						this.godSelected();
+						this.setCurGod(this.templeObj.castle.godType);
+					}
+				}
+			}
+			
+			private function defaultSelected():void{
+				var godTypeUI:TempleOption = this.godContainer.getChildAt(0) as TempleOption;
+				godTypeUI.setSelectStyle();
+				this.godType = godTypeUI.typeID;
+				this.templeDesc = TempleHelper.instance.getDesc(godType);
+			}
+			
+			private function selectGod():void{
+				this.selectBtn.visible = true;
+//				this.openTurnTableBtn.visible = false;
+				this.viewShow.selectedChild = this.godContainer;
+				//this.defaultSelected();
+			}
+			
+			private function godSelected():void{
+				this.selectBtn.visible = false;
+//				this.openTurnTableBtn.visible = true;
+				this.viewShow.selectedChild = this.selectedContainer;
+			}
+			
+			private function seselecHandler(event:MouseEvent):void{
+				godType = TempleOption(event.currentTarget).typeID;
+				templeDesc = TempleHelper.instance.getDesc(godType);
+				
+				var arr:Array = godContainer.getChildren();
+				for(var i:int=0;i<arr.length;i++){
+					if(godType ==TempleOption(arr[i]).typeID){
+						TempleOption(arr[i]).setSelectStyle();
+					}else{
+						TempleOption(arr[i]).setNormalStyle();
+					}																
+				}
+				log.debug("select god type is:  "+godType);
+			}
+			
+			private function setCurGod(godType:int):void{
+				//当神庙是JUNEAU_GOD类型时调用,计算人口容量
+				log.debug("selected GodType: "+godType);
+				
+				this.godSelected();
+				this.godName = TempleHelper.instance.getName(godType);
+				this.templeDesc = TempleHelper.instance.getDesc(godType);
+				this.selectedGodIcon = TempleHelper.instance.getIcon(godType);
+			}		
+			
+			/*选择信仰的神*/
+			private function serverGod():void{
+				if(this.godType<=0){
+					MyAlert.show(MultiLang.msg("temple.not.selected"));
+					return;
+				}
+				
+				//神庙选择,选择与更改调用同一接口
+				this.templeObj.serverGod(this.godType,setCurGod);
+			}
+			
+			/*更改神 */
+			private function changeGod():void{
+				var bean:MaterialBean = GameContext.instance.getPlayerObj().itemManager.getMaterialBeanById(TempleConstant.CHANGE_GOD_ITEM);
+				var rule:ItemRule = GameRuleHelper.instance.getItemRuleById(TempleConstant.CHANGE_GOD_ITEM);
+				
+				if(bean ==null || bean.count <= 0){
+					MyAlert.show(MultiLang.msg('public.item.not.enough',rule.name),buyItemAndUseItem);
+				}else{
+					//发送0表示更改神，更改神后，是没有神
+					MyAlert.show(MultiLang.msg('temple.change.need.item',rule.name),changeGod);
+				}
+				
+				function changeGod(_true:Boolean):void{
+					if(_true){
+						templeObj.serverGod(0,onChnageGod);
+					}
+				}
+			}
+			
+			private function buyItemAndUseItem(_true:Boolean):void{
+				if(_true){
+                    var b:Boolean = GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(TempleConstant.CHANGE_GOD_ITEM);
+					if(b){
+						this.templeObj.serverGod(0,onChnageGod);
+					}else{
+						MyAlert.show(MultiLang.msg('public.coin.lack'),recharge,MultiLang.msg('systemMsg.getGold'));
+					}
+				}
+			}
+			
+			private function recharge(_true:Boolean):void{
+				if(_true){
+					ClientMain.recharge();
+				}
+			}
+			
+			private function onChnageGod(type:int):void{
+				log.info("current GodType: "+type);
+				this.selectGod();
+			}
+			
+			private function openTurntable():void{
+				Turntable.getInstance().show();
+				JavaScriptHelper.instance.trackPageview("/TurntableShow");
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas width="530" height="240" styleName="subContentBG" top="2" left="0">
+		<mx:Text text="{this.templeDesc}" width="220" right="60" verticalCenter="0"/>
+		<mx:ViewStack id="viewShow" width="219" height="240" y="0" left="0">
+			<mx:VBox  width="100%" height="100%" id="godContainer" paddingTop="9" verticalGap="1" paddingLeft="10">
+			</mx:VBox>
+			<mx:Canvas width="100%" height="100%" id="selectedContainer">
+				<mx:Label text="{this.godName}" textAlign="center" horizontalCenter="0" top="40" fontSize="14" styleName="taskNameTitleLabel"/>
+				<mx:Canvas styleName="bigBuildingLogo" width="102" height="51" horizontalCenter="0" verticalCenter="-20">
+					<mx:Image width="94" source="{this.selectedGodIcon}" height="43" horizontalCenter="0" verticalCenter="0"
+						updateComplete="ImageHandle.onLoadComplete(event)"/>
+				</mx:Canvas>
+				<mx:Button id="changeBtn" click="changeGod()" label="{MultiLang.msg('temple.change')}" height="22" horizontalCenter="0" bottom="40"/>
+			</mx:Canvas>
+		</mx:ViewStack>
+		<mx:Button 
+			id="selectBtn" 
+			click="serverGod()" label="{MultiLang.msg('temple.select')}" width="102" height="22" bottom="20" left="314"/>
+	</mx:Canvas>
+	<mx:Canvas height="240" left="532" right="1" top="2" styleName="subContentBG">
+		<mx:Button 
+			id="openTurnTableBtn" 
+			click="openTurntable()" label="{MultiLang.msg('turntable.title')}" styleName="turntableSubmitBtn" color="0xffffff" bottom="34" horizontalCenter="0" visible="{CaesaryConfig.instance.isRoll}"/>
+		<mx:Image horizontalCenter="0" top="28" updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('temple.offer.icon')}"/>
+	</mx:Canvas>
+</mx:Canvas>

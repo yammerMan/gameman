@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:castleIcon="views.mainFrame.castleIcon.*"
+	cacheAsBitmap="true" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import animation.WorkerTalkShowLayer;
+			import animation.RoleWalkingAniLayer;
+			import views.mainFrame.CastleFrame;
+			import roma.message.events.MsgEvent;
+			import roma.common.valueObject.MapFieldInfoBean;
+			import roma.logic.object.castle.CastleObj;
+			import roma.util.CompCache;
+			import roma.logic.GameContext;
+			import roma.message.EvtDispacther;
+
+			private var cacheUi:CompCache = new CompCache(30);
+
+			private var last:CastleLogoWin;
+			
+			public static const CASTLE_CLICK:String ="castle.click";
+			 
+			public static var instance:CastleIconPanel;
+			
+			private function init():void {
+				instance = this;
+				var onPlayerLoginHandle:Function = function (event:Event):void {
+					refresh();
+				}
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_LOGIN , onPlayerLoginHandle);
+				EvtDispacther.instance.addEventListener(EvtDispacther.CASTLE_ADD_OR_REMOVE , onPlayerLoginHandle);
+				EvtDispacther.instance.addEventListener(CASTLE_CLICK,onUiClick);
+				
+				refresh();
+			}
+						
+			private function onUiClick(event:MsgEvent):void {
+				var ui:CastleLogoWin = event.data as CastleLogoWin;
+				if (!ui.castle.isCurCastle() && !ui.castle.isConstructing()) {
+					//如果该城堡不是当前城堡,并且该城堡不是在建中，才响应点击操作
+					ui.selected = true;
+					ui.castle.setAsCurCastle();
+					//重新设置人物走动坐标
+					RoleWalkingAniLayer.instance.resetWalkingRoleCoor();
+					WorkerTalkShowLayer.instance.initFrame();
+					if (this.last!=null) {
+						last.selected = false;
+					}
+					this.last = ui;
+				}
+			}
+			
+			//进入城池
+			public function gotoTown(cityId:int):void{
+				var ui:CastleLogoWin;
+				for(var i:int=0;i<this.iconListVbox.getChildren().length;i++){
+					var castle:CastleLogoWin=this.iconListVbox.getChildAt(i) as CastleLogoWin;
+					if(castle!=null){
+						if(castle.castle.idField==cityId){
+							ui=castle;
+							break;
+						}
+					}
+					
+				}
+				if(ui!=null){
+					if (!ui.castle.isCurCastle() && !ui.castle.isConstructing()) {
+						//如果该城堡不是当前城堡,并且该城堡不是在建中，才响应点击操作
+						ui.selected = true;
+						ui.castle.setAsCurCastle();
+						
+						if (this.last!=null) {
+							last.selected = false;
+						}
+						this.last = ui;
+					}
+				}	
+			}
+			
+			private function refresh():void {
+				iconListVbox.removeAllChildren();
+				cacheUi.reset();
+				
+				var ary:Array = GameContext.instance.getPlayerObj().getAllCastle();
+				
+				for (var i:int=0; i< ary.length; i++) {
+					var obj:CastleObj = CastleObj(ary[i]);
+					var ui:CastleLogoWin = cacheUi.getUI(CastleLogoWin) as CastleLogoWin;
+					ui.setCastleObj(obj);
+					
+					if (ui.castle.isCurCastle()){
+						ui.selected = true;
+						last = ui;
+					}else{
+						ui.selected = false;
+					}
+					
+					iconListVbox.addChild(ui);
+				}
+			}
+		]]>
+	</mx:Script>	
+	<!--城池图标面板-->
+	<mx:VBox verticalGap="-2" horizontalGap="0" bottom="0" id="iconListVbox"/>
+</mx:Canvas>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:troop="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.resource.ImgManager;
+			import roma.logic.object.castle.TFHelper;
+			import roma.logic.rule.TroopRule;
+			
+			[Bindable]
+			public var _lineWidth:int = 243;
+			[Bindable]
+			public var _labelWidth:int = 77;
+			[Bindable]
+			public var _txtAlign:String = TextFormatAlign.RIGHT;
+			
+			[Bindable]
+			private var _troopRule:TroopRule;
+			
+			[Bindable]
+			private var _troopName:String;
+			
+			[Bindable]
+			private var _funDesc:String;
+			
+			public function set troopRule(rule:TroopRule):void{
+				this._troopRule = rule;
+				this._troopName = TFHelper.instance.getTfName(_troopRule.troop);
+				this._funDesc = TFHelper.instance.getTfSkillDesc(_troopRule.troop);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Form paddingLeft="0" paddingTop="0"  
+		paddingRight="0" paddingBottom="0" verticalGap="0" horizontalGap="0"  left="20" top="10" right="20" bottom="20">
+
+		<mx:Label text="{_troopName}" styleName="titleBordLabel"/>
+		<mx:Text width="100%" selectable="false" text="{_funDesc}"/>	
+		<mx:Spacer height="5"/>
+		<mx:HRule width="{_lineWidth}"/>
+		
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9"  >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}" reqNum="{_troopRule.life}"  resIcon="{ImgManager.clazz('icon.life.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.defence}"  resIcon="{ImgManager.clazz('icon.defence.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="{_lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9" >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.foodRequest}"  resIcon="{ImgManager.clazz('icon.foodRequest.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.speed}"  resIcon="{ImgManager.clazz('icon.speed.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24" x="0"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="{_lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9" >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.attack}" resIcon="{ImgManager.clazz('icon.attack.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.load}" resIcon="{ImgManager.clazz('icon.load.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24" x="0"/>
+		</mx:FormItem>
+
+		<mx:HRule width="{_lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9" >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.dmgMin}~{_troopRule.dmgMax}" resIcon="{ImgManager.clazz('icon.damage.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.population}" resIcon="{ImgManager.clazz('icon.population.prop')}" formatAlign="{_txtAlign}"/>
+			<mx:VRule height="24" x="0"/>
+		</mx:FormItem>
+		<mx:HRule width="{_lineWidth}"/>
+	</mx:Form>
+</BaseTip>

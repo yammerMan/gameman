@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseFunctionWindow2 xmlns="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" title="{MultiLang.msg('diplomacy.window.label')}" 
+	xmlns:diplomacy="views.windows.functionWins.diplomacy.*" xmlns:spreadUI="views.spreadUI.*" creationComplete="init()" xmlns:task="views.windows.functionWins.task.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.common.constants.BuffConstants;
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="diplomacyWin_.as" />
+	<mx:ToggleButtonBar styleName="titleToggleButtonBar" top="28" left="10" dataProvider="{tbbLabelArr}" itemClick="tbbClick(event.index)" id="buttonBar"/>
+	<spreadUI:MulHRule top="50" left="10" right="10"/>
+	<mx:ViewStack top="53" right="10" left="10" bottom="45" id="diplomacyVS">
+		<mx:Canvas width="100%" height="100%">
+			<mx:Canvas label="说明信息" width="296" height="300" styleName="subContentBG">
+				<mx:TextArea top="15" left="15" right="12" htmlText="{isConquested?MultiLang.msg('diplomacy.conquest.leaderCity.desc'):MultiLang.msg('diplomacy.conquest.vassal.desc')}" bottom="15" focusEnabled="false" editable="false" styleName="discritionTextArea"/>
+			</mx:Canvas>
+			<mx:Canvas label="宗主信息" width="478" height="300" left="299" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<diplomacy:SuzerainMes visible="{isConquested}" leaderCity="{leaderCityBean}" id="suzerainMesView" width="100%" height="100%" applyAssalArr="{applyAssalArr}" checkOutApply="checkOutApplyAssal"/>
+				<mx:VBox visible="{!isConquested}" verticalGap="2" width="100%" height="100%">
+					<mx:Canvas width="100%" height="112" styleName="subContentBG">
+						<mx:Button label="{MultiLang.msg('diplomacy.vassal.apply.label')}" click="applyAssal()" width="155" height="35" horizontalCenter="0" verticalCenter="0" toolTip="{MultiLang.msg('diplomacy.vassal.apply.tip')}"/>
+					</mx:Canvas>
+					<mx:Canvas label="附属城申请列表" width="100%" height="185" styleName="mainWindowContentBG">
+						<mx:Label text="{MultiLang.msg('diplomacy.vassal.label')}" top="2" left="2" width="100%" styleName="titleBordLabel"/>
+						<mx:DataGrid dataProvider="{applyAssalArr}" top="22" width="100%" bottom="0" 
+							borderStyle="none" resizableColumns="false" draggableColumns="false"  sortableColumns="false" selectable="false">
+							<mx:columns>
+								<mx:DataGridColumn headerText="{MultiLang.msg('market.city')}">
+									<mx:itemRenderer>
+										<mx:Component>
+											<mx:Label text="{data.castleStr}" />
+										</mx:Component>
+									</mx:itemRenderer>
+								</mx:DataGridColumn>
+								<mx:DataGridColumn headerText="{MultiLang.msg('diplomacy.applyCity.label')}">
+									<mx:itemRenderer>
+										<mx:Component>
+											<diplomacy:DiplomacyRenderLabel cityStr="{data.relatedCityBean.castle}"/>
+										</mx:Component>
+									</mx:itemRenderer>
+								</mx:DataGridColumn>
+								<mx:DataGridColumn headerText="{MultiLang.msg('public.label.time')}">
+									<mx:itemRenderer>
+										<mx:Component>
+											<diplomacy:DiplomacyRenderLabel timeStr="{data.relatedCityBean.time}"/>
+										</mx:Component>
+									</mx:itemRenderer>
+								</mx:DataGridColumn>
+								<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}">
+									<mx:itemRenderer>
+										<mx:Component>
+											<mx:HBox horizontalAlign="center" verticalAlign="middle" width="100%" height="100%">
+												<spreadUI:ButtonRender styleName="buttonRender" btnLable="{outerDocument.checkOutLabel}" width="44" height="18" click="{outerDocument.checkOutApplyAssal(data)}"/>
+											</mx:HBox>
+										</mx:Component>
+									</mx:itemRenderer>
+								</mx:DataGridColumn>
+							</mx:columns>
+						</mx:DataGrid>
+					</mx:Canvas>
+				</mx:VBox>
+			</mx:Canvas>
+		</mx:Canvas>
+		
+		<mx:Canvas label="附属城列表" width="100%" height="285" styleName="mainWindowContentBG">
+			<mx:DataGrid dataProvider="{conquestArr}" height="100%"
+				borderStyle="none" resizableColumns="false" draggableColumns="false" sortableColumns="false" selectable="false" headerHeight="22" rowHeight="26" left="1" right="1">
+				<mx:columns>
+					<mx:DataGridColumn headerText="{MultiLang.msg('label.city')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel text="{data.relatedCityBean.castle.castleName}" textStyle="{data.relatedCityBean.castle}"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('townHall.coordinate')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel pos="{data.relatedCityBean.castle.fieldId}" textStyle="{data.relatedCityBean.castle}" click="{outerDocument.gotoPos(data.relatedCityBean.castle.idField)}" />
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('diplomacy.conquest.leader.label')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel textStyle="{data.relatedCityBean.castle}" text="{data.relatedCityBean.castle.playerName}"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('public.label.level')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel textStyle="{data.relatedCityBean.castle}" text="{data.relatedCityBean.castle.castleLevel}"/>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('diplomacy.conquest.time.label')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<diplomacy:DiplomacyRenderLabel textStyle="{data.relatedCityBean.castle}" timeStr="{data.relatedCityBean.time}" />
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox horizontalAlign="center" verticalAlign="middle" width="100%" height="26">
+									<spreadUI:ButtonRender btnLable="{outerDocument.checkOutLabel}" styleName="buttonRender" width="44" height="18" click="{outerDocument.checkOutAssal(data)}"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+	</mx:ViewStack>
+	
+	<diplomacy:ApplyAssal visible="false" horizontalCenter="0" verticalCenter="0" id="applyAssalView"/>
+	<diplomacy:AcceptVassal visible="false" horizontalCenter="0" verticalCenter="0" id="acceptVassal" />
+	
+	
+	<mx:Canvas styleName="mainWindowContentBG" label="附庸城的资源显示"  height="34" bottom="11" left="10" right="10" visible="{diplomacyVS.selectedIndex == 0}" includeInLayout="{diplomacyVS.selectedIndex == 0}">
+		<mx:HBox visible="{diplomacyVS.selectedIndex == 0}" top="2" right="3" >
+			<mx:Button visible="{isConquested}" label="{MultiLang.msg('diplomacy.conquest.useItem.label')}" click="useIndependenceItem()"/>
+	 		<mx:Button visible="{isConquested}" label="{MultiLang.msg('diplomacy.conquest.battle.label')}" click="independenceFight()" 
+	 			enabled="{canIndependenseFight}" />
+		</mx:HBox>
+ 		<mx:Label text="{MultiLang.msg('diplomacy.conquest.battle.time')}:{this.remainTimeStr}" visible="{diplomacyVS.selectedIndex == 0?this.isShowTime:false}"  bottom="5" left="10"/>	
+	</mx:Canvas>
+	<mx:Canvas styleName="alphaBlackBG" height="49" visible="{diplomacyVS.selectedIndex == 1}" includeInLayout="{diplomacyVS.selectedIndex == 1}" left="10" right="10" bottom="11">
+		<mx:HBox horizontalGap="8" verticalAlign="middle" horizontalAlign="center" verticalCenter="0" left="45">
+			<mx:Label width="20%" textAlign="center" text="{MultiLang.msg('diplomacy.vassal.addition.label')}:" toolTip="{MultiLang.msg('diplomacy.curCastle.vassal.addition.label')}"/>
+			<mx:Image source="{ImgManager.clazz('icon.food')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label text="{resourceObj.food}" width="80" textAlign="left" styleName="{resourceObj.food>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+			<mx:Image source="{ImgManager.clazz('icon.wood')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label text="{resourceObj.wood}" width="80" textAlign="left" styleName="{resourceObj.food>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+			<mx:Image source="{ImgManager.clazz('icon.stone')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label text="{resourceObj.stone}" width="80" textAlign="left" styleName="{resourceObj.food>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+			<mx:Image source="{ImgManager.clazz('icon.iron')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label text="{resourceObj.iron}" width="80" textAlign="left" styleName="{resourceObj.food>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+		</mx:HBox>
+		<mx:HBox right="10" visible="{diplomacyVS.selectedIndex == 1}" includeInLayout="{diplomacyVS.selectedIndex == 1}" verticalCenter="0">
+			<mx:Label text="{MultiLang.msg('diplomacy.label.vassal')}: "  left="3" right="3"/>
+			<mx:Label text="{conquestArr.length}" left="3" right="3"/>
+		</mx:HBox>
+	</mx:Canvas>
+</BaseFunctionWindow2>

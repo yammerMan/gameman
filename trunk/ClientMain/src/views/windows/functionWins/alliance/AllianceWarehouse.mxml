@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"  width="100%" height="100%" creationComplete="init()"  xmlns:ns2="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.alliance.SelfAllianceInfoResponse;
+			import roma.common.controller.shop.UseMaterialResultResponse;
+			import roma.message.events.ChatCallEvent;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.message.EvtDispacther;
+			import roma.util.ImageHandle;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.util.ItemUseHandle;
+			import views.spreadUI.MyAlert;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.common.constants.AllianceConstant;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.valueObject.AllianceInfoDataBean;
+			import roma.logic.GameContext;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.AllianceRule;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var curAllianceRule:AllianceRule;
+			[Bindable]
+			private var nextAllianceRule:AllianceRule;
+			[Bindable]
+			private var allianceObj:AllianceInfoDataBean;
+			[Bindable]
+			private var canLevelUp:Boolean=false;
+			[Bindable]
+			private var canLevelUpWithItem:Boolean=false;
+			[Bindable]
+			private var castleResourceManager:CastleResourceManager;
+			
+			[Bindable]
+			private var levelIcon:Class;
+			
+			[Bindable]
+			private var _AllianceLevelDec:String;//联盟的效果
+			
+			[Bindable]
+			private var itemRule:ItemRule=GameRuleHelper.instance.getItemRuleById("incAllianceLimitTo100");
+			
+			private var isUpdate:Boolean=false;
+			
+			
+			private function init():void{
+				this.foodInput.reSize(110);
+				this.woodInput.reSize(110);
+				this.stoneInput.reSize(110);
+				this.ironInput.reSize(110);
+				this.goldsInput.reSize(110);
+				EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_INFO_UPDATE_EVENT,allianceRightUpdateHandle);
+			}
+			
+			private function allianceRightUpdateHandle(event:Event):void{
+				this.checkCanLevelUp();
+			}
+			
+			public function refresh():void{
+				this.isUpdate=false;
+				if(this.allianceObj!=null){
+					curAllianceRule=GameRuleHelper.instance.getLeagueRule(this.allianceObj.allianceLev);
+					nextAllianceRule=GameRuleHelper.instance.getLeagueRule(this.allianceObj.allianceLev+1);
+					this.checkCanLevelUp();
+					this.levelIcon=BuildingHelper.instance.getDiffLevelIcon(this.allianceObj.allianceLev);
+					this.checkEffect();
+				}	
+				
+				this.castleResourceManager=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+				if(this.initialized){
+					this.foodInput.effectValue=0;
+					this.woodInput.effectValue=0;
+					this.stoneInput.effectValue=0;
+					this.ironInput.effectValue=0;
+					this.goldsInput.effectValue=0;
+				}
+			}
+			public function set getLeagueInfoBean(allianceObj:AllianceInfoDataBean):void{
+				this.allianceObj=allianceObj;
+			}
+			
+			//捐献资源
+			private function contributeResource():void{
+				if(this.foodInput.effectValue==0&&this.woodInput.effectValue==0&&this.stoneInput.effectValue==0&&this.ironInput.effectValue==0&&this.goldsInput.effectValue==0){
+					
+					MyAlert.show(MultiLang.msg("alliance.contributeIsEmpty"));
+				}else{
+					
+					ControllerFactory.getInstance().getAllianceController().contributeResource(GameContext.instance.getPlayerObj().getCurCastleObj().cityId,this.foodInput.effectValue,this.woodInput.effectValue,this.stoneInput.effectValue,this.ironInput.effectValue,this.goldsInput.effectValue,callback);
+				}	
+			}
+			
+			private function callback(event:CommonResponse):void{
+				if(event.isSuccess()){
+					ControllerFactory.getInstance().getAllianceController().getSelfAllianceInfo(onGetAllianceInfoDataBean,false);
+				}else{
+					MyAlert.showError(event);
+				}	
+			}
+			
+			private function awardItemCallback(event:UseMaterialResultResponse):void{
+				if(event.isSuccess()){
+					ControllerFactory.getInstance().getAllianceController().getSelfAllianceInfo(onGetAllianceInfoDataBean,false);
+				}else{
+					MyAlert.showError(event);
+				}	
+			}
+			
+			
+				/**
+				 * 获得联盟信息
+				 */ 
+			private function onGetAllianceInfoDataBean(event:SelfAllianceInfoResponse):void{
+				if(event.isSuccess()){
+					AllianceHelper.instance.allianceObj = event.leagueInfo;
+					this.allianceObj = AllianceHelper.instance.allianceObj;
+					if(this.isUpdate){
+						EvtDispacther.instance.dispatchEvent(new ChatCallEvent(ChatCallEvent.TYPE_ALLIANCE,MultiLang.msg('alliance.event.updateNotice',this.allianceObj.allianceLev,this.allianceObj.limit==0?this.allianceObj.allianceLev*10:this.allianceObj.limit)));
+					}
+					this.refresh();
+					
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			//联盟升级
+			private function reachLevel():void{
+				if(allianceObj.foods>=this.nextAllianceRule.food&&allianceObj.woods>=this.nextAllianceRule.wood&&allianceObj.stones>=this.nextAllianceRule.stone&&allianceObj.irons>=this.nextAllianceRule.iron&&allianceObj.golds>=this.nextAllianceRule.golds){
+					this.isUpdate=true;
+					ControllerFactory.getInstance().getAllianceController().reachLevel(callback);
+				}else{
+					MyAlert.show(MultiLang.msg("alliance.resourceIsnotEnough"));
+				}
+			}
+			//判断能否升级联盟
+			private function checkCanLevelUp():void{
+				this.canLevelUp=false;
+				this.canLevelUpWithItem=false;
+				if(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight>=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF&&allianceObj.allianceLev<AllianceConstant.ALLIANCE_LEVEL_FINAL_LEVEL){
+					this.canLevelUp=true;
+				}
+				if(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight>=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF&&this.allianceObj.limit<300){
+					this.canLevelUpWithItem=true;
+				}
+			}
+			
+			//使用道具提升联盟等级
+			private function allianceUseItem():void{
+				ItemSelectSpeedUpWin.show(ItemResManager.allianceLevelUpItemArrayCollection,selectItem);	
+				function selectItem(itemRule:ItemRule):void{
+//					ControllerFactory.getInstance().getAllianceController().reachLevel10ByItem(callback);
+					if(itemRule.itemId=="incAllianceLimitTo100"&&allianceObj.limit==0&&allianceObj.allianceLev==AllianceConstant.ALLIANCE_LEVEL_FINAL_LEVEL){
+						MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",100));
+						return;
+					}else if(itemRule.itemId=="incAllianceLimitTo100"&&allianceObj.limit>=100){
+						MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",100));
+						return;
+					}else if(itemRule.itemId=="incAllianceLimitTo200"&&allianceObj.limit>=200){
+						MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",200));
+						return;
+					}else if(itemRule.itemId=="incAllianceLimitTo300"&&allianceObj.limit==300){
+						MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",300));
+						return;
+					}
+					isUpdate=true;
+					ControllerFactory.getInstance().getShopController().usePlayerItem(GameContext.instance.getPlayerObj().getCurCastleObj().cityId, itemRule.itemId, awardItemCallback);
+				}
+			}
+			
+			//获取当前级别以及下一级别的联盟效果
+			private function checkEffect():void
+			{	
+				_AllianceLevelDec="";
+				if(this.allianceObj.allianceLev==0){
+					_AllianceLevelDec+="<b><font color='#370d00'>"+MultiLang.msg("public.nextLevel")+"</font></b><br/>";
+					_AllianceLevelDec+=MultiLang.msg("alliance.memberIncrease",this.curAllianceRule.memberLimit,this.curAllianceRule.maxCap);
+				}
+				if(this.allianceObj.allianceLev>0&&this.allianceObj.allianceLev<AllianceConstant.ALLIANCE_LEVEL_FINAL_LEVEL){
+					_AllianceLevelDec="<b><font color='#370d00'>"+MultiLang.msg("public.curLevel")+"</font></b><br/>";
+					_AllianceLevelDec+=MultiLang.msg("alliance.curLevelInfo",this.allianceObj.members,this.curAllianceRule.memberLimit,this.curAllianceRule.maxCap);
+					_AllianceLevelDec+="\n"+"\n"+"<b><font color='#370d00'>"+MultiLang.msg("public.nextLevel")+"</font></b><br/>";
+					_AllianceLevelDec+=MultiLang.msg("alliance.memberIncrease",this.nextAllianceRule.memberLimit,this.nextAllianceRule.maxCap);
+				}	
+				if(this.allianceObj.allianceLev==AllianceConstant.ALLIANCE_LEVEL_FINAL_LEVEL){
+					_AllianceLevelDec="<b><font color='#370d00'>"+MultiLang.msg("public.curLevel")+"</font></b><br/>";
+					_AllianceLevelDec+=MultiLang.msg("alliance.curLevelInfo",this.allianceObj.members,this.allianceObj.limit==0?this.curAllianceRule.memberLimit:this.allianceObj.limit,this.curAllianceRule.maxCap);
+				}			
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas height="185" top="25" left="163" right="0" styleName="subContentBG">
+		<mx:TextArea htmlText="{_AllianceLevelDec}" left="370" top="15" right="15" bottom="15" editable="false" leading="5" styleName="discritionTextArea"/>
+		<mx:HBox left="25" top="33" horizontalGap="0">
+			<mx:VRule height="73"/>
+				<mx:VBox verticalGap="0" styleName="whriteBG">
+					<mx:HRule width="100%"/>
+					<mx:HBox horizontalGap="0">
+						<mx:Spacer width="1"/>
+						<mx:Label text="{this.allianceObj.allianceLev>=AllianceConstant.ALLIANCE_ITEM_CAN_UPGRADE_LEVELS?MultiLang.msg('alliance.updateLimit'):MultiLang.msg('public.label.alliance')+' '+MultiLang.msg('upgradingWin.updata2NextLevel')+' '+MultiLang.msg('public.label.level')+' '+(this.allianceObj.allianceLev+1)}"/>
+					</mx:HBox>
+					<mx:HBox horizontalGap="15">
+						<mx:Canvas  height="53" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:HBox left="0" top="0" right="0" bottom="0" horizontalGap="0">
+								<mx:VBox verticalGap="0">
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle">
+										<mx:Spacer width="1"/>
+										<mx:Image source="{ImgManager.clazz('icon.food')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+										<mx:Label text="{this.nextAllianceRule.food}" width="100%" textAlign="right" styleName="{allianceObj.foods>=this.nextAllianceRule.food?'goodNoticeLabel':'NoticeLabel'}"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle">
+										<mx:Spacer width="1"/>
+										<mx:Image source="{ImgManager.clazz('icon.wood')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+										<mx:Label text="{this.nextAllianceRule.wood}" width="100%" textAlign="right" styleName="{allianceObj.woods>=this.nextAllianceRule.wood?'goodNoticeLabel':'NoticeLabel'}"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+								</mx:VBox>
+								<mx:VRule height="53"/>
+								<mx:VBox verticalGap="0">
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle">
+										<mx:Spacer width="1"/>
+										<mx:Image source="{ImgManager.clazz('icon.stone')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+										<mx:Label text="{this.nextAllianceRule.stone}" width="100%" textAlign="right" styleName="{allianceObj.stones>=this.nextAllianceRule.stone?'goodNoticeLabel':'NoticeLabel'}"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle">
+										<mx:Spacer width="1"/>
+										<mx:Image source="{ImgManager.clazz('icon.iron')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+										<mx:Label text="{this.nextAllianceRule.iron}" width="100%" textAlign="right" styleName="{allianceObj.irons>=this.nextAllianceRule.iron?'goodNoticeLabel':'NoticeLabel'}"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+								</mx:VBox>
+								<mx:VRule height="53"/>
+								<mx:VBox verticalGap="0">
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle">
+										<mx:Spacer width="1"/>
+										<mx:Image source="{ImgManager.clazz('icon.gold')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+										<mx:Label text="{this.nextAllianceRule.golds}" width="100%" textAlign="right" styleName="{allianceObj.golds>=this.nextAllianceRule.golds?'goodNoticeLabel':'NoticeLabel'}"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle" visible="false">
+										<mx:Spacer width="1"/>
+										<mx:Image source="{ImgManager.clazz('icon.gold')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+										<mx:Label text="Label" width="100%" textAlign="right"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+									<mx:HBox width="100%" verticalAlign="middle">
+										<mx:Spacer width="1"/>
+										<mx:Spacer width="1"/>
+									</mx:HBox>
+									<mx:HRule width="100%"/>
+								</mx:VBox>
+							</mx:HBox>
+						</mx:Canvas>
+					</mx:HBox>	
+				</mx:VBox>
+			<mx:VRule height="73"/>
+		</mx:HBox>
+		<mx:VBox verticalGap="5" left="25" bottom="22">
+			<mx:HBox>
+				<mx:Button styleName="levelUpAddBtn" enabled="{canLevelUpWithItem}" label="{MultiLang.msg('alliance.useItem')}" click="allianceUseItem()" width="70" height="18"/>
+				<mx:Label text="{MultiLang.msg('alliance.useItemTips')}"/>
+			</mx:HBox>
+			
+		</mx:VBox>
+		
+	</mx:Canvas>
+	<mx:Canvas bottom="12" top="213" left="0" right="0" styleName="subContentBG">
+		<mx:VBox top="13" left="25" bottom="13" verticalGap="0" width="760">
+			<mx:Label text="{MultiLang.msg('alliance.label.allianceResource')}:" styleName="titleBordLabel"/>
+			<mx:Canvas  height="25" verticalScrollPolicy="off" horizontalScrollPolicy="off" styleName="whiteBGwithBorder">
+				<mx:HBox left="0" top="0" right="0" bottom="0" horizontalGap="0">
+					<mx:HBox  verticalAlign="middle" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Spacer width="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.food')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{allianceObj.foods}" width="100%" textAlign="right" styleName="{allianceObj.foods>=this.nextAllianceRule.food?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+					<mx:VRule height="25"/>
+					<mx:HBox  verticalAlign="middle" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Spacer width="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.wood')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{allianceObj.woods}" width="100%" textAlign="right" styleName="{allianceObj.foods>=this.nextAllianceRule.food?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+					<mx:VRule height="25"/>
+					<mx:HBox  verticalAlign="middle" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Spacer width="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.stone')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{allianceObj.stones}" width="100%" textAlign="right" styleName="{allianceObj.foods>=this.nextAllianceRule.food?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+					<mx:VRule height="25"/>
+					<mx:HBox  verticalAlign="middle" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Spacer width="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.iron')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{allianceObj.irons}" width="100%" textAlign="right" styleName="{allianceObj.foods>=this.nextAllianceRule.food?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+					<mx:VRule height="25"/>
+					<mx:HBox  verticalAlign="middle" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Spacer width="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.gold')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{allianceObj.golds}" width="100%" textAlign="right" styleName="{allianceObj.foods>=this.nextAllianceRule.food?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Spacer width="1"/>
+					</mx:HBox>
+				</mx:HBox>
+			</mx:Canvas>
+
+			<mx:Label text="{MultiLang.msg('alliance.contribution')}:" styleName="titleBordLabel"/>
+			<mx:HBox left="0" top="0" right="0" bottom="0" verticalAlign="middle" horizontalAlign="center" horizontalGap="1">
+				<mx:VBox verticalGap="0">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<ns2:MyNumericStepper id="foodInput" maxValue="{Math.min(this.castleResourceManager.food.curAmount,(this.curAllianceRule.maxCap/4-allianceObj.foods))}" intValue="{0}"/>
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox verticalGap="0">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<ns2:MyNumericStepper id="woodInput" maxValue="{Math.min(this.castleResourceManager.wood.curAmount,(this.curAllianceRule.maxCap/4-allianceObj.woods))}" intValue="{0}"/>
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox verticalGap="0">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<ns2:MyNumericStepper id="stoneInput" maxValue="{Math.min(this.castleResourceManager.stone.curAmount,(this.curAllianceRule.maxCap/4-allianceObj.stones))}" intValue="{0}"/>
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox verticalGap="0">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<ns2:MyNumericStepper id="ironInput" maxValue="{Math.min(this.castleResourceManager.iron.curAmount,(this.curAllianceRule.maxCap/4-allianceObj.irons))}" intValue="{0}"/>
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox verticalGap="0">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<ns2:MyNumericStepper id="goldsInput" maxValue="{this.castleResourceManager.golds.curAmount}" intValue="{0}"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:Button label="{MultiLang.msg('alliance.action.contribution')}" click="contributeResource()" height="45" verticalCenter="0" right="45"/>
+	</mx:Canvas>
+	<mx:Canvas width="160" height="185" top="25" left="0" styleName="subContentBG">
+		<mx:Canvas  styleName="bigBuildingLogo"  width="112" height="56" horizontalCenter="0" top="40">
+				<mx:Image source="{this.itemRule.itemIcon}"  id="imageField"
+					top="4" left="4" scaleY="{56/67}" scaleX="{112/150}" updateComplete="ImageHandle.onLoadComplete(event)" right="4" bottom="4"/>
+				<mx:Canvas width="26" height="30" right="5" top="4">
+					<mx:Image  source="{this.levelIcon}" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event);"/>
+					<mx:Label text="{this.allianceObj.allianceLev}" styleName="LvLabel" top="1" left="0" right="0" textAlign="center"/>
+				</mx:Canvas>
+		</mx:Canvas>
+		<mx:Label text="{MultiLang.msg('alliance.label.allianceUpdate')}" left="19" top="17" styleName="titleBordLabel"/>
+		<mx:Button width="120" label="{MultiLang.msg('public.label.upgrade')}" click="reachLevel()" enabled="{canLevelUp}" height="45" horizontalCenter="0" bottom="26"/>
+	</mx:Canvas>
+	
+</mx:Canvas>

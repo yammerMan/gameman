@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="180" height="50" xmlns:spreadUI="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import roma.util.ImageHandle;
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.message.events.ProduceEvent;
+			import roma.util.ClientUtil;
+			import mx.utils.UIDUtil;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.valueObject.ManufactureBean;
+		
+			[Bindable]
+			private var _bean:ManufactureBean; 
+			[Bindable]
+			private var _needTime:String;
+			[Bindable]
+			private var _imgSrc:String;
+			[Bindable]
+			private var _selectIndex:int;
+			[Bindable]
+			private var _haveSpeedUp:Boolean;
+			[Bindable]
+			private var typeName:String;
+			[Bindable]
+			private var btnToolTip:String;
+			
+			public function set produceBean(b:ManufactureBean):void{
+				_bean = b;
+				_haveSpeedUp = b.havaSpeedUp;
+				_needTime = MultiLang.timeFormatToString(_bean.costTime);
+				_imgSrc =TFHelper.instance.getTfIcon(_bean.type);		
+				typeName = TFHelper.instance.getTfName(_bean.type);
+				
+				this.timeLabel.leftTime = _bean.endTime;
+					
+				if(_haveSpeedUp){
+					this.btnToolTip =MultiLang.msg('public.speed.limit');
+				}else{
+					this.btnToolTip =null;
+				}		
+			}
+			
+			public function get produceBean():ManufactureBean{
+				return _bean;
+			}
+			
+			public function get haveSpeedUp():Boolean{
+				return _haveSpeedUp;
+			}
+			
+			public function speedUpItemSelected():void{
+				if(_haveSpeedUp){
+					MyAlert.show(MultiLang.msg('public.speed.limit'));
+					return;
+				}
+				
+				ItemSelectSpeedUpWin.show(ItemResManager.speedArmyArrayCollection,speedUpProduce);
+			}
+			
+			public function speedUpProduce(rule:ItemRule =null):void{
+				if(rule !=null)
+					ProduceEvent.speedup(TroopTypeList.EVENT_PRODUCE_SPEED,_bean,rule);
+			}
+
+			public function cancelProduce():void{
+				ProduceEvent.cancel(TroopTypeList.EVENT_PRODUCE_CANCEL,_bean);
+				destroy();
+			}
+			
+			public function destroy():void{
+				this.timeLabel.closeTimer();
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas  styleName="smallLogoBG" width="80" height="40" left="5" verticalCenter="0" toolTip="{typeName}">
+		<mx:Image source="{_imgSrc}"  id="iconCon" bottom="3" right="3" 
+			scaleY="{34/46}" scaleX="{74/102}" 
+			updateComplete="ImageHandle.onLoadComplete(event)" top="3" left="3"/>
+	</mx:Canvas>
+	<mx:Canvas width="74" height="12" styleName="blackBG" alpha="0.5" left="8" bottom="8" mouseChildren="false" mouseEnabled="false"/>
+	<mx:Label text="{_bean.number}"
+	  styleName="armyNameSelectLabel"  enabled="false" filters="{[FiltersUtil.glowFilter]}" 
+	  textAlign="right" width="74" left="8" bottom="3" mouseChildren="false" mouseEnabled="false"/>
+		
+	<spreadUI:LeftTimeLabel  id="timeLabel" width="68" textAlign="left" top ="5" left="88"/>
+
+	<mx:Button  width="18" height="18" click="cancelProduce()" styleName="cancleIconBtn" right="5" top="5"/>
+
+	<mx:Button  id="speedUpBtn" width="70" height="18" click="speedUpItemSelected()" styleName="buildingNowSpeedUpBtn" 
+		bottom="5" label="{MultiLang.msg('public.label.speed')}" fontSize="11" textAlign="center" enabled="{!_haveSpeedUp}" toolTip="{this.btnToolTip}" left="88"/>
+</mx:Canvas>

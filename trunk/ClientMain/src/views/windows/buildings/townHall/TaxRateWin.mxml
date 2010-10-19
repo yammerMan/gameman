@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"  xmlns:ui="views.sprendUI.*" creationComplete="init()" xmlns:ns1="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.BufferHandle;
+			import roma.common.constants.BuffConstants;
+			import roma.logic.object.building.impl.TownHall;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			[Bindable]
+			private var curPopulation:int;
+			[Bindable]
+			private var curSupport:int;
+			[Bindable]
+			private var curTaxRate:int;
+			private var submitTaxRate:int;
+			[Bindable]
+			private var townHallObj:TownHall;
+			
+			[Bindable]
+			private var coolDownEndTime:Number;
+			
+			[Bindable]
+			private var coolDownTimeBox:Boolean=false;
+			private var timer:Timer=new Timer(1000);
+			
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.TaxRateWin");
+			
+			
+			private function init():void{
+				this.timer.addEventListener(TimerEvent.TIMER,timerHandle);
+				refresh();
+			}
+			
+			public function refresh():void{
+				addEventListener(KeyboardEvent.KEY_DOWN,keyHandler);	
+				curPopulation=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.curPopulation;
+				curSupport=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.support;
+				curTaxRate=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.texRate;
+				if(this.initialized){
+					this.taxControl.intValue=curTaxRate;
+					this.taxControl.reSize(60);
+				}
+				checkCoolDown();
+			}
+			
+			
+			private function keyHandler(event:KeyboardEvent):void{
+				if(event.keyCode == Keyboard.ENTER&&this.coolDownTimeBox==false){
+					submit();
+				}
+			}
+			
+			public function set buildingObj(obj:TownHall):void{
+				this.townHallObj=obj;
+			}
+			
+			private function submit():void{
+				submitTaxRate=taxControl.curValue;
+				if(this.submitTaxRate>GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.texRate){
+					MyAlert.show(MultiLang.msg("townHall.modifyTax.addTip"),sureToSubmit);
+				}else if(this.submitTaxRate<GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.texRate){
+					MyAlert.show(MultiLang.msg("townHall.modifyTax.reduceTip"),sureToSubmit);
+				}
+			}
+			
+			private function sureToSubmit(_true:Boolean):void{
+				if(_true){
+					this.townHallObj.changeTex(submitTaxRate,checkCoolDown);	
+				}else{
+					submitTaxRate=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.texRate;
+					curTaxRate=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.texRate;
+					this.taxControl.intValue=curTaxRate;
+					this.taxControl.reSize(60);
+				}
+			}
+			
+//			private function focusInHandle(event:FocusEvent):void{
+////				this.taxControl.textSnapshot.setSelected(0,this.taxControl.textSnapshot.charCount,false);
+//				NumericStepper(event.currentTarget).setFocus();
+////				NumericStepper(event.currentTarget).textSnapshot.setSelected(
+//				var ti:TextInput = TextInput(event.currentTarget); 
+//      		    ti.setSelection(0,ti.text.length); 
+//
+//			}
+
+			private function checkCoolDown():void{
+	 			if(BufferHandle.getBuffById(BuffConstants.TAX_MODIFY_COOL_DOWN)!=null){
+					this.coolDownTimeBox=true;	 				
+	 				this.coolDownEndTime = BufferHandle.getBuffById(BuffConstants.TAX_MODIFY_COOL_DOWN).buffBean.endTime;
+	 				if(!this.timer.running)this.timer.start();
+		 		}else{
+		 			this.coolDownTimeBox= false;
+		 		}
+			}
+			
+			private function timerHandle(event:TimerEvent):void{
+				var now:Number = new Date().valueOf();
+				var diff:Number = GameContext.instance.getTimeDis();
+				var remain:Number = (coolDownEndTime + diff - now)/1000 ;
+				
+				if (remain>0) {
+					
+					
+				} else {
+					this.coolDownTimeBox= false;
+					this.timer.stop();
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="220" top="3" left="0" bottom="37" styleName="subContentBG">
+		<mx:VBox height="100%" horizontalAlign="left" left="20" right="10" top="21" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Label text="{MultiLang.msg('townHall.label.changeTax')}:" styleName="titleBordLabel" width="100%"/>
+			<mx:Spacer height="17"/>
+			<mx:HBox horizontalGap="2" width="100%">
+				<mx:VBox horizontalAlign="right" verticalGap="-1">
+					<mx:Label text="{MultiLang.msg('label.population.current')}:" styleName="titleLable" />
+					<mx:Spacer height="10"/>
+					<mx:Label text="{MultiLang.msg('label.support')}:" styleName="titleLable" />
+					<mx:Spacer height="11"/>
+					<mx:Label text="{MultiLang.msg('townHall.label.taxRate')}:" styleName="titleLable" fontStyle="normal" />
+					<mx:Spacer height="11"/>
+					<mx:Label text="{MultiLang.msg('temple.coolDown')}:" styleName="titleLable" visible="{coolDownTimeBox}"/>
+				</mx:VBox>
+				<mx:VBox width="100%" verticalGap="-1">
+					<mx:Label text="{curPopulation}"/>
+					<mx:Spacer height="10"/>
+					<mx:Label text="{curSupport}"/>
+					<mx:Spacer height="10"/>
+					<mx:HBox horizontalGap="0" verticalAlign="middle">
+						<ns1:NumericStepperCustom intValue="{curTaxRate}" maxValue="{100}" id="taxControl">
+						</ns1:NumericStepperCustom>
+						<!--mx:NumericStepper width="65" value="{curTaxRate}" id="taxControl" maximum="100" focusIn="focusInHandle(event)"/-->
+						<mx:Label text="%"/>
+					</mx:HBox>
+					<mx:Spacer height="7"/>
+					<ns1:LeftTimeLabel leftTime="{this.coolDownEndTime}" visible="{coolDownTimeBox}"/>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:Spacer height="10"/>
+			
+		</mx:VBox>
+		<mx:Button label="{MultiLang.msg('public.label.sure')}" click="submit()" width="120" horizontalCenter="0" bottom="36" enabled="{!coolDownTimeBox}"/>	
+		
+	</mx:Canvas>
+	<mx:Canvas left="221" top="3" right="1" bottom="37" styleName="buildingInfoContentBG">
+		<mx:VBox left="18" top="15" right="18" bottom="15" verticalGap="0">
+			<mx:Label text="{MultiLang.msg('townHall.label.changeTax')}:" styleName="titleBordLabel"/>
+			<mx:Spacer height="3"/>
+			<mx:Label text="{MultiLang.msg('townHall.goldIncome',Math.floor(curPopulation*this.taxControl.effectValue*0.01))}" styleName="discritionLabel"/>
+			<mx:Text text="{MultiLang.msg('townHall.taxNotice')}" width="100%" height="100%" textIndent="0"/>
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>

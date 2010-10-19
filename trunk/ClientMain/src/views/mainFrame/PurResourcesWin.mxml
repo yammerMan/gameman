@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow xmlns:functionWins="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" title="{MultiLang.msg('market.BuyWithCoin')}"
+	width="460" height="386" creationComplete="init()" horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:spreadUI="views.spreadUI.*">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import roma.util.ImageHandle;
+			import roma.logic.object.player.PlayerObj;
+			import roma.common.controller.CommonResponse;
+			import roma.common.valueObject.PurchaseResourceBean;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.shop.PurchaseResourceInfoResponse;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			
+			public static const WINDOW_SHOW:String = "buyItemResourceWin.show";
+			private static var log:ILogger = Log.getLogger("views.windows.functionWins.friendly.FriendlyWin");
+			
+			private var cityId:int ;
+			[Bindable]
+			private var bean:PurchaseResourceBean;
+			[Bindable]
+			private var playerObj:PlayerObj = GameContext.instance.getPlayerObj();
+			[Bindable]
+			private var equalTo:String="<>";
+			[Bindable]
+			private var restCount:Number=0;
+			
+			private function init():void{
+				foodNumberStepper.effectValue = 0;
+				woodNumberStepper.effectValue = 0;
+				stoneNumberStepper.effectValue = 0;
+				ironNumberStepper.effectValue = 0;
+			}
+			
+			override public function refresh():void{
+				cityId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				ControllerFactory.getInstance().getShopController().getBuyResourceDetail(cityId,onGetBuyResourceInfo);
+				playerObj = GameContext.instance.getPlayerObj();
+				if(this.initialized){
+					foodNumberStepper.effectValue = 0;
+					woodNumberStepper.effectValue = 0;
+					stoneNumberStepper.effectValue = 0;
+					ironNumberStepper.effectValue = 0;
+				}
+				this.restCount=playerObj.getPlayerInfo().coin;
+			}
+			
+			private function onGetBuyResourceInfo(event:PurchaseResourceInfoResponse):void{
+				if(event.isSuccess()){
+					bean = event.bean;
+				}else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			/**
+			 * 购买资源
+			 */ 
+			private function onBuyClick():void{
+				if(playerObj.getPlayerInfo().coin-int(foodNumberStepper.effectValue)-int(woodNumberStepper.effectValue)-int(stoneNumberStepper.effectValue)-int(ironNumberStepper.effectValue)<0){
+					MyAlert.show(MultiLang.msg('hero.iconNotEnough'));
+					return;
+				}
+				ControllerFactory.getInstance().getShopController().buyResources(cityId,foodNumberStepper.effectValue,woodNumberStepper.effectValue,
+					ironNumberStepper.effectValue,stoneNumberStepper.effectValue,onBuyResourceResponse);
+				function onBuyResourceResponse(event:CommonResponse):void{
+					if(event.isSuccess()){
+						MainContainer.instance.risePlay(MultiLang.msg("buyResource.success"));
+						refresh();
+					}
+					else{
+						MyAlert.showError(event);
+					}
+				}
+			}
+			
+			/**
+			 * 充值
+			 */ 
+			private function onRecharge():void{
+				
+			}
+			
+			//计算剩余的cion
+			public function countRestCoin(c:int):void{
+				this.restCount=playerObj.getPlayerInfo().coin-int(foodNumberStepper.effectValue)-int(woodNumberStepper.effectValue)-int(stoneNumberStepper.effectValue)-int(ironNumberStepper.effectValue)
+				this.restCount=this.restCount>0?this.restCount:0;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas width="284" height="100" styleName="subContentBG" top="30" left="10" right="10">
+		<mx:Label text="{MultiLang.msg('buyWithCoin.exchangeRate')}" top="12" left="10" styleName="titleNameLabel" color="0x593131"/>
+		<mx:Canvas width="287" height="50" styleName="whiteBGwithBorder" horizontalCenter="0" top="33" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:VBox width="100%" height="100%" verticalGap="0">
+				<mx:HBox height="50%" width="100%" horizontalGap="0" >
+					<mx:HBox width="50%" height="100%" horizontalGap="2" verticalAlign="middle">
+						<mx:Label text="1" textAlign="right"/>
+						<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{this.equalTo}"/>
+						<mx:Label text="{bean.unitFood}" width="50" textAlign="right"/>
+						<mx:Image source="{ImgManager.clazz('icon.food')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					</mx:HBox>
+					<mx:VRule height="100%" />
+					<mx:HBox width="50%" height="100%" horizontalGap="2" verticalAlign="middle">
+						<mx:Label text="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{this.equalTo}"/>
+						<mx:Label text="{bean.unitWood}" width="50" textAlign="right"/>
+						<mx:Image source="{ImgManager.clazz('icon.wood')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					</mx:HBox>
+				</mx:HBox>
+				<mx:HRule width="100%" />
+				<mx:HBox height="50%" width="100%" horizontalGap="0" >
+					<mx:HBox width="50%" height="100%" horizontalGap="2" verticalAlign="middle">
+						<mx:Label text="1" textAlign="right"/>
+						<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{this.equalTo}"/>
+						<mx:Label text="{bean.unitStone}" width="50" textAlign="right"/>
+						<mx:Image source="{ImgManager.clazz('icon.stone')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					</mx:HBox>
+					<mx:VRule height="100%" />
+					<mx:HBox width="50%" height="100%" horizontalGap="2" verticalAlign="middle">
+						<mx:Label text="1"/>
+						<mx:Image source="{ImgManager.clazz('icon.coin')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{this.equalTo}"/>
+						<mx:Label text="{bean.unitIron}" width="50" textAlign="right"/>
+						<mx:Image source="{ImgManager.clazz('icon.iron')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+					</mx:HBox>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+	<mx:Canvas top="131" bottom="36" left="10" right="10" styleName="mainWindowContentBG" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox verticalGap="12" left="15" right="15" horizontalScrollPolicy="off" verticalScrollPolicy="off" verticalCenter="0">
+			<mx:HBox horizontalGap="10" verticalAlign="middle" paddingLeft="5" width="100%">
+				<mx:HBox width="130" verticalAlign="middle">
+					<spreadUI:MyNumericStepper id="foodNumberStepper" maxValue="{Math.min(Math.floor(bean.foodRemains/bean.unitFood),this.restCount)}" onInputDataChange="countRestCoin" resize="70"/>
+					<mx:Image source="{ImgManager.clazz('icon.coin')}"/>
+				</mx:HBox>
+				<mx:Label text="{this.equalTo}"/>
+				<mx:Label text="{foodNumberStepper.effectValue*bean.unitFood}" width="60" textAlign="center"/>
+				<mx:Image source="{ImgManager.clazz('icon.food')}" width="25"/>
+				<mx:Label text="{MultiLang.msg('buyWithCoin.forSale{0}',bean.foodRemains-foodNumberStepper.effectValue*bean.unitFood)}"/>
+			</mx:HBox>
+			<mx:HRule width="100%" styleName="bufferBarVRule"/>
+			<mx:HBox horizontalGap="10" verticalAlign="middle" paddingLeft="5" width="100%">
+				<mx:HBox width="130" verticalAlign="middle">
+					<spreadUI:MyNumericStepper id="woodNumberStepper" maxValue="{Math.min(Math.floor(bean.woodRemains/bean.unitWood),this.restCount)}" onInputDataChange="countRestCoin" resize="70"/>
+					<mx:Image source="{ImgManager.clazz('icon.coin')}"/>
+				</mx:HBox>
+				<mx:Label text="{this.equalTo}"/>
+				<mx:Label text="{woodNumberStepper.effectValue*bean.unitWood}" width="60" textAlign="center"/>
+				<mx:Image source="{ImgManager.clazz('icon.wood')}" width="25"/>
+				<mx:Label text="{MultiLang.msg('buyWithCoin.forSale{0}',bean.woodRemains-woodNumberStepper.effectValue*bean.unitWood)}"/>
+			</mx:HBox>
+			<mx:HRule width="100%" styleName="bufferBarVRule"/>
+			<mx:HBox horizontalGap="10" verticalAlign="middle" paddingLeft="5" width="100%">
+				<mx:HBox width="130" verticalAlign="middle">
+					<spreadUI:MyNumericStepper id="stoneNumberStepper" maxValue="{Math.min(Math.floor(bean.stoneRemains/bean.unitStone),this.restCount)}" onInputDataChange="countRestCoin" resize="70"/>
+					<mx:Image source="{ImgManager.clazz('icon.coin')}"/>
+				</mx:HBox>
+				<mx:Label text="{this.equalTo}"/>
+				<mx:Label text="{stoneNumberStepper.effectValue*bean.unitStone}" width="60" textAlign="center"/>
+				<mx:Image source="{ImgManager.clazz('icon.stone')}" width="25"/>
+				<mx:Label text="{MultiLang.msg('buyWithCoin.forSale{0}',bean.stoneRemains-stoneNumberStepper.effectValue*bean.unitStone)}"/>
+			</mx:HBox>
+			<mx:HRule width="100%" styleName="bufferBarVRule"/>
+			<mx:HBox horizontalGap="10" verticalAlign="middle" paddingLeft="5" width="100%">
+				<mx:HBox width="130" verticalAlign="middle">
+					<spreadUI:MyNumericStepper id="ironNumberStepper" maxValue="{Math.min(Math.floor(bean.ironRemains/bean.unitIron),this.restCount)}" onInputDataChange="countRestCoin" resize="70"/>
+					<mx:Image source="{ImgManager.clazz('icon.coin')}"/>
+				</mx:HBox>
+				<mx:Label text="{this.equalTo}"/>
+				<mx:Label text="{ironNumberStepper.effectValue*bean.unitIron}" width="60" textAlign="center"/>
+				<mx:Image source="{ImgManager.clazz('icon.iron')}" width="25"/>
+				<mx:Label text="{MultiLang.msg('buyWithCoin.forSale{0}',bean.ironRemains-ironNumberStepper.effectValue*bean.unitIron)}"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+	
+	<mx:HBox bottom="10" left="12">
+		<mx:Label text="{MultiLang.msg('market.hasCoins')}: " color="0x593131"/>
+		<mx:Text text="{this.restCount}" color="0x000000"/>
+		<mx:Image source="{ImgManager.clazz('icon.coin')}"/></mx:HBox>
+	<mx:HBox bottom="10" right="10" horizontalGap="2">
+		<mx:Button label="{MultiLang.msg('public.label.buy')}" bottom="12" click="onBuyClick()" enabled="{(foodNumberStepper.effectValue+woodNumberStepper.effectValue+stoneNumberStepper.effectValue+ironNumberStepper.effectValue)>0}" 
+			width="110" height="22" horizontalCenter="0"/>
+		<mx:Button label="{MultiLang.msg('public.label.recharge')}" bottom="12" click="ClientMain.recharge()" height="22" horizontalCenter="0"/>
+	</mx:HBox>
+</functionWins:BaseFunctionWindow>

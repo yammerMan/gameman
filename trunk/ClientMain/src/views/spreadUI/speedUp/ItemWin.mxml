@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	creationComplete="init()"
+	click="onClickHandle()"
+	width="320" height="91" 
+    xmlns:ns1="views.spreadUI.speedUp.*" styleName="mainWindowContentBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import mx.utils.StringUtil;
+			import roma.logic.GameContext;
+			import views.spreadUI.tips.SpeedUpItemTooltip;
+			import mx.managers.PopUpManager;
+			import views.spreadUI.tips.ItemOrigintip;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.util.ImageHandle;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import roma.message.events.GoodsSelectEvent;
+			import views.spreadUI.MyAlert;
+			import roma.logic.rule.ItemRule;
+			import roma.common.valueObject.MaterialBean;
+		
+			private static var log:ILogger = Log.getLogger("views.windows.functionWins.myItem.ItemUseWin");
+
+			[Bindable]
+  			public var itemRule:ItemRule;
+  			[Bindable]
+  			public var itemBean:MaterialBean;
+  			
+  			private function init():void{
+  				this.enabled = true;
+  			}
+  			
+  			private function onClickHandle():void {
+				if(itemRule !=null){
+	  				if (itemBean!=null && itemBean.count>0) {
+						MyAlert.show(MultiLang.msg("myItems.sureToUseItem{0}",itemRule.name), itemSpeedUp);
+	  				}
+	  				else {
+	  					if(itemRule.price<=0){
+	  						// 增加奢侈品等，即买不到的物品的判断
+	  						MyAlert.show(MultiLang.msg('myItems.noItems'));
+	  						return;
+	  					}
+						MyAlert.show(MultiLang.msg("myItems.buyForUseItem{0}",itemRule.name), onItemSelectedHandle);
+	  				}
+				}
+  			}
+  			
+  			private function itemSpeedUp(_true:Boolean):void{
+  				if(_true){
+   					this.dispatchEvent(new GoodsSelectEvent(itemRule));
+  				}
+  			}
+  			
+			private function onItemSelectedHandle(ok:Boolean):void {
+				if (ok) {
+                    var b:Boolean = GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(itemRule.itemId);
+                    if(b){
+	  					this.dispatchEvent(new GoodsSelectEvent(itemRule));
+                    }else{
+						MyAlert.show(MultiLang.msg('public.coin.lack'),noCoinReback,MultiLang.msg('systemMsg.getGold'),MultiLang.msg('public.label.cancel'));
+                    }
+				}else{
+	  				this.dispatchEvent(new GoodsSelectEvent(null));
+				}
+				
+				function noCoinReback(ok:Boolean):void{
+					if (ok) {
+						ClientMain.recharge();
+					}else{
+						dispatchEvent(new GoodsSelectEvent(null));
+					}
+				}
+			}
+			
+  			private function onMouseOver(event:MouseEvent):void {
+  				SpeedUpItemTooltip.show(this.itemRule);
+				SpeedUpItemTooltip.instance.onMouseOver(event);
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				SpeedUpItemTooltip.instance.onMouseMove(event);
+			}
+			
+			private function onMouseOut():void{
+				SpeedUpItemTooltip.instance.onMouseOut();
+			}
+		]]>
+	</mx:Script>
+	<mx:Label text="{this.itemRule.name}" left="3" top="2" fontWeight="bold" fontSize="12"/>
+	<mx:HBox right="5" top="4" horizontalGap="3">
+		<ns1:CountWin  account="{this.itemRule.price}" width="100"/>
+		<mx:Button label="{MultiLang.msg('myItems.useItem')}" click="onClickHandle()" styleName="shopForBuyBtn" width="87" height="21"/>
+	</mx:HBox>
+	
+	<mx:Canvas styleName="BuildingAlphaWindow" left="3" top="20" bottom="3" width="124">
+		<mx:Canvas  styleName="bigBuildingLogo"  horizontalCenter="0" verticalCenter="0" width="112" height="56"
+			mouseOver="onMouseOver(event)" 
+			mouseOut="onMouseOut()" 
+			mouseMove="onMouseMove(event)">
+			<mx:Image source="{this.itemRule.itemIcon}"  id="imageField" 
+				x="5" y="5" width="102" height="46"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<mx:Canvas mouseChildren="false" right="2" top="2">
+			<mx:Image source="{ImgManager.clazz('item.countBG.icon')}" right="0" top="0" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label  text="{this.itemBean!=null?this.itemBean.count:'0'}" styleName="titleLevelLabel" right="0" top="5" textAlign="center" width="30"/>
+		</mx:Canvas>	
+	</mx:Canvas>
+	<mx:Text left="137" top="30" styleName="discritionTextArea" text="{this.itemRule.funcDesc}" selectable="false" right="5" bottom="3"/>
+</mx:Canvas>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="140" height="24" xmlns:ui="views.spreadUI.specialContainer.*" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()" mouseOut="this.isOver=false" mouseOver="this.isOver=true">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.util.BufferHandle;
+			import roma.util.FiltersUtil;
+			import roma.util.MultiLang;
+			import roma.logic.object.hero.HeroObj;
+			
+			[Bindable]
+			public var curAction:String;
+			[Bindable]
+			public var remainTimeStr:String;
+			[Bindable]
+			public var iconPath:Class;
+			
+			[Bindable]
+			public var curStateStr:String;
+			[Bindable]
+			public var isOver:Boolean=false;
+			
+			public var armyTpye:int=0;//0自己，1盟军，2敌军
+			
+			public var timeNeed:Number=0;
+			
+			private function init():void{
+				
+			}
+			public function refresh():void{
+				this.getSituation();
+			}
+			public function remainingTime():void{
+				
+			}
+			
+			public function getSituation():void{
+				
+			}
+			public function getArmyAction():String{
+				return "";
+			}
+			
+			public function drawProgressBar(finishTime:Number,timeNeed:Number):void{
+				var imgCls:Class;
+				if(isOver){
+					if(armyTpye==0){
+						imgCls=ImgManager.clazz('buffer.armyTpye.selfOver');
+					}else if(this.armyTpye==1){
+						imgCls=ImgManager.clazz('buffer.armyTpye.friendsOver');
+					}else if(this.armyTpye==2){
+						imgCls=ImgManager.clazz('buffer.armyTpye.enemyOver');
+					}
+				}else{
+					if(armyTpye==0){
+						imgCls=ImgManager.clazz('buffer.armyTpye.selfUp');
+					}else if(this.armyTpye==1){
+						imgCls=ImgManager.clazz('buffer.armyTpye.friendsUp');
+					}else if(this.armyTpye==2){
+						imgCls=ImgManager.clazz('buffer.armyTpye.enemyUp');
+					}
+				}
+				if(this.initialized){
+					BufferHandle.instance.drawTimerBarInAssumpsit(imgCls,28,this.progressBar,88,22,finishTime,timeNeed);
+				}
+			}
+			
+			public function showTip(event:MouseEvent):void{
+				
+			}
+		]]>
+	</mx:Script>
+	<mx:UIComponent id="progressBar" width="88" left="1" top="1" bottom="1"/>
+	<mx:Image source="{this.iconPath}" verticalCenter="0" left="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:VBox verticalGap="-8" left="25" top="-1" bottom="0" right="23">
+		<mx:HBox width="100%">
+			<mx:Label text="{this.curAction}" filters="{[FiltersUtil.glowFilter]}" styleName="samllstyleLabel" width="50%" fontSize="12" color="0xfff799"/>
+			<mx:Label text="{this.curStateStr}" filters="{[FiltersUtil.glowFilter]}" styleName="samllstyleLabel" width="50%" fontSize="12" color="0xfff799"/>
+		</mx:HBox>
+		
+		<mx:Label text="{this.remainTimeStr}" filters="{[FiltersUtil.glowFilter]}" styleName="samllstyleLabel" visible="{this.remainTimeStr==''?false:true}" includeInLayout="{this.remainTimeStr==''?false:true}"/>
+	</mx:VBox>
+	<mx:Button verticalCenter="0" right="0" styleName="checkOutArmyBtn" visible="{this.isOver}" click="showTip(event)" width="21" height="21"/>
+	<!--mx:Button verticalCenter="0" right="0" styleName="checkOutArmyBtn" visible="{this.isOver}" click="showTip()"/-->
+</mx:Canvas>

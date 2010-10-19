@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="245" kerning="true">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.common.valueObject.EquipBean;
+		[Bindable]
+		private var equipBean:EquipBean;
+		[Bindable]
+		private var equipEffectStr:String;
+		
+		public function setEquipBean(bean:EquipBean):void{
+			this.equipBean=bean;
+			this.equipEffectStr="";
+			var tempStr:String="";
+			if(equipBean==null)return;
+			if(this.equipBean.hasOwnProperty("arrowRain")){
+				if(this.equipBean.arrowRain==true){
+					tempStr+=MultiLang.msg("hero.equip.specialEffect.archers");
+				}
+			}
+			if(this.equipBean.hasOwnProperty("blockCavalry")){
+				if(this.equipBean.blockCavalry==true){
+					tempStr+="\n"+MultiLang.msg("hero.equip.specialEffect.triarii");
+				}
+			}
+			if(this.equipBean.hasOwnProperty("heavyArmor")){
+				if(this.equipBean.heavyArmor==true){
+					tempStr+="\n"+MultiLang.msg("hero.equip.specialEffect.urban_cohort");
+				}
+			}
+			if(tempStr!=""){
+				this.equipEffectStr=tempStr;
+			}
+		}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="10" right="10" bottom="10" verticalGap="0">
+		<mx:Label text="{equipBean.name}"  styleName="titleBigBordLabel" color="0x51295e"/>
+		<mx:Spacer height="2"/>
+		<mx:Label text="{MultiLang.msg('hero.equip.life',equipBean.life)}"  styleName="tooltipsTipsLable" visible="{equipBean.life>0}" includeInLayout="{equipBean.life>0}"/>
+		<mx:Label text="{MultiLang.msg('hero.equip.hurt',equipBean.damage)}"  styleName="tooltipsTipsLable" visible="{equipBean.damage>0}" includeInLayout="{equipBean.damage>0}"/>
+		<mx:Label text="{MultiLang.msg('hero.equip.attack',equipBean.attack)}"  styleName="tooltipsTipsLable" visible="{equipBean.attack>0}" includeInLayout="{equipBean.attack>0}"/>
+		<mx:Label text="{MultiLang.msg('hero.equip.defencn',equipBean.defence)}"  styleName="tooltipsTipsLable" visible="{equipBean.defence>0}" includeInLayout="{equipBean.defence>0}"/>
+		<mx:Label text="{MultiLang.msg('hero.equip.longDisTime',equipBean.attackTimes)}"  styleName="tooltipsTipsLable" visible="{equipBean.attackTimes>0}" includeInLayout="{equipBean.attackTimes>0}"/>
+		<mx:HBox width="100%" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.equip.specialEffect')}"  styleName="tooltipsTipsLable" visible="{this.equipEffectStr!=''}" includeInLayout="{this.equipEffectStr!=''}"/>
+			<mx:Text htmlText="{this.equipEffectStr}" width="100%" styleName="tooltipsTipsLable"/>
+		</mx:HBox>
+		<mx:Spacer height="5"/>
+		<mx:Text text="{equipBean.funcDesc}" color="0x9b4b1a" width="100%"/>
+	</mx:VBox>
+</BaseTip>

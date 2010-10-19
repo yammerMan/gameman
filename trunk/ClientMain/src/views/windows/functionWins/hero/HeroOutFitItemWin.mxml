@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="338" height="325" creationComplete="init()" styleName="subContentBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.EquipBean;
+			import roma.logic.RomaConstants;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.message.EvtDispacther;
+			import mx.events.MenuEvent;
+			import mx.controls.Menu;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import mx.controls.Button;
+			import roma.logic.object.hero.HeroObj;
+			[Bindable]
+			private var hero:HeroObj;
+			[Bindable]
+			private var curPage:int=0;
+			[Bindable]
+			private var totalPage:int=0;
+			private var itemArr:ArrayCollection=new ArrayCollection;
+			
+			private var headArr:ArrayCollection=new ArrayCollection;
+			private var necklaceArr:ArrayCollection=new ArrayCollection;
+			private var closeArr:ArrayCollection=new ArrayCollection;
+			private var shoesArr:ArrayCollection=new ArrayCollection;
+			private var lefthandArr:ArrayCollection=new ArrayCollection;
+			private var righthandArr:ArrayCollection=new ArrayCollection;
+			private var mountsArr:ArrayCollection=new ArrayCollection;
+			private var ringArr:ArrayCollection=new ArrayCollection;
+			private var caestusArr:ArrayCollection=new ArrayCollection;
+			private var accessoriesArr:ArrayCollection=new ArrayCollection;
+			
+			
+			
+			
+			
+			
+			private var curEquipTpye:int=HeroHelper.OUTFIT_TYPE_ALLEQUIP;
+			private var curItemArr:ArrayCollection=new ArrayCollection;
+			
+			private var myMenu:Menu;
+			private var myMenuData:XML;
+			private var point1:Point = new Point();
+			
+			private function onMouseClick(event:MouseEvent):void{
+				this.setBtnUpState();
+				Button(event.target).selected = true;
+			}
+			private function setBtnUpState():void{
+				for each(var btn:Button in btnContainer.getChildren()){
+					btn.selected=false;
+				}
+			}
+			private function init():void{
+				//setBtnUpState();
+				setOutfitItem();
+				this.showItemNameCheckBox.selected=HeroHelper.instance.showItemName;
+				this.showAllTypeCheckBox.selected=HeroHelper.instance.showAllTypeItem;
+				this.colorRadio.enabled=!HeroHelper.instance.showAllqualityItem;
+				EvtDispacther.instance.addEventListener(EvtDispacther.HERO_EQUIP_CHANGE,equipChangHandle);
+				if(EquipHelper.instance.getPlayerEquipsArray().length>0){
+					equipChangHandle();
+				}
+			}
+			
+			private function initWin():void{
+				headArr.removeAll();
+				necklaceArr.removeAll();
+				closeArr.removeAll();
+				shoesArr.removeAll();
+				lefthandArr.removeAll();
+				righthandArr.removeAll();
+				mountsArr.removeAll();
+				ringArr.removeAll();
+				caestusArr.removeAll();
+				accessoriesArr.removeAll();
+				for each(var bean:EquipBean in this.itemArr){
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_HEAD)){
+						headArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_NECKLACE)){
+						necklaceArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_CLOSE)){
+						closeArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_SHOES)){
+						shoesArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_LEFTHAND)){
+						lefthandArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_RIGHTHAND)){
+						righthandArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_MOUNTS)){
+						mountsArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_RING)){
+						ringArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_CAESTUS)){
+						caestusArr.addItem(bean);
+					}
+					if(bean.type==String(HeroHelper.OUTFIT_TYPE_ACCESSORIES)){
+						accessoriesArr.addItem(bean);
+					}
+				}
+				setCurSelectEquipArr(curEquipTpye);
+			}
+			
+			private function setCurSelectEquipArr(type:int):void{
+				this.curEquipTpye=type;
+				if(type==HeroHelper.OUTFIT_TYPE_HEAD){
+					this.curItemArr=headArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_NECKLACE){
+					this.curItemArr=necklaceArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_CLOSE){
+					this.curItemArr=closeArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_SHOES){
+					this.curItemArr=shoesArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_LEFTHAND){
+					this.curItemArr=lefthandArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_RIGHTHAND){
+					this.curItemArr=righthandArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_MOUNTS){
+					this.curItemArr=mountsArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_RING){
+					this.curItemArr=ringArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_CAESTUS){
+					this.curItemArr=caestusArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_ACCESSORIES){
+					this.curItemArr=accessoriesArr;
+				}
+				if(type==HeroHelper.OUTFIT_TYPE_ALLEQUIP){
+					this.curItemArr=itemArr;
+				}
+				countCurPage();
+				showItem();
+			}
+			
+			
+			private function equipChangHandle(event:Event=null):void{
+				EquipHelper.instance.getAllEquipsBeanToTarget(this.itemArr);
+				initWin();
+			}
+			
+			public function set setHero(h:HeroObj):void{
+				this.hero=h;
+				EquipHelper.instance.getPlayerEquip();
+			}
+			
+			public function setOutfitItem():void{
+				for(var i:int=0;i<HeroHelper.OUTFIT_SHOW_INONEPAGE;i++){
+					var item:HeroOutFitItemUI=new HeroOutFitItemUI();
+					item.showMenu=this.showMenu;
+					item.showName=HeroHelper.instance.showItemName;
+					this.itemContainer.addChild(item);
+				}
+			}
+			
+			//计算当前类别的页数情况
+			private function countCurPage():void{
+				this.curPage=this.curItemArr.length>0?1:0;
+				this.totalPage=Math.ceil(this.curItemArr.length/RomaConstants.EQUIP_IN_ONPAGE);
+			}
+			
+			//显示选中的页数
+			private function showPage(page:int):void{
+				if(curItemArr==null)return;
+				var changePage:int=this.curPage+page;
+				if(changePage>=1&&changePage<=this.totalPage){
+					this.curPage+=page;
+					showItem();
+				}
+				
+			}
+			
+			private function showItem():void{
+				var startNum:int=(this.curPage-1)*HeroHelper.OUTFIT_SHOW_INONEPAGE;
+				var endNum:int=this.curItemArr.length>this.curPage*HeroHelper.OUTFIT_SHOW_INONEPAGE?this.curPage*HeroHelper.OUTFIT_SHOW_INONEPAGE:this.curItemArr.length;
+				for each (var ui:HeroOutFitItemUI in this.itemContainer.getChildren()) {
+					ui.setRule(null);
+				}	
+				if(this.curItemArr.length>0){
+					for(var j:int=startNum;j<endNum;j++){
+						HeroOutFitItemUI(this.itemContainer.getChildAt(j%RomaConstants.EQUIP_IN_ONPAGE)).setRule(this.curItemArr[j]);
+/* 						EquipInShop(this["equipsInShop"+j%RomaConstants.EQUIP_IN_ONPAGE]).refreshItemCount(); */
+					}
+				}
+			}
+			
+			 public function showMenu(event:MouseEvent,itemId:int=1):void {
+			 	if(myMenuData==null){
+			 		creatXml();
+			 	}
+			 	
+			 	
+			 	
+                myMenu= Menu.createMenu(this, myMenuData, false);
+                myMenu.labelField="@label";
+                myMenu.addEventListener("itemClick", menuHandler);
+                
+                // Calculate position of Menu in Application's coordinates. 
+                point1.x=event.currentTarget.mouseX;
+                point1.y=event.currentTarget.mouseY;                
+                point1=event.currentTarget.localToGlobal(point1);
+                myMenu.show(point1.x - 25, point1.y + 25);
+			 	
+            }
+            
+            private function creatXml():void{
+            	var dataString:String="<root>";
+        		dataString+="<menuitem label="+"\""+MultiLang.msg("hero.outfit.verb")+"\""+" data="+"\""+"hero.outfit.verb"+"\"/>";
+            	dataString+="<menuitem label="+"\""+MultiLang.msg("hero.outfitCallback")+"\""+" data="+"\""+"hero.outfitCallback"+"\"/>";
+            	dataString+="</root>";
+            	myMenuData=XML(dataString);
+            }
+            
+             private function menuHandler(event:MenuEvent):void  {
+				var str:String=String(event.item.@data);
+				switch(str){
+					case "hero.outfit.verb":
+						if(EquipHelper.instance.canHandleEquip(hero)){
+							ControllerFactory.getInstance().getEquipController().equipForHero(HeroHelper.instance.curSelectHero.castleObj.cityId,HeroHelper.instance.curSelectHero.heroInfo.id,EquipHelper.instance.curSelectEquip.type,equipForHeroCallback);
+							
+						}
+					break;
+					
+					case "hero.outfitCallback":
+						if(EquipHelper.instance.canHandleEquip(hero)){
+							ControllerFactory.getInstance().getEquipController().destroyEquip(EquipHelper.instance.curSelectEquip.type,destroyEquipCallback);
+							
+						}
+					break;
+					
+					default:
+				}
+             }
+             
+             private function equipForHeroCallback(event:CommonResponse):void{
+             	if(!event.success){
+             		MyAlert.showError(event);
+             	}else{
+             		EquipHelper.instance.getPlayerEquip();
+             	}
+             }
+             
+             private function destroyEquipCallback(event:CommonResponse):void{
+             	if(!event.success){
+             		MyAlert.showError(event);
+             	}else{
+             		EquipHelper.instance.getPlayerEquip();
+             	}
+             }
+             
+             private function showAllTypeCheckBoxHandle():void{
+             	HeroHelper.instance.showAllqualityItem=!HeroHelper.instance.showAllqualityItem;
+             	this.colorRadio.enabled=!HeroHelper.instance.showAllqualityItem;
+             }
+             
+              private function showItemNameCheckBoxHandle():void{
+             	HeroHelper.instance.showItemName=!HeroHelper.instance.showItemName;
+             	for each(var itemUI:HeroOutFitItemUI in this.itemContainer.getChildren()){
+             		itemUI.showName=HeroHelper.instance.showItemName;
+             	}
+             }
+		]]>
+	</mx:Script>
+	<mx:VBox left="11" top="11" bottom="11" right="11" verticalGap="0">
+		<mx:HBox width="100%" height="25" horizontalGap="2" verticalAlign="middle">
+			<mx:Spacer width="8"/>
+			<mx:CheckBox toolTip="{MultiLang.msg('hero.outfitSelectAllTip')}" click="showAllTypeCheckBoxHandle()" id="showAllTypeCheckBox" visible="false"/>
+			<mx:RadioButtonGroup id="colorRadio"/>
+			<mx:RadioButton styleName="grayRadio" groupName="colorRadio" visible="false"/>
+			<mx:RadioButton styleName="greenRadio" groupName="colorRadio" visible="false"/>
+			<mx:RadioButton styleName="blueRadio" groupName="colorRadio" visible="false"/>
+			<mx:RadioButton styleName="purpleRadio" groupName="colorRadio" visible="false"/>
+			<mx:RadioButton styleName="purpleRadio" groupName="colorRadio" visible="false"/>
+			<mx:Spacer width="100%"/>
+			<mx:CheckBox label="{MultiLang.msg('hero.showItemName')}" click="showItemNameCheckBoxHandle()" id="showItemNameCheckBox"/>
+			<mx:Spacer width="8"/>
+		</mx:HBox>
+		<mx:Canvas id="descView" top="170" width="100%" bottom="35" left="2">
+			<mx:HBox left="10" horizontalGap="0" top="0" styleName="tecTitleBG" right="10" height="23">
+				<mx:Spacer width="5"/>
+				<mx:HBox horizontalGap="0" width="100%" id="btnContainer">
+					<!--mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_ALLEQUIP);" styleName="tabBtn" selected="true" icon="{ImgManager.clazz('hero.outfit.btnType.showAll')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_HEAD);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.lefthand')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_NECKLACE);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.righthand')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_CLOSE);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.head')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_SHOES);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.close')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_LEFTHAND);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.caestus')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_RIGHTHAND);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.ring')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_MOUNTS);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.shoes')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_RING);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.necklace')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_CAESTUS);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.accessories')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_ACCESSORIES);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.mounts')}"/-->
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_ALLEQUIP);" styleName="tabBtn" selected="true" icon="{ImgManager.clazz('hero.outfit.btnType.showAll')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_LEFTHAND);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.lefthand')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_RIGHTHAND);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.righthand')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_HEAD);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.head')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_CLOSE);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.close')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_CAESTUS);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.caestus')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_RING);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.ring')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_SHOES);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.shoes')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_NECKLACE);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.necklace')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_ACCESSORIES);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.accessories')}"/>
+					<mx:Button height="23" width="26" click="onMouseClick(event);setCurSelectEquipArr(HeroHelper.OUTFIT_TYPE_MOUNTS);" styleName="tabBtn" icon="{ImgManager.clazz('hero.outfit.btnType.mounts')}"/>
+				</mx:HBox>
+			</mx:HBox>
+			<mx:Tile id="itemContainer" left="1" right="1" top="24" height="225" horizontalGap="0" verticalGap="0" paddingLeft="8">
+			</mx:Tile>
+		</mx:Canvas>
+		<mx:Spacer height="3"/>	
+		<mx:HBox horizontalGap="0" visible="{this.curPage==0?false:true}" includeInLayout="{this.curPage==0?false:true}" verticalCenter="0" left="55" width="100%" horizontalAlign="center">
+			<mx:Button id="previousBtn" styleName="previousBtn" click="showPage(-1)"/>
+			<mx:Label width="50" text="{this.curPage}/{this.totalPage}" textAlign="center" styleName="titleBordLabel"/>
+			<mx:Button id="nextBtn" styleName="nextBtn" click="showPage(1)"/>
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>

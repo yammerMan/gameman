@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			public function set contents(str:String):void{
+				this.questText.text = str;
+			}
+			
+			public function set iconSource(str:String):void{
+				this.finishIcon.source = ImgManager.clazz(str);
+			}
+			
+			public function set selected(str:String):void{
+				this.styleName = str;
+				if(str != ""){
+					this.questText.styleName = "normalBoldLabel";
+				}else{
+					this.questText.styleName = "Label";
+				}
+			}
+		]]> 
+	</mx:Script>
+	<mx:Label id="questText" horizontalCenter="0"/>
+	<mx:Image id="finishIcon" right="5" updateComplete="ImageHandle.onLoadComplete(event)"/>
+</mx:Canvas>

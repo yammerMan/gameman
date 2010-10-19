@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="19" height="19">
+	<mx:Image left="0" right="0" top="0" bottom="0" source="{this.imgSource}" updateComplete="ImageHandle.onLoadComplete(event)">
+		
+	</mx:Image>
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			[Bindable]
+			private var imgSource:string;
+			public function set source(str:String):void{
+				this.imgSource=str;
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

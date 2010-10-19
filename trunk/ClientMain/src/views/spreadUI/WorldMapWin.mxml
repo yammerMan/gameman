@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="550" height="550" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.util.PopupWinManager;
+			private static var instancePopup:WorldMapWin = new WorldMapWin();
+			[Bindable]
+			private var mapSource:*;
+			private function init():void{
+				instancePopup=this;
+				this.mapSource=CaesaryConfig.instance.isEn?ImgManager.clazz("background.mapEn"):ImgManager.clazz("background.mapCn");
+			}
+			
+			public static function show(modal:Boolean=true):void {
+  				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,modal);
+				}
+  			}
+  			
+  			private function closeWinHandle():void{
+  				PopupWinManager.instance.removePopup(this);
+  			}
+		]]>
+	</mx:Script>
+	<mx:Image verticalCenter="0" horizontalCenter="0" source="{this.mapSource}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	<mx:Button styleName="closeBtn" right="0" top="0" click="closeWinHandle()"/>
+</mx:Canvas>

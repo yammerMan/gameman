@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:util="views.util.*" title="{MultiLang.msg('myItems.useItem')}" setPopUp="false" creationComplete="init()"
+	xmlns:spreadUI="views.spreadUI.*"
+	width="365" height="268">
+		<mx:Script>
+		<![CDATA[
+			import roma.common.controller.alliance.SelfAllianceInfoResponse;
+			import roma.logic.object.castle.ItemHelp;
+			import roma.logic.CaesaryConfig;
+			import roma.message.events.UseItemEvent;
+			import views.MainContainer;
+			import views.spreadUI.playerInfo.PasswordInput;
+			import views.windows.functionWins.turntable.Turntable;
+			import roma.common.constants.ItemConstant;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import roma.common.constants.AllianceConstant;
+			import roma.common.constants.BuffConstants;
+			import views.spreadUI.tips.ItemOrigintip;
+			import views.PopupWindows;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.util.ClientUtil;
+			import views.spreadUI.tips.ItemDescTooptip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.util.ImageHandle;
+			import roma.util.FiltersUtil;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.GameContext;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.util.PopupWinManager;
+			import roma.logic.rule.ItemRule;
+			
+			
+			[Bindable]
+  			private var rule:ItemRule;
+			
+			[Bindable]
+			private var itemBean:MaterialBean;
+  			
+  			private var itemDescTooptip:ItemDescTooptip = ToolTipContainer.instance.itemDescTooptip;
+  			
+  			private var cityId:int ;
+  			private var zone:int;
+
+ 			private var idField:int;
+ 			
+ 			public static var instance:ItemUseWin;
+ 			
+ 			[Bindable]
+ 			private var effectValue:Boolean=false;
+ 			
+ 			private var effectValueArray:Array=new Array("_number.player.box.gambling.medal.10",
+															 "_number.player.box.gambling.food.40000",
+															 "_number.player.box.gambling.wood.40000",
+															 "_number.player.box.gambling.stone.40000",
+															 "_number.player.box.gambling.iron.40000",
+															 "_number.player.box.gambling.gold.20000",
+															 "player.box.gambling.hero.3",
+															 "_number.player.box.gambling.medal.30",
+															 "_number.player.box.gambling.food.80000",
+															 "_number.player.box.gambling.wood.80000",
+															 "_number.player.box.gambling.stone.80000",
+															 "_number.player.box.gambling.iron.80000",
+															 "_number.player.box.gambling.gold.40000",
+															 "_number.player.box.gambling.hero.4",
+															 "_number.player.box.gambling.medal.50",
+															 "_number.player.box.gambling.food.120000",
+															 "_number.player.box.gambling.wood.120000",
+															 "_number.player.box.gambling.stone.120000",
+															 "_number.player.box.gambling.iron.120000",
+															 "_number.player.box.gambling.gold.60000",
+															 "player.box.gambling.hero.5",
+															 "_number.player.box.gambling.medal.100",
+															 "_number.player.box.gambling.food.160000",
+															 "_number.player.box.gambling.wood.160000",
+															 "_number.player.box.gambling.stone.160000",
+															 "_number.player.box.gambling.iron.160000",
+															 "_number.player.box.gambling.gold.80000",
+															 "player.box.gambling.hero.6",
+															 "_number.player.box.gambling.medal.300",
+															 "_number.player.box.gambling.food.200000",
+															 "_number.player.box.gambling.wood.200000",
+															 "_number.player.box.gambling.stone.200000",
+															 "_number.player.box.gambling.iron.200000",
+															 "_number.player.box.gambling.gold.100000",
+															 "player.box.gambling.hero.7",
+															 "_number.player.box.gambling.medal.1000",
+															 "_number.player.box.gambling.food.240000",
+															 "_number.player.box.gambling.wood.240000",
+															 "_number.player.box.gambling.stone.240000",
+															 "_number.player.box.gambling.iron.240000",
+															 "_number.player.box.gambling.gold.120000",
+															 "player.box.gambling.hero.8",
+															 "_number.player.box.gambling.food.320000",
+															 "_number.player.box.gambling.wood.320000",
+															 "_number.player.box.gambling.stone.320000",
+															 "_number.player.box.gambling.iron.320000",
+															 "_number.player.box.gambling.gold.160000",
+															 "Battalion.1",
+															 "Battalion.2",
+															 "Battalion.3",
+															 "player.box.troop.1",
+															 "Triarii.1",
+															 "Triarii.2",
+															 "Triarii.3",
+															 "Archers.1",
+															 "Archers.2",
+															 "Archers.3",
+															 "UrbanCohort.1",
+															 "UrbanCohort.2",
+															 "UrbanCohort.3",
+															 "Scout.1",
+															 "Scout.2",
+															 "Scout.3",
+															 "Cavalry.1",
+															 "Cavalry.2",
+															 "Cavalry.3",
+															 "Ballista.1",
+															 "Ballista.2",
+															 "Ballista.3",
+															 "Onagers.1",
+															 "Onagers.2",
+															 "Onagers.3",
+															 "200fun",
+															 "discuss",
+															 "now",
+															 "pub",
+															 "yahoo",
+															 "Nakuz",
+															 "_number.player.box.gambling.medal.1",
+															 "_number.player.box.gambling.medal.3",
+															 "_number.player.box.gambling.medal.5"
+															
+			);
+ 			
+ 			private function init():void{
+ 				instance = this;
+ 			}
+ 	
+  			/**
+  			 * 处理确定提交事件
+  			 */
+  			private function submitHandler():void{
+ 				if (this.rule.isPlayerItem || itemBean.id == "moveCastleAdv" || itemBean.id == "moveCastle") {
+ 					if(itemBean.id == "moveCastleAdv"){
+ 						if(this.coorX.text == "" && this.coorY.text == ""){
+ 							MyAlert.show(MultiLang.msg('myItems.moveCastleAdv.useWarm'));
+ 							return;
+ 						}else{
+ 							idField = int(coorX.text)*10000 + int(coorY.text);
+ 							MyAlert.show(MultiLang.msg('myItems.moveCastleAdv.toCoor{0}{1}{2}',rule.name,this.coorX.text,this.coorY.text),onAdvMoveCastle);
+ 						}
+ 					} else if(itemBean.id == "moveCastle"){
+ 						MyAlert.show(MultiLang.msg('myItems.sureToUseItem{0}',rule.name),onMoveCastle);
+ 					}  /* else if(itemBean.id == "Battalion.1"){
+ 						AlertWin.show(Lang.msg('item.useTip.smallArmyPackage',rule.name),onUseItem);
+ 					}else if(itemBean.id == "Battalion.2"){
+ 						AlertWin.show(Lang.msg('item.useTip.middleArmyPackage',rule.name),onUseItem);
+ 					}else if(itemBean.id == "Battalion.3"){
+ 						AlertWin.show(Lang.msg('item.useTip.bigArmyPackage',rule.name),onUseItem);
+ 					}  */
+ 					else if(ItemHelp.getArmyItemsConsumeHours(itemBean.id)>0){
+ 						MyAlert.show(MultiLang.msg("item.useTip.common",ItemHelp.getArmyItemsConsumeHours(itemBean.id),rule.name),onUseItem);
+ 					}
+ 					else if(itemBean.id == "incAllianceLimitTo100"||itemBean.id == "incAllianceLimitTo200"||itemBean.id == "incAllianceLimitTo300"){
+ 						if(GameContext.instance.getPlayerObj().getPlayerInfo().allianceRight>=AllianceConstant.ALLIANCE_TITLE_VICE_CHIEF){
+	 						getLeagueInfo();
+ 						}else{
+ 							MyAlert.show(MultiLang.msg("myItems.allianceUpdate.tip"));
+ 						}
+
+ 					}else if(itemBean.id =="player.peace.1"){
+						PasswordInput.show(sureToUsePeace);
+					}else{
+ 						MyAlert.show(MultiLang.msg('myItems.sureToUseItem{0}',rule.name),onUseItem);
+ 					}
+ 					
+ 					function sureToUsePeace():void{
+			  			onUseItem(true);
+			  		}
+ 					
+ 					function onAdvMoveCastle(isTrue:Boolean):void{
+ 						if (!isTrue){
+ 							return;
+ 						}
+ 						if(GameContext.instance.getPlayerObj().getCurCastleObj().buffManager.getBuffById(BuffConstants.CASTLE_ADV_MOVE)!=null){
+ 							MyAlert.show(MultiLang.msg('buff.moveCity.coolDown'));
+ 							return;
+ 						}
+ 						ControllerFactory.getInstance().getCityController().advTransCastle(cityId,idField,onAdvMoveCastleResponse);
+ 					}
+ 					
+ 					function onMoveCastle(isTrue:Boolean):void{
+ 						if (!isTrue){
+ 							return;
+ 						}
+ 						instance.visible=false;
+ 						MoveCastleWin.show();
+ 					}
+ 					
+								
+ 					function onAdvMoveCastleResponse(event:CommonResponse):void{
+ 						if(event.isSuccess()){
+							DiamondWorldMap2.instance.goPoint(int(coorX.text),int(coorY.text));
+							PopupWindows.closeAll();
+ 							MainContainer.instance.risePlay(MultiLang.msg('myItems.moveCastleAdv.success'));
+ 						}else{
+ 							MyAlert.showError(event);
+ 						}
+ 					}
+				}else{
+					if(itemBean.id == ItemConstant.ROLETTE_ITEM && CaesaryConfig.instance.isRoll){
+						Turntable.getInstance().show(true);
+						instance.visible=false;
+					}
+				}
+  			}
+ 			private function onUseItem(isTrue:Boolean):void{
+ 				if (!isTrue){
+ 					return;
+ 				}
+ 				EvtDispacther.instance.dispatchEvent(new UseItemEvent(UseItemEvent.USE_ITEM,this.itemBean,int(useNumText.effectValue)));
+ 			}
+  			
+  			//请求获取联盟信息
+			private function getLeagueInfo():void{
+				ControllerFactory.getInstance().getAllianceController().getSelfAllianceInfo(onGetAllianceInfoDataBean,false);
+			}
+			/**
+			 * 获得联盟信息
+			 */ 
+			private function onGetAllianceInfoDataBean(event:SelfAllianceInfoResponse):void{
+				if(event.isSuccess()){
+					if(event.leagueInfo.allianceLev<AllianceConstant.ALLIANCE_LEVEL_FINAL_LEVEL){
+						MyAlert.show(MultiLang.msg('myItems.sureToUseItem{0}',rule.name),onUseItem);
+					}else{
+						if(this.itemBean.id=="incAllianceLimitTo100"&&event.leagueInfo.limit==100){
+							MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",100));
+							return;
+						}else if(this.itemBean.id=="incAllianceLimitTo100"&&event.leagueInfo.limit==0){
+							MyAlert.show(MultiLang.msg('alliance.updateLimit'));
+							return;
+						}else if(this.itemBean.id=="incAllianceLimitTo200"&&event.leagueInfo.limit==200){
+							MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",200));
+							return;
+						}else if(this.itemBean.id=="incAllianceLimitTo300"&&event.leagueInfo.limit==300){
+							MyAlert.show(MultiLang.msg("alliance.updateTip.alreadyToLimit",300));
+							return;
+						}
+						onUseItem(true);
+					}
+				}
+			}
+  			
+  			public function getItemId():String {
+				return this.itemBean.id;
+			}
+			
+			public  function show(itemBean:MaterialBean):void {
+  				this.itemBean = itemBean;
+  				checkCanGroupUse(itemBean);
+  				this.rule=GameRuleHelper.instance.getItemRuleById(itemBean.id);
+  				if(itemBean.id == "moveCastleAdv"){
+					this.height = 300;
+  				}else{
+  					this.height = 268;
+  				}
+  				
+  				this.cityId = GameContext.instance.getPlayerObj().getCurCastleObj().getCityId();
+  				if(this.initialized){
+  					this.useNumText.effectValue=1;
+  					this.useNumText.reSize(60);
+  				}
+  			}
+  			
+  			private function checkCanGroupUse(itemBean:MaterialBean):void{
+  				this.effectValue=false;
+  				for each(var item:String in this.effectValueArray){
+  					if(item==itemBean.id){
+  						this.effectValue=true;
+  						break;
+  					}
+  				}
+  			}
+  			
+			private function onMouseOver(event:MouseEvent):void {
+				this.itemDescTooptip.setRule(this.rule);
+				this.itemDescTooptip.onMouseOver(event);
+			}
+		]]>
+	</mx:Script>
+		<mx:Canvas left="15" top="35" bottom="42" right="15" styleName="alphaBlackBG">
+			<!-- 物品描述-->
+			<mx:Canvas width="183" height="101" top="10" left="3">
+				<mx:Canvas  styleName="bigBuildingLogo"  left="12" top="3" width="160" height="77" mouseOver="onMouseOver(event)" 
+					mouseOut="this.itemDescTooptip.onMouseOut()" 
+					mouseMove="this.itemDescTooptip.onMouseMove(event)">
+					<mx:Image source="{this.rule.itemIcon}"  id="imageField" top="5" left="5" bottom="5" right="5" scaleY="{67/67}" scaleX="{150/150}"
+						updateComplete="ImageHandle.onLoadComplete(event)"/>
+				</mx:Canvas> 
+			</mx:Canvas>
+
+			<!-- 确认购买 -->			 
+			<mx:VBox right="12" top="10" verticalGap="3" width="140" horizontalAlign="right">
+				<!--mx:Label text="{this.rule.name}"
+					width="100%" textAlign="center"/-->
+				<mx:Text text="{this.rule.name}"
+					width="100%" textAlign="center" styleName="specialNoticeLabel"/>
+				<mx:HBox horizontalGap="0" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:VBox height="100%" verticalGap="3">
+						<mx:Label text="{MultiLang.msg('public.label.amount')}" />
+					</mx:VBox>
+					<mx:VBox height="100%" verticalGap="3">
+						<mx:Label text="{this.itemBean.count}"/>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
+			
+			<mx:TextArea text="{this.rule.funcDesc}"
+				 left="12" right="12" top="100" height="80" textAlign="left" editable="false" styleName="discritionWithBorderTextArea" />
+			<!-- 输入框 -->		
+			<mx:HBox bottom="15" visible="{itemBean.id == 'moveCastleAdv'}" includeInLayout="{itemBean.id == 'moveCastleAdv'}" horizontalGap="3" left="12">
+				<mx:Label text="{MultiLang.msg('myItems.moveCastleAdv.coordinate.label')}: "/>
+				<mx:Label text="X" textAlign="center" width="15" fontWeight="bold"/>
+				<mx:TextInput id="coorX" width="60" maxChars="3" restrict="0-9"/>
+				<mx:Label text="Y" textAlign="center" width="15" fontWeight="bold"/>
+				<mx:TextInput id="coorY" width="60" maxChars="3" restrict="0-9"/>
+			</mx:HBox>	 
+		</mx:Canvas>
+		<mx:Button label="{MultiLang.msg('myItems.clickForUse')}"
+			click="submitHandler()" 
+			bottom="17" visible="{this.rule.isPlayerItem || itemBean.id == 'moveCastleAdv' || itemBean.id == 'moveCastle' || itemBean.id == ItemConstant.ROLETTE_ITEM }" width="110" right="15"/>
+		<mx:HBox left="15" bottom="17" verticalAlign="middle" visible="{effectValue}">
+				<mx:Label text="{MultiLang.msg('myItems.groupUse')}:"/>
+				<spreadUI:MyNumericStepper id="useNumText" maxValue="{this.itemBean.count>=1000?999:this.itemBean.count}" valueMin="1"/>
+		</mx:HBox>
+</functionWins:BasePopUpWindow>

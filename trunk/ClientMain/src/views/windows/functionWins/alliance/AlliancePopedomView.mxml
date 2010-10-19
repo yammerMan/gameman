@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()"
+	xmlns:util="views.util.*" title="{MultiLang.msg('alliance.popedomList')}"
+	width="700" height="180" xmlns:imageLogo="views.windows.functionWins.alliance.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.PopupWinManager;
+			import mx.collections.ArrayCollection;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var popedomData:ArrayCollection=new ArrayCollection();
+			private static var instancePopup:AlliancePopedomView = new AlliancePopedomView();
+			private function init():void{
+				instancePopup=this;
+				this.popedomData.addItem(new AlliancePopedomDepends(5));
+				this.popedomData.addItem(new AlliancePopedomDepends(4));
+				this.popedomData.addItem(new AlliancePopedomDepends(3));
+				this.popedomData.addItem(new AlliancePopedomDepends(2));
+				this.popedomData.addItem(new AlliancePopedomDepends(1));
+			}
+			
+			public static function show(modal:Boolean=true):void {
+  				if (!instancePopup.isPopUp) {
+					PopupWinManager.instance.addPopup(instancePopup,modal);
+				}
+  			}
+		]]>
+	</mx:Script>
+	<mx:DataGrid dataProvider="{popedomData}" left="12" top="36" right="12" bottom="12" headerHeight="22" rowHeight="21"
+					editable="false" resizableColumns="false" draggableColumns="false"  sortableColumns="false" textAlign="center" selectable="false">
+		<mx:columns>
+			<mx:DataGridColumn  headerText="{MultiLang.msg('alliance.post')}">
+			<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<mx:Label text="{AlliancePopedomDepends(data).position}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.voice" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).voice}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.ruler" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).ruler}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.demission" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).demission}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.changeInfo" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).modifyInfo}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.soldiership" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).soldiership}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.dub" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).dub}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.demise" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).demise}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn  headerText="alliance.quit" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).quitAlliance}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="alliance.disbandAlliance" headerRenderer="views.spreadUI.TooltipLabel">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox left="1" right="1" top="1" bottom="1" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<imageLogo:AlliancePopedom popedom="{AlliancePopedomDepends(data).disbandAlliance}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+</functionWins:BasePopUpWindow>

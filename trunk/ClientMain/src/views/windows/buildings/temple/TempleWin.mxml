@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow xmlns:buildings="views.windows.buildings.*" 
+	 xmlns:mx="http://www.adobe.com/2006/mxml"  xmlns:ns1="views.spreadUI.*"
+	 xmlns:upgradWin="views.windows.buildings.townHall.*"  
+	 xmlns:temple="views.windows.buildings.temple.*" width="820" height="280" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.GameContext;
+			import roma.logic.object.building.impl.Temple;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.util.MultiLang;
+			import mx.events.ItemClickEvent;
+			
+			public static const WINDOW_SHOW:String = "templeWin.show";
+			
+			[Bindable]
+			private var tabTitleAry:Array=new Array(MultiLang.msg('temple.selectBeliefAndOffer'),MultiLang.msg('temple.comfortingAndLevy'),
+						MultiLang.msg("upgradingWin.upgradeRequest"));
+			
+			/**
+			 * 每次界面弹出调用，刷新数据 
+			 */ 
+			override public function refresh():void{
+				if(this.initialized){
+					if (this.buttonBar.selectedIndex ==this.tabTitleAry.length-1){
+						this.buttonBar.selectedIndex = this.tabTitleAry.length-1;
+						this.viewShow.selectedChild = this.upgradingWin;
+						this.upgradingWin.refresh();
+					} else{
+						this.buttonBar.selectedIndex=0;
+						this.viewShow.selectedIndex=0;
+						this.templeSelect.refresh();				
+					}
+				}
+			}
+			
+			override public function update():void{
+				if(this.buildingObj.level<1){
+					this.buttonBar.selectedIndex = this.tabTitleAry.length-1;
+					this.viewShow.selectedChild = this.upgradingWin;
+					this.buttonBar.enabled = false;
+				}else{
+					if(!this.buttonBar.enabled){
+						this.buttonBar.enabled = true;
+					}
+				}
+			}
+			
+			private function init():void{
+				this.buttonBar.selectedIndex=0;
+				this.viewShow.selectedIndex=0;
+				this.initSelect();			
+			}
+			
+			private function clickEvt(event:ItemClickEvent):void{
+				
+				if(event.index ==0){
+					this.initSelect();
+				}else if(event.index ==1){
+					this.viewShow.selectedChild = this.molCiv;
+					this.molCiv.refresh();			
+				}else{
+					this.viewShow.selectedChild = this.upgradingWin;	
+					this.upgradingWin.refresh();		
+				}
+			}
+
+			private function initSelect():void{
+				this.viewShow.selectedChild = this.templeSelect;
+				this.templeSelect.refresh();				
+			}
+			
+			/**
+			 *界面隐藏调用，停止当前窗体一切相关动画
+			 */ 
+			override public function destroy():void{
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" dataProvider="{this.tabTitleAry}" itemClick="clickEvt(event)"/>
+		<ns1:MulHRule/>
+	</mx:VBox>
+	
+	<mx:ViewStack id="viewShow" bottom="0" left="0" right="0" top="25">
+		<temple:TempleSelect width="100%" height="100%" id="templeSelect" templeObj="{this.buildingObj}"/>
+		<temple:MollifyCivilian width="100%" height="100%" id="molCiv" templeObj ="{this.buildingObj}"/>
+		<upgradWin:UpgradingWin width="100%" height="100%" id="upgradingWin" buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

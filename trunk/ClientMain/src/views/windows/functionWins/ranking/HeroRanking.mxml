@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseRanking xmlns="views.windows.functionWins.ranking.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"  xmlns:ranking="views.windows.functionWins.ranking.*">
+<mx:Script>
+	<![CDATA[
+		import roma.util.MultiLang;
+		import mx.collections.ArrayCollection;
+		[Bindable]
+		public var heroRankArray:ArrayCollection = new ArrayCollection();
+		
+		
+	]]>
+</mx:Script>
+	<mx:DataGrid x="0" y="0" width="100%" height="100%" styleName="DataGrid" borderStyle="solid" borderThickness="1" headerHeight="22" rowHeight="28" rowCount="10"  verticalScrollPolicy="off" dataProvider="{this.heroRankArray}" resizableColumns="false" draggableColumns="false"  sortableColumns="false" selectable="false">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.ranking')}" dataField="rank" width="60" >
+				<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.rank}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.hero')}" dataField="name" width="60" >
+				<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.name}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.lord')}" dataField="kind" width="100">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.playerName}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.level')}" dataField="grade" width="60">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.level}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.politics')}" dataField="management" width="60">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.management}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.attack')}" dataField="power" width="60">
+				<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.power}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.defence')}" dataField="stratagem" width="60">
+			<mx:itemRenderer>
+					<mx:Component>
+						<ranking:RendererLabel rText="{data.stratagem}" rStyle="{data.rank == outerDocument.searchNum || data.name == outerDocument.searchName}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+</BaseRanking>

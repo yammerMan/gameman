@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="whriteBG" xmlns:troop="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.building.impl.Temple;
+			import roma.util.MultiLang;
+			import roma.common.constants.BuildingConstant;
+			import roma.common.constants.TempleConstant;
+			import roma.logic.GameContext;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.util.ClientUtil;
+			import roma.resource.ImgManager;
+			import roma.logic.rule.ruleCheck.ResourceCheck;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			
+			[Bindable]
+			private var _result:RuleCheckResult;
+			[Bindable]
+			private var golds:ResourceCheck ;
+			[Bindable]
+			private var food:ResourceCheck ;
+			[Bindable]
+			private var wood:ResourceCheck ;
+			[Bindable]
+			private var stone:ResourceCheck ;
+			[Bindable]
+			private var iron:ResourceCheck ;
+			[Bindable]
+			private var needTime:String;
+			[Bindable]
+			public var dependStr:String;
+			[Bindable]
+			public var lineWidth:int = 243;
+			[Bindable]
+			public var labelWidth:int = 77;
+			[Bindable]
+			public var txtAlign:String = TextFormatAlign.RIGHT;
+			
+			public function set result(r:RuleCheckResult):void{
+				this._result = r;
+				if(this._result !=null){
+					this.golds = _result.golds;
+					this.food = _result.food;
+					this.wood =_result.wood;
+					this.stone = _result.stone;
+					this.iron = _result.iron;
+					this.needTime = MultiLang.timeFormatToString(r.needTime/2);
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Form width="100%" height="100%" paddingLeft="0" paddingTop="0" 
+		paddingRight="0" paddingBottom="0" verticalGap="0" horizontalGap="0">
+		
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:HBox horizontalGap="0">
+			<mx:VRule height="24"/>
+			<mx:Text height="24" width="{this.lineWidth-2}" htmlText="{this.dependStr}"/>
+			<mx:VRule height="24"/>
+		</mx:HBox>
+		
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9" >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{this.labelWidth}" reqNum="{String(int(int(this.food.dispReq)*0.3))}" isMatch="{true}" resIcon="{ImgManager.clazz('icon.food')}" formatAlign="{txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{String(int(int(this.stone.dispReq)*0.3))}" isMatch="{true}" resIcon="{ImgManager.clazz('icon.stone')}" formatAlign="{txtAlign}"/>
+			<mx:VRule height="24"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9">
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{String(int(int(this.wood.dispReq)*0.3))}" isMatch="{true}" resIcon="{ImgManager.clazz('icon.wood')}" formatAlign="{txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{String(int(int(this.iron.dispReq)*0.3))}" isMatch="{true}" resIcon="{ImgManager.clazz('icon.iron')}" formatAlign="{txtAlign}"/>
+			<mx:VRule height="24" x="0"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="{this.lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9">
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{String(int(int(this.golds.dispReq)*0.3))}" isMatch="{true}" resIcon="{ImgManager.clazz('icon.gold')}" formatAlign="{txtAlign}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{this.labelWidth}"  reqNum="{this.needTime}" resIcon="{ImgManager.clazz('icon.time')}" formatAlign="{txtAlign}"/>
+			<mx:VRule height="24" x="0"/>
+		</mx:FormItem>
+		<mx:HRule width="{this.lineWidth}"/>
+	</mx:Form>
+</mx:Canvas>

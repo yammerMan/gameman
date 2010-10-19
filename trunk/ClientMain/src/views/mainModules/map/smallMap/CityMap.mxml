@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="550" height="550" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.FiltersUtil;
+			import views.mainModules.map.diamond2.TileHelper;
+			import gs.plugins.VolumePlugin;
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.CityCrowRateTooltip;
+			import roma.common.controller.common.ZoneInfoDataResponse;
+			import roma.logic.GameContext;
+			import roma.logic.CaesaryConfig;
+			import views.mainModules.map.diamond2.ZoneGenerator;
+			import views.mainModules.map.diamond2.MapDataByteArray;
+			import views.mainModules.map.diamond2.DiamondMapTile2;
+			import roma.common.constants.FieldConstant;
+			import mx.core.UIComponent;
+			import roma.resource.ImgManager;
+			import flash.display.MovieClip;
+			 
+			private var cityCrowTooltip:CityCrowRateTooltip = ToolTipContainer.instance.cityCrowRatToolTip;
+			private var zoneInfomationmationResponse:ZoneInfoDataResponse;
+			[Bindable]
+			private var zoneMaskIcon:String = "";
+			
+			private function init():void{
+				addEventListener(MouseEvent.MOUSE_MOVE,onCityMouseMove);
+				addEventListener(MouseEvent.MOUSE_OUT,onCityMouseOut);
+				ControllerFactory.getInstance().getCommonController().zoneInfomationmation(getZoneInfoHandle);
+				
+				refresh();
+			}
+			
+			private function refresh():void{
+				if(!this.initialized)return;
+				var data:BitmapData = new BitmapData(FieldConstant.MAP_SIZE,FieldConstant.MAP_SIZE,true,0x0);
+				data.lock();
+				for(var i:int=0;i<FieldConstant.MAP_SIZE;i++){
+					for(var ii:int =0;ii<FieldConstant.MAP_SIZE;ii++){
+						var isCastle:Boolean= MapDataByteArray.instance.isCastle(i,ii);
+						var isNpcCastle:Boolean = MapDataByteArray.instance.isNpcCastle(i,ii);
+						if(isCastle)
+							data.setPixel32(i,ii,0xff6600ff);
+					}
+				}
+				data.unlock();
+				
+				var bit:Bitmap = new Bitmap(data);
+				data = null;
+				
+				bit.x = 25;
+				bit.y = 25;
+				this.comp.addChild(bit);
+			}
+			
+			private function getZoneInfoHandle(event:ZoneInfoDataResponse):void{
+				this.zoneInfomationmationResponse=null;
+  				if(event.success){
+	  				this.zoneInfomationmationResponse=event;
+	  				cityCrowTooltip.setZoneResponse(zoneInfomationmationResponse);
+  				}
+			}
+			
+			private function onCityMouseMove(e:MouseEvent):void{
+				if(contentMouseX>=25 && contentMouseY>=25 && contentMouseX<=524 && contentMouseY<=524){
+					var fId:int = GameContext.getFieldId(contentMouseX-25,contentMouseY-25);
+					var zId:int = ZoneGenerator.getInstance().getZoneId(fId);
+					this.zoneMaskIcon = TileHelper.getZoneMask(zId);
+					
+					cityCrowTooltip.setZoneInfo(zId);
+					cityCrowTooltip.onMouseOver(e);
+					cityCrowTooltip.onMouseMove(e);
+				}
+			}
+			
+			private function onCityMouseOut(e:MouseEvent):void{
+				if(cityCrowTooltip.getVisible())cityCrowTooltip.onMouseOut();
+			}
+			
+			private function showMap():void{
+				mapMask.graphics.beginFill(0x0,.05);
+				mapMask.graphics.drawRect(0,0,550,550);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image source="{ImgManager.clazz('map.mapOutLine.img')}" id="map" updateComplete="showMap()"/>
+	<mx:UIComponent id="mapMask" width="550" height="550" mouseEnabled="false" enabled="false"/>
+	<mx:Image source="{ImgManager.clazz(zoneMaskIcon)}" id="zoneMask" cacheAsBitmap="true" x="25" y="25" />
+	<mx:Image source="{ImgManager.clazz('map.mapOutLine.img')}" id="zoneMap" mask="{zoneMask}" cacheAsBitmap="true" filters="{[FiltersUtil.brownGlowFilter]}"/>
+	
+	<mx:UIComponent id="comp" enabled="false" mouseEnabled="false" width="550" height="550"/>
+</mx:Canvas>

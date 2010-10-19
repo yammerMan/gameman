@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+	layout="absolute" width="1000" height="600"
+	verticalAlign="middle" horizontalAlign="center"
+	preloader="reLoader.MyProgressBar"
+	frameRate="20"
+    verticalScrollPolicy="off"
+    horizontalScrollPolicy="off"
+ 	preinitialize="init()">
+ 	
+	<mx:Script>
+		<![CDATA[
+			import mx.resources.ResourceBundle;
+			import roma.util.ScreenCaptuerUploader;
+			import flash.net.navigateToURL;
+			import roma.logic.GameContext;
+			import mx.graphics.codec.JPEGEncoder;
+			import roma.logic.CaesaryConfig;
+			import mx.graphics.codec.PNGEncoder;
+			import mx.core.UIComponent;
+			import roma.util.MultiLang;
+			import views.PleaseWaitUC;
+			import mx.logging.LogEventLevel;
+			import roma.util.ClientUtil;
+			import roma.util.JavaScriptHelper;
+			import roma.message.EvtDispacther;
+			import views.Main;
+			import views.spreadUI.tips.ToolTipContainer;
+
+			private var timer:Timer;
+			
+			private function init():void {
+	            this.systemManager.stage.scaleMode = StageScaleMode.SHOW_ALL;
+	            this.systemManager.stage.quality = StageQuality.BEST;
+	            this.systemManager.stage.align = StageAlign.TOP;
+
+				ClientUtil.initLogger("framework.*",LogEventLevel.ALL);
+				ClientUtil.initLogger("roma.*",LogEventLevel.ALL);
+				ClientUtil.initLogger("views.*",LogEventLevel.ALL);
+
+				this.drawBg();
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.ALL_MODULE_LOADED , delayInit);
+			}
+
+			private function drawBg():void {
+				var uc:UIComponent = new UIComponent();
+				uc.width=this.width;
+				
+				var colors:Array = [0x000000, 0x790000];
+				var alphasArr:Array = [1, 1];
+				var ratiosArr:Array = [0x00, 0xFF];
+				var matrix:Matrix = new Matrix();
+				matrix.createGradientBox(this.width, this.height, Math.PI/2, 0, 0);
+	
+				uc.graphics.beginGradientFill(GradientType.LINEAR, colors, alphasArr, ratiosArr,matrix , SpreadMethod.REPEAT);  
+				uc.graphics.drawRect(0,0,this.width,this.height);
+				uc.graphics.endFill();
+				
+				this.addChild(uc);
+			}
+
+			private function delayInit(event:Event):void {
+				timer = new Timer(0);
+				timer.addEventListener(TimerEvent.TIMER, allDone, false, 0, true);
+				timer.start();
+			}
+
+			private function allDone(e:Event):void {
+	            timer.removeEventListener(TimerEvent.TIMER, allDone);
+	            timer.stop();
+
+				this.initContextMenu();
+				var main:Main = Main.instance;
+				main.init();
+				this.addChild(main);
+				this.addChild(PleaseWaitUC.instance);			
+				this.addChild(ScreenCaptuerUploader.instance);
+				JavaScriptHelper.instance.trackPageview("/FlashLoaded");
+			}
+			
+			private function initContextMenu():void {
+				var myContextMenu:ContextMenu;
+				myContextMenu = new ContextMenu();
+				myContextMenu.hideBuiltInItems();
+				
+				myContextMenu.customItems.push(this.newContextMenu("bookmark.rightclick" ,menuHandle ));
+				myContextMenu.customItems.push(this.newContextMenu("submit.bug.screencapture.rightclick" ,screenCaptureHandle ));
+
+				this.contextMenu = myContextMenu;
+			}
+			
+			private function newContextMenu(label:String , callback:Function):ContextMenuItem {
+				var myMenuItem:ContextMenuItem = new ContextMenuItem(MultiLang.msg(label));
+				myMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT ,callback);
+				return myMenuItem;
+			}
+			
+			private function screenCaptureHandle(event:Event):void {
+				ScreenCaptuerUploader.instance.uploadScreen();
+			}
+						
+			private function menuHandle(event:Event):void {
+				JavaScriptHelper.instance.addFavorite();
+			}
+			
+			public static function recharge():void {
+				var accountName:String = GameContext.instance.getPlayerObj().getPlayerInfo().accountName;
+				if (accountName.indexOf("@kongregate")>0) {
+					JavaScriptHelper.instance.callRecharge();
+				} else if (CaesaryConfig.instance.userJsFuncRecharge){
+					JavaScriptHelper.instance.jsCallRecharge(CaesaryConfig.instance.getRechargeUrl(accountName));
+				} else {
+					navigateToURL(new URLRequest(CaesaryConfig.instance.getRechargeUrl(accountName)), "_blank");
+				}
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Application>

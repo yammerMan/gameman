@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	horizontalScrollPolicy="off"
+	verticalScrollPolicy="off" 
+	width="42" height="65" mouseDown="onClick()" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import roma.util.ImageHandle;
+			import roma.message.EvtDispacther;
+			import roma.logic.GameContext;
+			import roma.util.FiltersUtil;
+			import roma.resource.ImgManager;
+			public var fun:Function;
+			
+			[Bindable]
+			private var _actionValue:int;
+			
+			[Bindable]
+			public var _goodActionValue:int;
+			[Bindable]
+			public var txt:String;
+			[Bindable]
+			public var btnStyleName:String;
+			
+			private function onClick():void{
+				if(fun!=null){
+					this.fun.apply(this);
+				}
+			}
+			
+			private function init():void{
+				this.actionImage.visible=false;
+				this.actionImage.includeInLayout=false;
+				this.actionText.visible=false;
+				this.actionText.includeInLayout=false;
+				this.goodActionImage.visible=false;
+				this.goodActionImage.includeInLayout=false;
+				this.goodActionText.visible=false;
+				this.goodActionText.includeInLayout=false;
+			}
+			
+			public function set actionValue(value:int):void{
+				this._actionValue=value;
+				if(this._actionValue==0){
+					this.actionImage.visible=false;
+					this.actionImage.includeInLayout=false;
+					this.actionText.visible=false;
+					this.actionText.includeInLayout=false;
+				}else{
+					this.actionImage.visible=true;
+					this.actionImage.includeInLayout=true;
+					this.actionText.visible=true;
+					this.actionText.includeInLayout=true;
+				}
+			}
+			
+			public function get actionValue():int{
+				return this._actionValue;
+			}
+			
+			public function set goodActionValue(value:int):void{
+				this._goodActionValue=value;
+				if(this._goodActionValue==0){
+					this.goodActionImage.visible=false;
+					this.goodActionImage.includeInLayout=false;
+					this.goodActionText.visible=false;
+					this.goodActionText.includeInLayout=false;
+				}else{
+					this.goodActionImage.visible=true;
+					this.goodActionImage.includeInLayout=true;
+					this.goodActionText.visible=true;
+					this.goodActionText.includeInLayout=true;
+				}
+			}
+			
+			public function get goodActionValue():int{
+				return this._goodActionValue;
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="100%" height="100%"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Canvas width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Button styleName="{this.btnStyleName}" top="0"/> 
+				<mx:Canvas width="100%" height="100%" mouseEnabled="false" mouseChildren="false">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('toolBar.warm.tipBg')}" right="0" height="21" width="21" top="20" id="actionImage"/>
+					<mx:Label  text="{this._actionValue}" styleName="titleLevelLabel" right="0" top="22" width="21" height="18"  id="actionText"/>
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('toolBar.good.tipBg')}" right="0" width="21"  top="0" height="21" id="goodActionImage"/>
+					<mx:Label  text="{this._goodActionValue}" styleName="titleLevelLabel" right="0" width="21"  top="1" height="18" id="goodActionText"/>
+				</mx:Canvas>
+			</mx:Canvas>
+		<mx:Label width="100%" height="22" bottom="3" text="{this.txt}" styleName="toolBtnLabel" filters="{[FiltersUtil.glowFilter]}" textAlign="center"/>
+	</mx:Canvas>
+
+</mx:Canvas>

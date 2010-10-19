@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.mail.bean.TroopType;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.constants.TroopForConstants;
+			import views.windows.functionWins.mail.bean.ReplayHeroType;
+			import views.windows.functionWins.mail.ReportUi.ReportManager;
+			import views.windows.functionWins.mail.bean.BattleResultType;
+			import mx.utils.ObjectProxy;
+			import views.windows.functionWins.mail.bean.RoundType;
+			import views.windows.functionWins.mail.bean.ReplayType;
+			import roma.util.CompCache;
+			[Bindable]
+			public var roundId:int = 0;
+			private var replayType:ReplayType;
+			private var battleType:BattleResultType;
+			private var roundCache:CompCache = new CompCache(100);
+			
+			public function set battleSituation(r:ReplayType):void{
+				replayType = r;
+				battleType = ReportManager.instance.battleReportType.battle;
+				showRound();
+			}
+			
+			private function init():void{
+				showRound();
+			}
+			
+			private function showRound():void{
+				if(this.initialized){
+					fortLabel.text = "";
+					attLabel.text = "";
+					defLabel.text = "";
+					fortLabel.text += "城防：\n";
+					var wall:ObjectProxy = replayType.fort;
+					if(wall == null){
+						fortLabel.text += "没有城墙";
+					}
+					else{
+						fortLabel.text += wall.wall +",  ";
+						if(wall.hasEventListener("arrowTower")){
+							fortLabel.text += TFHelper.instance.getTfName(TroopForConstants.F_ARROWTOWER)+" "+(wall.arrowTower)+",   ";
+						}
+						if(wall.hasEventListener("trap")){
+							fortLabel.text += TFHelper.instance.getTfName(TroopForConstants.F_TRAP)+" "+(wall.trap)+",   ";
+						}
+						if(wall.hasEventListener("rockFall")){
+							fortLabel.text += TFHelper.instance.getTfName(TroopForConstants.F_ROCKFALL)+" "+(wall.rockFall)+",   ";
+						}
+					}
+					for each(var att:ReplayHeroType in replayType.attacker){
+						attLabel.text += "[攻击方英雄] "+battleType.getAttackerTroop(att.key).heroName+ " 进入位置"+att.position;
+						for each(var t:TroopType in att.u){
+							if(t.t>0)
+							attLabel.text += TFHelper.instance.getTfName(t.t)+" "+(t.c)+"个, ";
+						}
+						attLabel.text += "\n";
+					}
+					for each(var def:ReplayHeroType in replayType.defender){
+						defLabel.text += "[防守方英雄] "+battleType.getDefenderTroop(def.key).heroName+ " 进入位置"+def.position;
+						for each(var t1:TroopType in def.u){
+							if(t1.t>0)
+							defLabel.text += TFHelper.instance.getTfName(t1.t)+" "+(t1.c)+"个, ";
+						}
+						defLabel.text += "\n";
+					}
+					roundContainer.removeAllChildren();
+					for each(var r:RoundType in replayType.round){
+						var br:BattleRound = roundCache.getUI(BattleRound) as BattleRound;
+						br.roundBean = r;
+						roundContainer.addChild(br);
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%">
+		<mx:Label text="begin the battle round"/>
+		<mx:VBox width="100%">
+			<mx:Label id="fortLabel" width="100%"/>
+			<mx:Label id="attLabel" width="100%"/>
+			<mx:Label id="defLabel" width="100%"/>
+		</mx:VBox>
+		<mx:Label width="100%" text=" -------------------------------- 回合{roundId} ----------------------------- "/>
+		<mx:VBox width="100%" id="roundContainer" />
+	</mx:VBox>
+</mx:Canvas>

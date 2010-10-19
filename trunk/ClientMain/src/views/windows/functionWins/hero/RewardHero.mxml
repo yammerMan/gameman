@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 
+	width="338" height="281" styleName="popUpWinBG" 
+	creationComplete="init()" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ui="view.ui.*" 
+	xmlns:spreadUI="views.spreadUI.*" 
+	xmlns:herosMansion="views.windows.functionWins.hero.*"
+	>
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.util.ClientUtil;
+			import roma.logic.object.buff.BaseBuffObj;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.building.impl.HerosMansion;
+			import roma.logic.RomaConstants;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.GeneralConstants;
+			import roma.util.MultiLang;
+			import views.MainContainer;
+			import roma.common.controller.CommonResponse;
+			import mx.collections.ArrayCollection;
+			import roma.logic.object.hero.HeroObj;
+			import roma.common.action.ControllerFactory;
+			import roma.common.valueObject.MaterialBean;
+			import roma.logic.GameContext;
+			import roma.util.PopupWinManager;
+			
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.herosMansion.AwardHero")
+			public static var AWARD_Hero_SUCCESS:String = "getAwardHeroSuccess";
+			private static var AWARD_GOLD:String = "getAwardGold";
+			private static var AWARD_JEWELRY:String = "getAwardJewelry";
+			
+			private var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+			[Bindable]
+			private var heroObj:HeroObj;                          //绑定英雄属性 
+			[Bindable]
+			private var buffArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var itemArray:ArrayCollection = new ArrayCollection();                //combox中的数据显示
+			private var itemHeroPro:ArrayCollection = new ArrayCollection();
+			private var func:Function;
+			
+			private function init():void{
+				for(var s:String in ItemResManager.heroProItemArray){
+					log.debug(s+" == "+ItemResManager.heroProItemArray[s]);
+					var itemStr:String = ItemResManager.heroProItemArray[s];
+					var item:ItemRule = GameRuleHelper.instance.getItemRuleById(itemStr) as ItemRule;
+					itemHeroPro.addItem(item);
+				}
+				instance.addAwardItem();
+			}
+			
+			public static var instance:RewardHero ;
+			public static function show(bean:HeroObj,fun:Function):void {
+				if (instance==null) {
+					instance = new RewardHero();
+				}
+				if(!instance.isPopUp){
+					PopupWinManager.instance.addPopup(instance,true);
+				}
+				PopupWinManager.instance.centerPopUp();
+				
+				instance.func = fun;
+				instance.heroObj = bean;
+				instance.buffArr = bean.buffManager.buffArray;
+			}
+			/**
+			 * 赋值物品bean
+			 */
+			private function addAwardItem():void{
+				itemArray.removeAll();
+				itemArray.addItem({label:MultiLang.msg("label.gold"),data:AWARD_GOLD});
+				for each(var item:ItemRule in itemHeroPro){
+					itemArray.addItem({label:item.name,data:item});
+				}
+				itemArray.addItem({label:MultiLang.msg("shop.type.luxury"),data:AWARD_JEWELRY});
+			}
+
+			/**
+			 * 赏赐黄金响应
+			 */ 
+			private function onAwardGoldResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					PopupWinManager.instance.removePopup(this);
+					MainContainer.instance.risePlay(MultiLang.msg("hero.awardSuccess"));
+				}
+				else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			/**
+			 * 赏赐英雄珠宝响应 
+			 */ 
+			private function onAwardJewelryResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					PopupWinManager.instance.removePopup(this);
+					MainContainer.instance.risePlay(MultiLang.msg("hero.awardSuccess"));
+				}
+				else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			/**
+			 * 赏赐物品响应
+			 */ 
+			private function onUserItemResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					MainContainer.instance.risePlay(MultiLang.msg("hero.awardSuccess"));
+					PopupWinManager.instance.removePopup(this);
+					this.func.call(this,AWARD_Hero_SUCCESS)
+				}
+				else{
+					MyAlert.showError(event);
+				}
+			}
+			
+			private function doUseItem(isOk:Boolean):void{
+				if(isOk){
+					ControllerFactory.getInstance().getHeroController().awardItem(cityId,heroObj.heroInfo.id,ItemRule(getAwardCB.selectedItem.data).itemId,onUserItemResponse);
+				}
+			}
+			
+			/**
+			 * 赏赐英雄
+			 */ 
+			private function onAward():void{
+				var s:String = coolDownTime(); 
+				if(getAwardCB.selectedItem.data == AWARD_GOLD){
+					if(s!=""){
+						MyAlert.show(MultiLang.msg('hero.inCoolDownTime{0}',s));
+					}else{
+						if(heroObj.heroInfo)
+						ControllerFactory.getInstance().getHeroController().getAwardGold(cityId,heroObj.heroInfo.id,onAwardGoldResponse);
+					}
+				}
+				else if(getAwardCB.selectedItem.data == AWARD_JEWELRY){
+					if(s!=""){
+						MyAlert.show(MultiLang.msg('hero.inCoolDownTime{0}',s));
+					}else{
+					ItemSelectSpeedUpWin.show(ItemResManager.jewelryItemArray,onAwardJewelry);}
+				}
+				else{
+					var iId:String = ItemRule(getAwardCB.selectedItem.data).itemId;
+					var iName:String = ItemRule(getAwardCB.selectedItem.data).name;
+					var b:MaterialBean = GameContext.instance.getPlayerObj().itemManager.getMaterialBeanById(iId);
+					if(b != null){
+						if(b.count >0){
+							MyAlert.show(MultiLang.msg("hero.needItem{0}{1}",iName,1),doUseItem);}
+						else{MyAlert.show(MultiLang.msg("hero.sureToBuy"),sureToBuy);}
+					}else{
+						MyAlert.show(MultiLang.msg("hero.sureToBuy"),sureToBuy);
+					}
+				}
+				function sureToBuy():void{
+					if(GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(ItemRule(getAwardCB.selectedItem.data).itemId)){
+						ControllerFactory.getInstance().getHeroController().awardItem(cityId,heroObj.heroInfo.id,ItemRule(getAwardCB.selectedItem.data).itemId,onUserItemResponse);
+					}
+					else{
+						MyAlert.show(MultiLang.msg('hero.iconNotEnough'));
+					}
+				}
+			}
+			
+			private function onAwardJewelry(iRule:ItemRule):void{
+				ControllerFactory.getInstance().getHeroController().awardItem(cityId,heroObj.heroInfo.id,iRule.itemId,onAwardJewelryResponse);	
+			}
+			
+			private function onChangeItem():void{
+				switch(getAwardCB.selectedItem.data){
+					case AWARD_GOLD:
+					itemDescText.text = MultiLang.msg('hero.awardGold{0}' ,heroObj.heroInfo.level*100);
+					break;
+					case AWARD_JEWELRY:
+					itemDescText.text = MultiLang.msg('hero.awardJewelry.desc');
+					break;
+					default:
+					itemDescText.text = ItemRule(getAwardCB.selectedItem.data).funcDesc;
+				}
+			}
+			
+			private function coolDownTime():String{
+				var str:String = "";
+				for each(var buffO:BaseBuffObj in this.buffArr){
+					if(buffO.buffBean.typeId == 1){
+						var now:Number = new Date().valueOf();
+						var diff:Number = GameContext.instance.getTimeDiff();
+						var remainT:Number = (buffO.buffBean.endTime + diff - now)/1000 ;
+						str = MultiLang.timeToString(remainT);
+						break;
+					}
+				}
+				return str;
+			}
+			
+			private function onExit():void{
+				PopupWinManager.instance.removePopup(this);
+			}
+		]]>
+	</mx:Script> 
+	<mx:Button styleName="closeBtn" click="onExit()" right="19" top="8"/>
+	<mx:DataGrid top="30" height="84" left="14" right="14" dataProvider="{buffArr}" styleName="DataGrid" resizableColumns="false" draggableColumns="false"  sortableColumns="false" selectable="false">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.name')}" dataField="0" >
+				<mx:itemRenderer>
+					<mx:Component>
+						<herosMansion:BuffNameLabel buffName="{data.buffBean.typeId}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.lastTime')}" dataField="0">
+				<mx:itemRenderer>
+					<mx:Component>
+						<spreadUI:LeftTimeLabel remainTime="{data.buffBean.endTime}" />
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Canvas styleName="alphaBlackBG" right="14" left="14" top="115" bottom="14">
+		<mx:Canvas styleName="BuildingAlphaWindow" right="12" left="12" top="12" height="60">
+			<mx:Canvas width="96" height="48" styleName="resourceBG" verticalCenter="0" left="5">
+				<mx:Image source="{ImgManager.clazz(heroObj.heroInfo.logoUrl)}" 
+					scaleX="{86/104}" scaleY="{38/48}" 
+					updateComplete="ImageHandle.onLoadComplete(event)" 
+					left="5" top="5" bottom="5" right="5"/>
+				<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" left="3" top="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{heroObj.heroInfo.level}" x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center"/>
+			</mx:Canvas>
+			<mx:Label height="21" text="{heroObj.heroInfo.name}" top="5" width="120" horizontalCenter="48" styleName="titleBordLabel" textAlign="center"/>
+			<mx:Label text="{MultiLang.msg('hero.loyaty')}" width="95" right="100" height="21" bottom="5" textAlign="center"/>
+			<mx:Label height="21" width="95" right="5" text="{heroObj.heroInfo.loyalty}" bottom="5" textAlign="center"/>
+		</mx:Canvas>
+		<mx:Text text="{MultiLang.msg('hero.awardGold{0}',heroObj.heroInfo.level*100)}" id="itemDescText" textAlign="center" styleName="discritionWithBorderAlphaTextArea" 
+			height="48" left="12" right="12" bottom="35"/>
+		<mx:Button label="{Lang.msg('hero.reward')}" width="130" height="23" id="getAwardBtn" click="onAwardHero()" styleName="subTitleButton" right="12" bottom="12"/>
+		<mx:ComboBox width="155" height="23" id="getAwardCB" close="onChangeItem()" dataProvider="{itemArray}" bottom="12" left="12"/>
+	</mx:Canvas>
+	<spreadUI:TitleBar winTitle="{Lang.msg('hero.reward')}" horizontalCenter="0" top="2">
+	</spreadUI:TitleBar>
+</mx:Canvas>
+

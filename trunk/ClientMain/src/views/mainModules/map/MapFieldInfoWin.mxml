@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseWin 
+	mouseEnabled="true"
+	xmlns="views.windows.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="372" height="234" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	styleName="smallInfoWin" 
+	xmlns:display="flash.display.*"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HeroHelper;
+			import views.windows.functionWins.hero.HerosMansionWin;
+			import views.windows.functionWins.intelligence.FieldBattleWin;
+			import views.BeginnerGuide;
+			import roma.common.constants.BuffConstants;
+			import roma.util.BufferHandle;
+			import views.mainModules.map.diamond2.ZoneGenerator;
+			import views.mainModules.map.diamond2.TileHelper;
+			import mx.resources.ResourceManager;
+			import views.mainModules.map.diamond2.DiamondMapTile2;
+			import mx.containers.Tile;
+			import views.windows.functionWins.intelligence.IntelligenceWin;
+			import roma.common.constants.TechConstant;
+			import roma.common.constants.PlayerConstant;
+			import gs.plugins.VolumePlugin;
+			import roma.resource.LogoData;
+			import mx.messaging.AbstractConsumer;
+			import views.spreadUI.castleIcon.CastleIconPanel;
+			import views.mainFrame.ToggleButton;
+			import views.windows.functionWins.mail.Mail;
+			import roma.message.EvtDispacther;
+			import views.spreadUI.favorite.FieldFavorite;
+			import roma.message.events.FavoriteEvent;
+			import roma.logic.object.castle.CastleObj;
+			import mx.collections.ArrayCollection;
+			import roma.common.controller.CommonResponse;
+			import roma.common.constants.AllianceConstant;
+			import roma.util.ImageHandle;
+			import roma.message.events.MsgEvent;
+			import views.spreadUI.MyAlert;
+			import views.windows.buildings.market.MarketWin;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.GameContext;
+			import roma.logic.object.building.BaseBuilding;
+			import views.windows.functionWins.military.NewScoutWin;
+			import views.windows.functionWins.military.GoingToWarWin;
+			import views.PopupWindows;
+			import roma.data.MapTileData;
+			import roma.common.constants.BattleConstants;
+			import animation.aniSet.FieldAniSetManager;
+			import animation.IAniPlayer;
+			import roma.common.constants.GeneralConstants;
+			import roma.common.valueObject.MapFieldInfoBean;
+			import roma.common.controller.common.MapFieldInfoResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.logic.object.tech.impl.InfantrySkill;
+			import roma.resource.ImgManager;
+			import roma.util.FiltersUtil;
+			import roma.logic.object.field.FieldHelper;
+			import roma.util.MultiLang;
+			import roma.common.constants.FieldConstant;
+			import views.mainModules.map.IMapTile;
+
+			public static const NEW_SCOUT_EVENT:String = "侦察，事件类型是MsgEvent,数据是MapTileData"; 
+			public static const NEW_ARMY_EVENT:String = "出征，事件类型是MsgEvent,数据是MapTileData";
+			public static const SENT_SCOUT_EVENT:String = "派遣斥候，事件类型是MsgEvent,数据是MapTileData"; 
+
+			private static const matchColor:String="goodNoticeLabel";
+			private static const noMatchColor:String="NoticeLabel";
+			
+			[Bindable]
+			private var mapTile:DiamondMapTile2;
+			[Bindable]
+			private var field_name:String;
+			
+			[Bindable]
+			private var fieldPostion:String;
+			
+			[Bindable]
+			private var fieldLevel:int;
+			
+			[Bindable]
+			private var fieldDes:String;
+			
+			[Bindable]
+			private var descSelectIndex:int = 0;
+			
+			[Bindable]
+			private var cityName:String;
+
+			[Bindable]
+			private var leagueName:String;
+
+			[Bindable]
+			private var castlePostion:String;
+
+			[Bindable]
+			private var playerLogoUrl:String;
+
+			[Bindable]
+			private var playerName:String;
+
+			[Bindable]
+			private var playerPrestige:int;
+
+			[Bindable]
+			private var canAttack:Boolean;
+			
+			[Bindable]
+			private var canScout:Boolean;
+
+			[Bindable]
+			private var canTransport:Boolean;
+
+			[Bindable]
+			private var canReinforce:Boolean;
+			
+			[Bindable]
+			private var canCollect:Boolean;
+
+			[Bindable]
+			private var hasDesc:Boolean;
+			
+			[Bindable]
+			private var showLevel:Boolean;
+			
+			[Bindable]
+			private var distance:Number;
+			
+			[Bindable]
+			private var distanceTip:String;
+			
+			[Bindable]
+			private var canWrite:Boolean;
+			
+			[Bindable]
+			private var canGetIn:Boolean;//是否能进入自己的城池
+
+			[Bindable]
+			private var fieldType:int;
+			private var idField:int;
+			
+			[Bindable]
+			private var myMapFieldInfoBean:MapFieldInfoBean;//我的城池的MapFieldInfoBean
+			
+			[Bindable]
+			private var zoneName:String;
+			
+			public var mapTileData:MapTileData = new MapTileData();
+			
+			[Bindable]
+			private var logo:*
+			
+			[Bindable]
+			private var allianceTopLogo:*;
+			[Bindable]
+			private var allianceMiddleLogo:*; 
+			[Bindable]
+			private var alliancebottom:*;
+			[Bindable]
+			private var isAllianceLogoShow:Boolean;
+			[Bindable]
+			private var relationStyleName:String; 
+			[Bindable]
+			private var isInBattle:Boolean = false;
+			[Bindable]
+			private var hostDis:String;
+			
+			[Bindable]
+			private var isCanAttack:Boolean;
+			[Bindable]
+			private var isCanReinforce:Boolean;
+			[Bindable]
+			private var isCanTransport:Boolean;
+
+			[Bindable]
+			private var lootTip:String;
+			[Bindable]
+			private var attackTip:String;
+			[Bindable]
+			private var transpotTip:String;
+			[Bindable]
+			private var scoutTip:String;
+			[Bindable]
+			private var reinforceTip:String;
+
+			[Bindable]
+			private var statusDesc:String;
+			
+			private var hostPlayer:String;
+			private var hostRelation:int;			
+									
+			private function init():void {
+				var maskSp:Sprite = new Sprite();
+				maskSp.graphics.beginFill(0,0);
+				maskSp.graphics.drawCircle(50,51,48);
+				maskSp.graphics.endFill();
+				this.logoImage.addChild(maskSp);
+				this.logoImage.mask = maskSp;
+				
+				//新手引导
+				EvtDispacther.instance.addEventListener(BeginnerGuide.LOOT_FIELD,onLootField);
+			}
+			
+			//判断是否是在新手保护期间
+			private function isFreshMan():Boolean{
+				return BufferHandle.getBuffById(BuffConstants.PLAYER_BEGINNER)==null?false:true;
+			}
+			
+			//是否免战
+			private function isFreeOrWar():Boolean{
+				return BufferHandle.getBuffById(BuffConstants.PLAYER_PEACE) == null?false:true;
+			}
+			
+			private function sendCommand(fx:int,fy:int):void {
+				this.buttonBar.visible = false;
+				this.hasDesc = false;
+				var cityId:int = GameContext.instance.getPlayerObj().getCurCastleObj().cityId
+				ControllerFactory.getInstance().getCommonController().mapFieldInfo(cityId,fx,fy , onResponse,false);	
+			}
+			
+			public function setMapTile(tile:IMapTile):void {
+				this.mapTile=DiamondMapTile2(tile);
+				this.fieldPostion = "[" + tile.getFieldX() + "," + tile.getFieldY() + "]";
+				this.fieldLevel = tile.getFieldLevel();
+				this.fieldType = tile.getFieldType();
+				this.idField = GameContext.getFieldId(tile.getFieldX(),tile.getFieldY());
+				
+				this.canTransport = false;
+				this.canAttack = false;
+				this.canScout = true;
+				this.canReinforce = true;
+				this.canWrite=true;
+				this.canCollect=true;
+				this.canGetIn=false;
+				
+				this.distance = GameContext.instance.getPlayerObj().getCurCastleObj().getDistanceToField(tile.getFieldX(),tile.getFieldY());
+				this.distanceTip=MultiLang.msg("field.distanceFromHere",GameContext.getFieldPostionX(GameContext.instance.getPlayerObj().getCurCastleObj().idField),GameContext.getFieldPostionY(GameContext.instance.getPlayerObj().getCurCastleObj().idField));
+				
+				switch (tile.getFieldType()) {
+					case FieldConstant.TYPE_CITY:
+						if (tile.getMapCityBean() !=null) {
+							this.field_name = tile.getMapCityBean().castleName ;
+						}
+						this.descSelectIndex = 1;
+						this.showLevel = false;
+						this.canTransport = true;
+						this.sendCommand(tile.getFieldX(), tile.getFieldY());
+						
+						if(tile.getMapCityBean().playerName==GameContext.instance.getPlayerObj().getPlayerInfo().playerName){
+							this.canWrite=false;
+						}
+						break;
+					default:
+						//默认是资源野地
+						this.field_name = FieldHelper.getFieldName(tile.getFieldType(),tile.getFieldLevel()) + " " + MultiLang.msg("public.label.level") +" "+  tile.getFieldLevel();
+						this.fieldDes = FieldHelper.getFieldDesc(tile.getFieldType() , tile.getFieldLevel());
+						this.descSelectIndex = 0;
+						this.showLevel = true;
+						this.sendCommand(tile.getFieldX(), tile.getFieldY());
+						if(this.fieldType == FieldConstant.TYPE_TREES){
+							this.logo = FieldHelper.getBitMap(FieldHelper.getFieldMapIcon(tile.getFieldType(),tile.getFieldLevel()));
+						}else{
+							this.logo = FieldHelper.getFieldMapIcon(tile.getFieldType(),tile.getFieldLevel());
+						}
+						this.isAllianceLogoShow = false;
+				}
+			}
+		
+			private var status:int;
+			private var relation:int;
+			private function onResponse(event:MapFieldInfoResponse):void {
+				this.buttonBar.visible = true;
+				this.myMapFieldInfoBean=null;
+				this.hasDesc = true;
+				this.hostDis="";
+				
+				var bean:MapFieldInfoBean = event.mapFieldInfoBean;
+				this.myMapFieldInfoBean = bean;
+				this.status = bean.status;
+				this.relation = bean.relation;
+				this.hostPlayer = bean.hostPlayer;
+				this.hostRelation = bean.hostRelation;
+				// 判断是否为城
+				if (this.fieldType == FieldConstant.TYPE_CITY) {
+					this.setValue();
+					
+					this.canCollect=!this.isMyCastle(bean);
+					this.canGetIn=!this.canCollect;
+					
+					//如果是城堡，而且不是敌盟，就可以运输，而且不是当前城堡
+					this.canTransport = bean.relation != AllianceConstant.ALLIANCE_RELATION_HOSTILE && bean.castlePostion != GameContext.instance.getPlayerObj().getCurCastleObj().idField;
+					this.logo =ImgManager.clazz(bean.playerLogoUrl);
+					this.nameLabel.styleName="";
+					if(bean.relation == AllianceConstant.ALLIANCE_RELATION_FRIENDLY){
+						this.nameLabel.styleName = matchColor;						
+					}else if(bean.relation == AllianceConstant.ALLIANCE_RELATION_HOSTILE){
+						this.nameLabel.styleName= noMatchColor						
+					}
+					
+					this.getLeagueLogo(event);
+					this.getStatus(bean.status);
+					
+				}else{
+					if(bean.playerName !=null){
+						this.setValue();	
+					}else{
+						this.descSelectIndex =2;
+					}
+				} 
+
+				this.isInBattle = bean.inBattle;
+				this.canAttack = bean.canAttack;
+				
+				var zone:int = ZoneGenerator.getInstance().getZoneId(this.idField);
+				this.zoneName = TileHelper.getZoneName(zone);
+				
+  				if(bean.relation != AllianceConstant.ALLIANCE_RELATION_SAME  
+					&&  bean.relation != AllianceConstant.ALLIANCE_RELATION_FRIENDLY 
+					&&  bean.hostPlayer != GameContext.instance.getPlayerObj().getPlayerInfo().playerName){
+						this.canAttack = true;
+				}
+				
+				var trainingField:BaseBuilding = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_TRAINNINGS);
+				var market:BaseBuilding = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING);
+				var curScoutLev:int = GameContext.instance.getPlayerObj().techManager.getTechObjById(TechConstant.SCOUTING).getCurCastleTechLevel(GameContext.instance.getPlayerObj().getCurCastleObj());
+			
+				//没有校场
+				if(trainingField ==null){
+					this.isCanAttack = false;
+					this.isCanReinforce = false;
+					
+					this.lootTip = MultiLang.msg("military.not.trainingField.tip",MultiLang.msg('military.mission.loot'));
+					this.reinforceTip = MultiLang.msg("military.not.trainingField.tip",MultiLang.msg('military.mission.reinforce'));
+					
+					if(this.fieldType == FieldConstant.TYPE_CITY){
+						this.attackTip = MultiLang.msg("military.not.trainingField.tip",MultiLang.msg('diplomacy.conquest.label'));
+					}else{
+						this.attackTip = MultiLang.msg("military.not.trainingField.tip",MultiLang.msg('military.mission.attack'));
+					}
+					
+					//玩家是否新手
+				}else if(bean.status == PlayerConstant.PLAYER_STATUS_FRESH_MAN){
+					this.isCanAttack = false;
+					this.isCanReinforce = false;
+					this.canScout = false;
+
+					this.lootTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('chatType.beginner'),MultiLang.msg('military.mission.loot'));
+					this.reinforceTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('chatType.beginner'),MultiLang.msg('military.mission.reinforce'));
+					this.scoutTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('chatType.beginner'),MultiLang.msg('military.mission.scout'));
+					this.attackTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('chatType.beginner'),MultiLang.msg('diplomacy.conquest.label'));
+					
+					//玩家是否免战
+				}else if(bean.status == PlayerConstant.PLAYER_STATUS_FREE_OF_WAR){
+					this.isCanAttack = false;
+					this.isCanReinforce = false;
+					this.canScout = false;
+
+					this.lootTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('playInfo.peaceStatus'),MultiLang.msg('military.mission.loot'));
+					this.reinforceTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('playInfo.peaceStatus'),MultiLang.msg('military.mission.reinforce'));
+					this.scoutTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('playInfo.peaceStatus'),MultiLang.msg('military.mission.scout'));
+					this.attackTip = MultiLang.msg("military.player.novice.ceaseFire.tip",MultiLang.msg('playInfo.peaceStatus'),MultiLang.msg('diplomacy.conquest.label'));
+					
+					//自己是新手的情况,可以出征野地，但不可以出征城市
+				}else if(isFreshMan() && this.fieldType == FieldConstant.TYPE_CITY){
+					this.isCanAttack = false;
+					this.isCanReinforce = false;
+					this.canScout = false;
+
+					this.lootTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.buffFreshManStatus"),MultiLang.msg('military.mission.loot'));
+					this.reinforceTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.buffFreshManStatus"),MultiLang.msg('military.mission.reinforce'));
+					this.scoutTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.buffFreshManStatus"),MultiLang.msg('military.mission.scout'));
+					this.attackTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.buffFreshManStatus"),MultiLang.msg('diplomacy.conquest.label'));
+			
+					//自己是免战状态
+				}else if(isFreeOrWar() && this.fieldType == FieldConstant.TYPE_CITY){
+					this.isCanAttack = false;
+					this.isCanReinforce = false;
+					this.canScout = false;
+
+					this.lootTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.peaceStatus"),MultiLang.msg('military.mission.loot'));
+					this.reinforceTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.peaceStatus"),MultiLang.msg('military.mission.reinforce'));
+					this.scoutTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.peaceStatus"),MultiLang.msg('military.mission.scout'));
+					this.attackTip = MultiLang.msg("military.own.novice.tip",MultiLang.msg("playInfo.peaceStatus"),MultiLang.msg('diplomacy.conquest.label'));
+				}else{
+					this.isCanAttack = true;
+					this.isCanReinforce = true;
+
+					this.lootTip = MultiLang.msg("military.newArmy.tip.loot");
+					this.reinforceTip = MultiLang.msg("military.newArmy.tip.reinforce");
+					
+					if(this.fieldType == FieldConstant.TYPE_CITY){
+						this.attackTip = MultiLang.msg("military.newArmy.tip.conquest");
+					}else{
+						this.attackTip = MultiLang.msg("military.newArmy.tip.attack");
+					}
+				}
+				
+				//判断是否有侦察技巧
+				if(this.canScout){
+					if(curScoutLev>0){
+						this.canScout = true;
+						this.scoutTip = MultiLang.msg("military.newArmy.tip.scout");
+					}else{
+						this.canScout = false;
+						this.scoutTip = MultiLang.msg("field.cannotScout.tips");
+					}
+				}
+				
+				//没有市场
+				if(market == null){
+					this.isCanTransport = false;
+					this.transpotTip = MultiLang.msg('military.not.market.tip');
+				}else{
+					this.isCanTransport = true;
+					this.transpotTip = MultiLang.msg('market.tip.transport');
+				}
+			}
+			
+			private function setValue():void{
+				this.cityName = myMapFieldInfoBean.castleName;
+				this.playerPrestige = myMapFieldInfoBean.prestiges;
+				this.playerName = myMapFieldInfoBean.playerName;
+				this.castlePostion = int(myMapFieldInfoBean.castlePostion/10000) + "," + int(myMapFieldInfoBean.castlePostion % 10000);
+
+				if (myMapFieldInfoBean.leagueName !=null) {
+					this.leagueName = myMapFieldInfoBean.leagueName;
+				} else {
+					this.leagueName = "- -";
+				}
+				
+				if(myMapFieldInfoBean.hostCastle!=''&& myMapFieldInfoBean.hostCastle!=null){
+					this.hostDis= myMapFieldInfoBean.hostCastle+" [" + GameContext.getFieldPostionX(myMapFieldInfoBean.hostFieldId) + "," + GameContext.getFieldPostionY(myMapFieldInfoBean.hostFieldId) + "]";			
+				}
+			}
+			
+			private function getLeagueLogo(event:MapFieldInfoResponse):void{
+				if(event!=null && event.mapFieldInfoBean.leagueName !=null){
+					this.isAllianceLogoShow = true; 
+					var logoCode:int=event.mapFieldInfoBean.allianceLogo;
+					var topIndex:int=logoCode>>16;
+					var middleIndex:int=logoCode<<16>>24;
+					var bottomIndex:int=logoCode<<24>>24;
+					//trace("allianceLogo === "+logoCode+" # "+ topIndex  +" #"+middleIndex+" #"+bottomIndex);
+					this.allianceTopLogo=LogoData(ImgManager.instance.getLeagueTopLogos()[topIndex]).source;
+					this.allianceMiddleLogo=LogoData(ImgManager.instance.getLeagueMiddleLogos()[middleIndex]).source;
+					this.alliancebottom=LogoData(ImgManager.instance.getLeagueBottomLogos()[bottomIndex]).source;
+				}else{
+					this.isAllianceLogoShow = false; 	
+				}
+			}
+			
+			private function onCloseWin():void {
+				this.visible = false;
+			}
+			
+			private function onLootField(event:Event):void{
+				createArmy(BattleConstants.ARMY_MISSION_LOOT);
+			}
+			
+			/**
+			 * 出征
+			 */
+			private function createArmy(mission:int):void {
+				this.genMapTileDate();
+				this.mapTileData.missionType = mission;
+				//PopupWindows.openFuncWin(GoingToWarWin.WINDOW_SHOW,this.mapTileData);
+				HeroHelper.instance.targetMapTileData=mapTileData;
+				PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW_CAMPAIGN);
+				this.visible = false;
+			}
+			
+			private function genMapTileDate():void {
+				this.mapTileData.status = this.status;
+				this.mapTileData.relation = this.relation;
+				this.mapTileData.canAttack = this.canAttack;
+				this.mapTileData.scoutable = this.canScout;
+				this.mapTileData.canTransport = this.canTransport;
+				this.mapTileData.canReinforce = this.canReinforce;
+				this.mapTileData.fieldName = this.field_name;
+				this.mapTileData.hostPlayer = this.hostPlayer;
+				this.mapTileData.hostRelation = this.hostRelation;
+				this.mapTileData.fieldX = this.mapTile.getFieldX();
+				this.mapTileData.fieldY = this.mapTile.getFieldY();
+				this.mapTileData.isCastle = (fieldType == FieldConstant.TYPE_CITY);
+			}
+			
+			/**
+			 * 侦察
+			 */
+			private function scout():void {
+				this.genMapTileDate();
+				EvtDispacther.instance.dispatchEvent(new MsgEvent(NEW_SCOUT_EVENT, this.mapTileData));
+			}
+			
+			/**
+			 * 运输
+			 */
+			private function newTransport():void {
+				var building:BaseBuilding = this.getMarket(); 
+				if (building!=null) {
+					this.mapTileData.fieldX = this.mapTile.getFieldX();
+					this.mapTileData.fieldY = this.mapTile.getFieldY();
+					PopupWindows.openBuildingInfoWin(MarketWin.WINDOW_SHOW,building , this.mapTileData);
+				}
+			}
+
+			private function getMarket():BaseBuilding {
+				return GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING);	
+			}
+			
+			/**
+			 * 增加到收藏夹
+			 */
+			private function addFavorite():void {
+				FieldFavorite.instance.addListener();				
+				FavoriteEvent.addFavorite(FieldFavorite.ADD_FAVORITE,this.idField,this.field_name);
+			}
+			
+			/**
+			*检查是否为自己的城堡
+			*/
+			private function isMyCastle(bean:MapFieldInfoBean):Boolean{
+				var yours:Boolean=false;
+				var castleArr:Array=GameContext.instance.getPlayerObj().getAllCastle();
+				for each(var castle:CastleObj in castleArr){
+					if(castle.idField==bean.castlePostion){
+						yours=true;
+					}
+				}
+				return yours;
+			}
+			
+			/**
+			 * 进入自己的城堡
+			 */
+			 private function getInMyCastle():void{
+			 	if(this.myMapFieldInfoBean!=null){
+			 		ToggleButton.instance.switchHandler(false);
+			 		CastleIconPanel.instance.gotoTown(this.myMapFieldInfoBean.castlePostion);
+			 	}	
+			 }
+			
+			/**
+			 * 查看野地的战场
+			 */ 
+			private function goinBattle():void{
+				var o:Object = {};
+				o.idField = this.idField;
+				PopupWindows.openFuncWin(FieldBattleWin.WINDOW_SHOW,o);
+			}
+			
+			/**
+			 *玩家状态
+			 */
+			private function getStatus(s:int):void{
+				switch(s){
+					case PlayerConstant.PLAYER_STATUS_NORMAL:
+						this.statusDesc = MultiLang.msg("playInfo.buffNormalStatus");
+						break;
+					case PlayerConstant.PLAYER_STATUS_FREE_OF_WAR:
+						this.statusDesc =MultiLang.msg("playInfo.buffPeaceStatus"); 
+						break;
+					case PlayerConstant.PLAYER_STATUS_FRESH_MAN:
+						this.statusDesc = MultiLang.msg("playInfo.buffFreshManStatus");
+						break;
+				}
+			}
+			
+			private function showMenu(event:MouseEvent):void{
+				MapAddLabelHelper.instance.showMenu(this,event,this.idField,this.field_name);
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="dataGridHeaderBG" width="366" height="24" x="2" y="4">
+		<mx:Label 
+			text="{this.field_name}" y="2" horizontalCenter="0" styleName="darkCommonStyle" fontSize="14"/>
+	</mx:Canvas>
+	<mx:Button click="onCloseWin()" styleName="closeBtn" right="8" top="6"/>
+	
+	<mx:HBox horizontalGap="0" left="155" right="0" verticalScrollPolicy="off" horizontalScrollPolicy="off" top="30">
+		<mx:Label text="{this.fieldPostion}" styleName="addLinkLabel" click="showMenu(event)"/>
+		<mx:Button styleName="collectionBtn" width="16" height="16"
+			toolTip="{MultiLang.msg('public.label.favorites')}" click="addFavorite()"
+			visible="{this.canCollect}" includeInLayout="{this.canCollect}"/>
+		<mx:Label  text="{MultiLang.msg('world.castle.distance',this.distance.toFixed(0))}" styleName="darkCommonStyle" toolTip="{this.distanceTip}"/>
+	</mx:HBox>
+	<mx:Button label="{MultiLang.msg('battleSituation.label')}" enabled="{isInBattle}" click="{goinBattle()}" width="128" height="25" top="155" styleName="loginBigSizeBtn" left="5"/>
+	<mx:ViewStack visible="{this.hasDesc}" height="170" selectedIndex="{this.descSelectIndex}" left="155" top="48" right="10" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox label="野地" width="100%" height="100%" verticalGap="-4" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('fieldInfo.belongCastle')}:" textAlign="right"/>
+				<mx:Label text="{this.cityName}" width="80" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label  width="80" text="{MultiLang.msg('townHall.coordinate')}:" textAlign="right"/>
+				<mx:Label text="{this.castlePostion}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('public.label.lord')}:" textAlign="right"/>
+				<mx:Label id="nameLabel" text="{this.playerName}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('public.label.prestige')}:" textAlign="right"/>
+				<mx:Label text="{this.playerPrestige}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('public.label.alliance')}:" textAlign="right"/>
+				<mx:Label text="{this.leagueName}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('chatType.zone')}:" textAlign="right"/>
+				<mx:Label text="{this.zoneName}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" visible="{this.hostDis!=''}" includeInLayout="{this.hostDis!=''}" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('diplomacy.conquest.leaderCity.label')}:" textAlign="right"/>
+				<mx:Label text="{this.hostDis}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="城堡" width="100%" height="100%" verticalGap="1" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:HBox verticalGap="0" horizontalGap="0" horizontalAlign="center" width="100%" verticalAlign="middle" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label text="{this.playerName}" styleName="titleBigBordLabel" color="#D91A21"/>
+				<mx:Button  styleName="chatPureColorBtn" icon="{ImgManager.clazz('chat.icon.write')}" click="{Mail.writeMailToPlayer(this.playerName);this.visible = false;}" visible="{this.canWrite}" includeInLayout="{this.canWrite}"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%">
+				<mx:Label width="80" text="{MultiLang.msg('public.label.prestige')}:" textAlign="right"/>
+				<mx:Label text="{this.playerPrestige}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%">
+				<mx:Label width="80" text="{MultiLang.msg('public.label.alliance')}:" textAlign="right"/>
+				<mx:Label text="{this.leagueName}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%">
+				<mx:Label width="80" text="{MultiLang.msg('chatType.zone')}:" textAlign="right"/>
+				<mx:Label text="{this.zoneName}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" visible="{this.hostDis!=''}" includeInLayout="{this.hostDis!=''}" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('diplomacy.conquest.leaderCity.label')}:" textAlign="right"/>
+				<mx:Label text="{this.hostDis}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+			<mx:HBox verticalGap="0" horizontalGap="0" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('alliance.status')}:" textAlign="right"/>
+				<mx:Label text="{this.statusDesc}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="平地或者野城" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Text text="{this.fieldDes}" width="100%"/>
+			<mx:HBox verticalGap="0" horizontalGap="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:Label width="80" text="{MultiLang.msg('chatType.zone')}:" textAlign="right"/>
+				<mx:Label text="{this.zoneName}" styleName="darkCommonStyle"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:ViewStack>
+	
+	<mx:Canvas x="8" y="31" label="野地图片">
+		<mx:Image source="{ImgManager.clazz('background.playerHeadBG')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Image horizontalCenter="0" verticalCenter="0" id="logoImage" 
+			width="102" height="102" source="{this.logo}" updateComplete="ImageHandle.onLoadComplete(event)">
+		</mx:Image>
+	</mx:Canvas>
+	
+	<mx:Canvas left="80" bottom="82" visible="{isAllianceLogoShow}">
+		<mx:Image height="50" width="50" source="{alliancebottom}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Image height="50" width="50" source="{allianceMiddleLogo}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Image height="50" width="50" source="{allianceTopLogo}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	</mx:Canvas>
+	
+	<mx:Canvas x="107" y="33" visible="{this.showLevel}" width="20" label="级别">
+		<mx:Image source="{ImgManager.clazz('toolBar.numberBG')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		<mx:Label text="{this.fieldLevel}" styleName="titleLevelLabel" horizontalCenter="0" textAlign="center"/>
+	</mx:Canvas>
+	
+	<mx:HBox width="100%" x="5" verticalGap="0" horizontalGap="8" label="按钮区" bottom="10">
+		<mx:HBox verticalGap="0" label="其他按钮" id="buttonBar">
+			<mx:Button styleName="getInBtn" width="40" height="40"
+				visible="{this.canGetIn}" includeInLayout="{this.canGetIn}"
+				click="getInMyCastle()" toolTip="{MultiLang.msg('military.mission.getIn')}"/>
+			<mx:Button styleName="depredateBtn" width="40" height="40"
+				visible="{this.canAttack}" includeInLayout="{this.canAttack}"
+				click="this.createArmy(BattleConstants.ARMY_MISSION_LOOT)"
+				toolTip="{this.lootTip}" enabled="{this.isCanAttack}"/>
+			<mx:Button styleName="occupyBtn" width="40" height="40"
+				visible="{this.canAttack}" includeInLayout="{this.canAttack}"
+				click="{(fieldType == FieldConstant.TYPE_CITY)?this.createArmy(BattleConstants.ARMY_MISSION_CONQUEST):createArmy(BattleConstants.ARMY_MISSION_ATTACK)}"
+				toolTip="{this.attackTip}" enabled="{this.isCanAttack}"/>
+			<mx:Button styleName="spyBtn" width="40" height="40"
+				visible="{this.canAttack}" includeInLayout="{this.canAttack}" enabled="{this.canScout}"
+				click="this.scout()"
+				toolTip="{this.scoutTip}"/>
+			<mx:Button styleName="reinforceBtn" width="40" height="40"
+				visible="{this.canReinforce}" includeInLayout="{this.canReinforce}"
+				click="this.createArmy(BattleConstants.ARMY_MISSION_REINFORCE)"
+				toolTip="{this.reinforceTip}" enabled="{this.isCanReinforce}"/>
+			<mx:Button styleName="transportBtn" width="40" height="40"
+				visible="{this.canTransport}" includeInLayout="{this.canTransport}"
+				click="this.newTransport()"
+				toolTip="{this.transpotTip}" enabled="{this.isCanTransport}"/>
+		</mx:HBox>
+	</mx:HBox>
+</BaseWin>

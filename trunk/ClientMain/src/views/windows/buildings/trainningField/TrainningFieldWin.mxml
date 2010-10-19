@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<buildings:BaseBuildingWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="100%" 
+	xmlns:ns1="views.spreadUI.*" xmlns:buildings="views.windows.buildings.*" 
+	xmlns:upgradWin="views.windows.buildings.townHall.*" creationComplete="init()" xmlns:ns2="views.windows.buildings.trainningField.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.MyAlert;
+			import mx.collections.ArrayCollection;
+			import roma.logic.GameContext;
+			import views.windows.functionWins.military.GoToWarFromFavorite;
+			import views.windows.functionWins.military.GoingToWarWin;
+			import views.PopupWindows;
+			import roma.message.events.InjuredTroopChangeEvent;
+			import roma.message.EvtDispacther;
+			import roma.util.MultiLang;
+			import mx.events.ItemClickEvent;
+			
+			public static const WINDOW_SHOW:String = "trainningFieldWin.show";
+			
+			[Bindable]
+			private var titleAry:Array=new Array(MultiLang.msg("trainningField.garrisonOthers.label"),MultiLang.msg("hospital.name"),MultiLang.msg("hero.stratagemDeploy.label"),MultiLang.msg("upgradingWin.upgradeRequest"));
+			
+			private function init():void{
+				
+			}
+			
+			/**
+			 *每次界面弹出调用，刷新数据
+			 */ 
+			override public function refresh():void{
+				if(this.initialized){
+					if(this.buildingObj.level<1){
+						this.upgradingWin.refresh();
+					}else if(this.winData.data != null && this.winData.data == "cureWin"){
+						if(this.winData.data == "cureWin"){
+							this.tgButtonBar.selectedIndex = 1;
+							this.myViewstack.selectedChild = hospitalWin;
+							this.hospitalWin.refresh();
+						}else if(this.winData.data == "residenceArmyWin"){
+							this.tgButtonBar.selectedIndex = 0;
+							this.myViewstack.selectedChild = residenceArmyWin;
+							residenceArmyWin.refresh();
+						}
+					}
+					else{
+						this.tgButtonBar.selectedIndex=0;
+						this.myViewstack.selectedChild = this.residenceArmyWin;
+						this.residenceArmyWin.refresh();
+					}
+				}
+			}
+
+			override public function update():void{
+				if(this.buildingObj.level<1){
+					this.tgButtonBar.selectedIndex = this.titleAry.length-1;
+					this.myViewstack.selectedChild = this.upgradingWin;
+					this.tgButtonBar.enabled = false;
+				}else{
+					if(!this.tgButtonBar.enabled){
+						this.tgButtonBar.enabled = true;
+					}
+				}
+			}
+			
+			/**
+			 * 界面隐藏调用，停止当前窗体一切相关动画
+			 */ 
+			override public function destroy():void{
+			
+			}
+			
+			private function btnHandler(event:ItemClickEvent):void{
+				this.tgButtonBar.selectedIndex = event.index;
+				
+				switch(event.index){
+					case 0:
+						this.myViewstack.selectedChild = this.residenceArmyWin;
+						this.residenceArmyWin.refresh();
+					break;
+					
+					case 1:
+						this.myViewstack.selectedChild = this.hospitalWin;
+						this.hospitalWin.refresh();
+					break;
+					
+					case 2:
+						this.myViewstack.selectedChild = this.stratagemsDeployWin;
+						this.stratagemsDeployWin.refresh();
+					break;
+					
+					case 3:
+						this.myViewstack.selectedChild = this.upgradingWin;
+						this.upgradingWin.refresh();
+					break;
+					
+					default:
+				}
+			}
+			
+			private function goToWar():void{
+				var castleAry:Array = GameContext.instance.getPlayerObj().getAllCastle();				
+				var favAry:ArrayCollection= GameContext.instance.getPlayerObj().favoriteManager.filterArray;
+				if(castleAry.length>1){
+					GoToWarFromFavorite.getInstance().goToWarToCity();		
+				}else if(favAry.length>0){
+					GoToWarFromFavorite.getInstance().goToWar();		
+				}else{
+					MyAlert.show(MultiLang.msg("military.can't.newArmy.tip"));
+				}
+			}
+		]]>
+	</mx:Script>
+
+	<mx:VBox width="100%" horizontalGap="1" horizontalAlign="left" verticalAlign="bottom" top="0" left="0" verticalGap="0">
+		<mx:HBox>
+			<mx:ToggleButtonBar id="tgButtonBar" styleName="titleToggleButtonBar" itemClick="btnHandler(event)" dataProvider="{this.titleAry}"/>
+			<mx:Button label="{MultiLang.msg('military.newArmy.title')}" click="goToWar()" toolTip="{MultiLang.msg('trainningField.btnTip.toNewArmy')}"/>
+		</mx:HBox>
+		<ns1:MulHRule/>
+	</mx:VBox>
+
+	<mx:ViewStack id="myViewstack" bottom="0" left="0" right="0" top="25">
+		<ns2:ResidenceArmyWin width="100%" height="100%" id="residenceArmyWin"/>
+		<ns2:Hospital width="100%" height="100%" id="hospitalWin"/>
+		<ns2:StratagemDeployWin width="100%" height="100%" id="stratagemsDeployWin"/>
+		<upgradWin:UpgradingWin width="100%" height="100%" id="upgradingWin" buildingObj="{this.buildingObj}"/>
+	</mx:ViewStack>
+</buildings:BaseBuildingWindow>

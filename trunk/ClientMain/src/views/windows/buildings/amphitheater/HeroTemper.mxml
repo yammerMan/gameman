@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BasePopUpWindow xmlns:functionWins="views.windows.functionWins.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	 xmlns:inputUi="views.spreadUI.army.*"
+	 creationComplete="init()" title="{MultiLang.msg('hero.temper.btnLabel')}" width="365" height="360">
+<mx:Script>
+	<![CDATA[
+		import roma.logic.object.castle.BattleHelper;
+		import views.windows.functionWins.hero.HeroHelper;
+		import views.MainContainer;
+		import roma.common.constants.HeroManConstants;
+		import roma.util.PopupWinManager;
+		import roma.resource.ImgManager;
+		import views.spreadUI.MyAlert;
+		import roma.common.controller.CommonResponse;
+		import roma.logic.GameContext;
+		import roma.logic.object.castle.CastleObj;
+		import roma.common.action.ControllerFactory;
+		import roma.common.constants.HeroGrowthConstant;
+		import mx.controls.ComboBox;
+		import mx.collections.ArrayCollection;
+		import gs.easing.Strong;
+		import roma.util.MultiLang;
+		import roma.util.ImageHandle;
+		import roma.logic.object.hero.HeroObj;
+		
+		[Bindable]
+		private var curHero:HeroObj;
+		private var castleObj:CastleObj;
+		private var callFun:Function;
+		
+		public static var instance:HeroTemper;
+		public static function show(data:Object,func:Function =null):void{
+			if(instance == null){
+				instance = new HeroTemper();
+			}
+			PopupWinManager.instance.addPopup(instance);
+			instance.castleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+			instance.curHero = HeroObj(data);
+			instance.callFun = func;
+			
+			if(instance.initialized){
+				instance.temperTimeNS.refresh();
+				instance.init();
+				
+			}
+		}
+		[Bindable]
+		private var comboBoxType:ArrayCollection = new ArrayCollection([
+			{label:MultiLang.msg('hero.temper.temperDesc.fightLabel'),data:HeroGrowthConstant.HERO_GROWTH_TYPE_FIGHTING},
+			{label:MultiLang.msg('hero.temper.temperDesc.readLabel'),data:HeroGrowthConstant.HERO_GROWTH_TYPE_READING},
+			{label:MultiLang.msg('hero.temper.temperDesc.patrolLabel'),data:HeroGrowthConstant.HERO_GROWTH_TYPE_INSPECTING},
+			{label:MultiLang.msg('hero.temper.temperDesc.interviewLabel'),data:HeroGrowthConstant.HERO_GROWTH_TYPE_VISITING},
+			{label:MultiLang.msg('hero.temper.temperDesc.treasureHuntLabel'),data:HeroGrowthConstant.HERO_GROWTH_TYPE_TREASURING},
+			{label:MultiLang.msg('hero.temper.temperDesc.enterRearLabel'),data:HeroGrowthConstant.HERO_GROWTH_TYPE_SCOUTING}]);
+		
+		[Bindable]
+		private var temperDesc:String = MultiLang.msg('hero.temper.temperDesc.fight');
+		
+		private function init():void{
+			temperDesc = MultiLang.msg('hero.temper.temperDesc.fight');
+			temperTimeNS.effectValue=1;
+			temperWithCoinNS.effectValue=0;
+			heroTemperCB.dropdown.height = 130;
+		}
+		
+		private function comboBoxClose(event:Event):void{
+			switch(ComboBox(event.target).selectedItem.data){
+				case HeroGrowthConstant.HERO_GROWTH_TYPE_FIGHTING:
+					temperDesc = MultiLang.msg('hero.temper.temperDesc.fight');
+				break;
+				case HeroGrowthConstant.HERO_GROWTH_TYPE_READING:
+					temperDesc = MultiLang.msg('hero.temper.temperDesc.reading');
+				break;
+				case HeroGrowthConstant.HERO_GROWTH_TYPE_INSPECTING:
+					temperDesc = MultiLang.msg('hero.temper.temperDesc.patrol');
+				break;
+				case HeroGrowthConstant.HERO_GROWTH_TYPE_VISITING:
+					temperDesc = MultiLang.msg('hero.temper.temperDesc.interview');
+				break;
+				case HeroGrowthConstant.HERO_GROWTH_TYPE_TREASURING:
+					temperDesc = MultiLang.msg('hero.temper.temperDesc.treasureHunt');
+				break;
+				case HeroGrowthConstant.HERO_GROWTH_TYPE_SCOUTING:
+					temperDesc = MultiLang.msg('hero.temper.temperDesc.enterRear');
+				break;
+			}
+		}
+		
+		private function onSureTemper():void{
+			if(curHero.heroInfo.status  != HeroManConstants.STATUS_FREE){
+				MyAlert.show(MultiLang.msg('hero.free.can.train'));
+				return;
+			}
+			if(this.curHero.heroInfo.strengthPoint<HeroManConstants.ARMY_ACTION_CONSUME_STRENGTH_POINT){
+				MyAlert.show(MultiLang.msg("hero.strength.notEnough"));
+				return;
+			}
+			var t:int = heroTemperCB.selectedItem.data;
+			var tStr:String = BattleHelper.instance.getBeanTempleType(t);
+			
+			var goldsOrCoinStr:String = "";
+			var cs:int = HeroHelper.instance.getTemperConsumeCoins(t);	
+			var gs:int = HeroHelper.instance.getTemperConsumeGold(t);	
+			if(cs>=0)
+				goldsOrCoinStr = MultiLang.msg("hero.temper.sureTo.consumeCoin",cs*temperTimeNS.effectValue);
+			else
+				goldsOrCoinStr = MultiLang.msg('hero.temper.sureTo.consumeGold',gs*temperTimeNS.effectValue);
+			
+			if(temperWithCoinNS.effectValue > 0)
+				goldsOrCoinStr += MultiLang.msg("hero.temper.sureTo.tackCoin",temperWithCoinNS.effectValue);
+			
+			MyAlert.show(MultiLang.msg('hero.temper.sureTo',tStr,temperTimeNS.effectValue,goldsOrCoinStr),sureGrowth,MultiLang.msg('public.label.sure'),MultiLang.msg('public.label.cancel'));
+			
+			function sureGrowth(isTrue:Boolean):void{
+				if(isTrue)
+				ControllerFactory.getInstance().getHeroController().sendHeroForGrowth(castleObj.cityId,curHero.heroInfo.id,t,temperTimeNS.effectValue,temperWithCoinNS.effectValue,onHeroForGrowth);
+			}
+			function onHeroForGrowth(event:CommonResponse):void{
+				if(event.isSuccess()){
+					MainContainer.instance.risePlay(MultiLang.msg("hero.temper.success"));
+					if(callFun != null)
+					callFun.call(this);
+					PopupWinManager.instance.removePopup(instance);
+				}
+				else{
+					MyAlert.showError(event);
+				}
+			}
+		}
+	]]>
+</mx:Script>
+	<mx:Canvas top="31" horizontalCenter="0" left="10" right="10" bottom="39" styleName="subContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Canvas left="10" right="10" height="60" styleName="BuildingAlphaWindow" top="10" horizontalCenter="0">
+			<mx:Canvas width="96" height="48" styleName="resourceBG" verticalCenter="0" left="5">
+				<mx:Image source="{ImgManager.clazz(curHero.heroInfo.logoUrl)}" 
+					scaleX="{88/104}" scaleY="{40/48}" updateComplete="ImageHandle.onLoadComplete(event)" left="4" top="4" right="4" bottom="4"/>
+				<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" left="3" top="3" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{curHero.heroInfo.level}" x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center"/>
+			</mx:Canvas>
+			<mx:Label text="{curHero.heroInfo.name}" styleName="titleBigBordLabel"  verticalCenter="0" horizontalCenter="35" color="{curHero.heroInfo.potentiality>0?0x0082cd:0x81511c}"/>
+		</mx:Canvas>
+		
+		<mx:Canvas horizontalCenter="0" left="10" right="10" top="75" bottom="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Text width="95%" text="{temperDesc}" horizontalCenter="0" top="75"/>
+			<mx:HBox horizontalGap="2" horizontalCenter="0" top="0">
+				<mx:VBox verticalGap="2">
+					<mx:Label text="{MultiLang.msg('hero.temper.temperType')}" width="100%" textAlign="right" height="24"/>
+					<mx:Label text="{MultiLang.msg('hero.temper.temperTime')}" width="100%" textAlign="right" height="24"/>
+					<mx:Label text="{MultiLang.msg('hero.temper.withCoin')}" width="100%" textAlign="right" height="24"/>
+				</mx:VBox>
+				<mx:VBox verticalGap="2">
+					<mx:ComboBox id="heroTemperCB" close="comboBoxClose(event)" width="130" dataProvider="{comboBoxType}" height="24" rowCount="{comboBoxType.length}"/>
+					<inputUi:LimitInputUI id="temperTimeNS" valueMin="1" maxValue="6" width="130" height="24"/>
+					<inputUi:LimitInputUI id="temperWithCoinNS" valueMin="0" maxValue="100" width="130" height="24"/>
+				</mx:VBox>
+				<mx:VBox verticalGap="2">
+					<mx:Label text="{MultiLang.msg('public.hour.label')}" visible="false" height="24"/>
+					<mx:Label text="{MultiLang.msg('public.hour.label')}"  height="24"/>
+					<mx:Label text="{MultiLang.msg('public.label.coin')}"  height="24"/>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:Canvas>
+	</mx:Canvas>
+	<mx:Button label="{MultiLang.msg('public.label.sure')}" bottom="16" right="12" width="110" height="22" click="onSureTemper()"/>
+</functionWins:BasePopUpWindow>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow2 
+	width="650" height="400" 
+	title="{this.winTitle}" 
+	creationComplete="init()" 
+	mouseEnabled="true"
+	xmlns:functionWins="views.windows.functionWins.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*"
+	xmlns:myArmy="views.windows.functionWins.diplomacy.*"  
+	xmlns:ns2="views.windows.functionWins.friendly.*" 
+	xmlns:troop="views.spreadUI.troop.*" 
+	xmlns:diamond2="views.mainModules.map.diamond2.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+		]]>
+	</mx:Script>
+	<mx:Script source="CastleInfoWin_.as" />
+	<mx:Canvas width="285" top="49" left="11" bottom="35" id="infoCavas" horizontalScrollPolicy="off" styleName="alphaBlackBG" verticalScrollPolicy="off">
+		<mx:VBox left="11" top="11" id="infoVB" styleName="whiteBGwithBorder" verticalGap="0" right="11">
+			<mx:Canvas height="99" top="4" left="4" right="4"  verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100%">
+				<mx:Canvas width="99" height="97" verticalCenter="0" left="1">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)" source="{ImgManager.clazz('background.playerHeadBG')}" width="99" height="97" x="0" y="0"/>
+					<mx:Image source="{this.logoSource}" updateComplete="ImageHandle.onLoadComplete(event);" id="playerLogo" width="79" height="77" x="10" y="10"/>
+				</mx:Canvas>
+				<mx:HBox horizontalGap="0" top="0" bottom="0" right="0" left="101">
+					<mx:VRule height="100%" />
+					<mx:VBox height="100%" width="100%" verticalGap="0" horizontalAlign="center">
+						<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+							<mx:Label styleName="titleBigBordLabel" text="{this.thisPlaceName}"/>
+							<mx:HBox  width="100%" horizontalAlign="center" horizontalGap="0" visible="{!isCastle}" includeInLayout="{!isCastle}">
+								<mx:Label text="{this.positionStr}" styleName="addLinkLabel" click="showMenu(event)"/>
+								<mx:Button styleName="collectionBtn" width="16" height="16" toolTip="{MultiLang.msg('public.label.favorites')}" click="addFavorite()"/>
+							</mx:HBox>	
+						</mx:VBox>
+						<mx:HRule width="100%"/>
+						<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('chatType.zone')}:" width="70" textAlign="right"/>
+							<mx:VRule height="22"/>
+							<mx:Label styleName="darkCommonStyle" text="{this.zoneName}"/>
+						</mx:HBox>
+						<mx:HRule width="100%" visible="{!this.isCastle}" includeInLayout="{!this.isCastle}"/>
+						<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" visible="{!this.isCastle}" includeInLayout="{!this.isCastle}" horizontalGap="0">
+							<mx:Label text="{MultiLang.msg('public.label.distanceBetweenHere')}:" width="70" textAlign="right"/>
+							<mx:VRule height="22"/>
+							<mx:Label styleName="darkCommonStyle" text="{MultiLang.msg('world.castle.distance',this.distance)}" visible="{!this.isCastle}" 
+								includeInLayout="{!this.isCastle}" toolTip="{this.distanceTip}"/>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Canvas>
+			<mx:HRule width="100%" />
+			<mx:ViewStack width="100%" height="100%" id="infoVS">
+				<mx:Canvas width="100%" height="100%" label="自己城堡的信息" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<mx:HBox horizontalGap="0" width="100%" height="100%">
+						<mx:VBox verticalGap="1" width="110" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Label text="{MultiLang.msg('public.label.prestige')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('castleInfoWin.cityStatus')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('label.population.current')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('label.food')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('label.support')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('castleInfoWin.bulidingTask')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('castleInfoWin.researchTask')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+						</mx:VBox>
+						<mx:VRule height="100%" />
+						<mx:VBox verticalGap="1" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<mx:Label text="{this.info.prestiges}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.info.leagueName}"  styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%" />
+							<mx:Label text="{this.castleStatusStr}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.curSelectCastle.resourceManager.curPopulation}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{int(this.curSelectCastle.resourceManager.food.curAmount)}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%" />
+							<mx:Label text="{this.curSelectCastle.resourceManager.support}/{this.curSelectCastle.resourceManager.complaint}" styleName="{this.curSelectCastle.resourceManager.support>=50?'darkCommonStyle':'NoticeSmallLabel'}" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.curBuildingStr}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.curResearchStr}" styleName="darkCommonStyle" width="100%"/>
+						</mx:VBox>
+					</mx:HBox>
+				</mx:Canvas>
+				<mx:Canvas width="100%" height="80%" label="自己野地的信息" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<mx:HBox horizontalGap="0" width="100%" height="100%">
+						<mx:VBox height="100%" verticalGap="2" width="80" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Label text="{MultiLang.msg('public.label.increatResource')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('fieldInfo.belongCastle')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.lord')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.prestige')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{MultiLang.msg('public.label.alliance')}:" textAlign="right" width="100%" styleName="commonMarginLabel"/>
+						</mx:VBox>
+						<mx:VRule height="100%" />
+						<mx:VBox height="100%" verticalGap="2" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+							<mx:Label text="{this.fieldDis}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.belongCastleAddStr}"  styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%" />
+							<mx:Label text="{this.info.playerName}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.info.prestiges}" styleName="darkCommonStyle" width="100%"/>
+							<mx:HRule width="100%"/>
+							<mx:Label text="{this.info.leagueName}" styleName="darkCommonStyle" width="100%"/>
+						</mx:VBox>
+					</mx:HBox>
+				</mx:Canvas>
+			</mx:ViewStack>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:HBox width="100%" left="11" bottom="11" horizontalGap="2">
+		<mx:Button label="{MultiLang.msg('military.mission.getIn')}" visible="{isCastle}" includeInLayout="{isCastle}" width="92" styleName="commomNormalBtn" click="getInMyCastle()" enabled="{!isConstructing}"/>
+		<mx:Button label="{MultiLang.msg('military.mission.reinforce')}" width="92" styleName="commomNormalBtn" click="createArmy()" visible="{this.mapTileData.canReinforce}" includeInLayout="{this.mapTileData.canReinforce}" enabled="{!isConstructing}" toolTip="{MultiLang.msg('military.newArmy.tip.reinforce')}"/>
+		<mx:Button label="{MultiLang.msg('market.transport')}" width="92" styleName="commomNormalBtn" click="newTransport()" visible="{this.mapTileData.canTransport}" includeInLayout="{this.mapTileData.canTransport}" enabled="{!isConstructing}" toolTip="{MultiLang.msg('market.tip.transport')}"/>
+		<mx:Button label="{MultiLang.msg('townHall.giveUpBtn.label')}" visible="{!isCastle}" includeInLayout="{!isCastle}" width="92" styleName="commomNormalBtn" click="giveUpSelfField()" />
+		<mx:Button label="{MultiLang.msg('diplomacy.battleBtn.label')}" width="92" enabled="{this.canJoinBattle}" styleName="commomNormalBtn" click="onGoinBattle()" />
+	</mx:HBox>
+	<mx:Canvas right="11" top="49" styleName="buildingInfoContentBG" width="340" bottom="35">
+		<mx:HBox left="0" horizontalGap="0" top="0" verticalAlign="middle"  styleName="tecTitleBG" right="0">
+			<mx:Spacer width="5"/>
+			<mx:Button height="25" label="{MultiLang.msg('diplomacy.garrison.label')}" styleName="tabBtn" selected="true" id="diplomacyBtn" mouseOver="onMouseOver(event)" 
+				visible="{!isCastle}" includeInLayout="{!isCastle}"/>
+			<mx:Button height="25" label="{MultiLang.msg('diplomacy.conquest.leaderCityGarrison.label')}" styleName="tabBtn" id="conquestBtn" mouseOver="onMouseOver(event)" 
+				visible="{isCastle}" includeInLayout="{isCastle}"/>
+			<mx:Button height="25" label="{MultiLang.msg('military.mission.reinforce')}" styleName="tabBtn" id="reinforceBtn" 
+				mouseOver="onMouseOver(event)" />
+		</mx:HBox>
+		<mx:ViewStack top="25" right="0" left="0" bottom="0" id="troopViewStack">
+			<mx:Canvas width="100%" height="100%" id="myTroopContainer" label="驻军">
+				<mx:TileList id="troopsContainer" dataProvider="{seizeArmyArray}" width="100%" height="100%" borderStyle="none" useRollOver="false" selectable="false" backgroundAlpha="0">
+					<mx:itemRenderer>
+						<mx:Component>
+							<myArmy:MyArmyGarrisonUI hero="{HeroObj(data)}" recallArmy="{outerDocument.recallArmy}">
+								<mx:Script>
+									<![CDATA[
+										import roma.logic.object.hero.HeroObj;
+									]]>
+								</mx:Script>
+							</myArmy:MyArmyGarrisonUI>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+			</mx:Canvas>
+			<mx:Canvas width="100%" height="100%" id="conquestTroopContainer" label="宗主城驻军">
+				<mx:TileList id="conquestContainer" dataProvider="{conquestArmyArray}" width="100%" height="100%" borderStyle="none" useRollOver="false" selectable="false" backgroundAlpha="0">
+					<mx:itemRenderer>
+						<mx:Component>
+							<diamond2:GarrisonUI hero="{OtherArmyObj(data)}" repatriate="{outerDocument.repatriate}">
+								<mx:Script>
+									<![CDATA[
+										import roma.logic.object.player.OtherArmyObj;
+									]]>
+								</mx:Script>
+							</diamond2:GarrisonUI>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+			</mx:Canvas>
+			<mx:Canvas width="100%" height="100%" id="otherTroopContainer" label="协防">
+				<mx:TileList id="alliedForcesContainer" dataProvider="{friendsArmyArray}" width="100%" height="100%" borderStyle="none" useRollOver="false" selectable="false" backgroundAlpha="0">
+					<mx:itemRenderer>
+						<mx:Component>
+							<diamond2:GarrisonUI hero="{OtherArmyObj(data)}"  repatriate="{outerDocument.repatriate}">
+								<mx:Script>
+									<![CDATA[
+										import roma.logic.object.player.OtherArmyObj;
+									]]>
+								</mx:Script>
+							</diamond2:GarrisonUI>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:TileList>
+			</mx:Canvas>
+			
+		</mx:ViewStack>
+		<!--mx:Tile top="25" right="0" left="0" bottom="0" id="tooopContainer"/-->
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow2>
+

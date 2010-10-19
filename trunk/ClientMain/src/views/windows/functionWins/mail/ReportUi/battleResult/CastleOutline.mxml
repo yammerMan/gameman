@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="497" height="200" creationComplete="init()"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off" >
+	<mx:Script>
+		<![CDATA[
+			import animation.AnimationManager;
+			import animation.AniPlayer;
+			import mx.core.UIComponent;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.resource.ImgManager;
+			import views.windows.buildings.townHall.LevyWin;
+			import roma.common.constants.BuildingConstant;
+			import mx.utils.ObjectProxy;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var buildingList:ArrayCollection = null;
+			[Bindable]
+			private var castleLev:int = 0;
+			private var castleBit:Bitmap = new Bitmap();
+			private var castleLevBit:Bitmap = new Bitmap();
+			
+			private function init():void{
+				var ui:UIComponent = new UIComponent();
+				ui.addChild(castleBit);
+				ui.addChild(castleLevBit);
+				this.addChild(ui);
+				
+				castleBit.bitmapData = new BitmapData(994,400,true,0x0);
+				castleLevBit.bitmapData = new BitmapData(497,200,true,0x0);
+				if(buildingList != null){
+					buildings = buildingList;
+				}
+			}
+			
+			public function set buildings(a:ArrayCollection):void{
+				var isTheTopLevel:Boolean = false;
+				buildingList = a;
+				this.castleLev = setCastleLev(a);
+				if(!this.initialized){return;}
+				
+				var old:BitmapData = castleBit.bitmapData;
+				if(old != null)old.dispose();
+				old = castleLevBit.bitmapData;
+				if(old != null)old.dispose();
+				
+				castleBit.bitmapData = new BitmapData(994,400,true,0x0);
+				castleLevBit.bitmapData = new BitmapData(497,200,true,0x0);
+				
+				drawBackGround();
+ 				drawWall(a);
+				drawBuildings(a);
+				for each(var i:Object in a){
+					if(i.level>0)
+					drawLev(i);
+				}
+				
+				this.castleBit.scaleX = .5;
+				this.castleBit.scaleY = .5;
+			}
+			
+			private function drawBuildings(a:ArrayCollection):void{
+				for each(var i:Object in a){
+					var b:BitmapData = TownShowObj.instance.getBuildBitData(i.type);
+					var p:Point = TownShowObj.instance.getBuildPos(i.position);
+					drawScene(castleBit.bitmapData,b,p);
+				}
+			}
+			
+			private function drawBackGround():void{
+				var bgClass:Class;
+				switch(this.castleLev){
+					case 1:
+						bgClass = ImgManager.clazz('background.town0');
+					break;
+					case 2:
+						bgClass = ImgManager.clazz('background.town1');
+					break;
+					case 3:
+						bgClass = ImgManager.clazz('background.town2');
+					break;
+					case 4:
+						bgClass = ImgManager.clazz('background.town3');
+					break;
+				}
+				var bgBitmap:Bitmap = new bgClass as Bitmap;
+				drawScene(castleBit.bitmapData,bgBitmap.bitmapData);
+			}
+			
+			private function drawWall(a:ArrayCollection):void{
+				var wLev:int = 0;
+				for each(var i:Object in a){
+					if(i.type == BuildingConstant.TYPE_WALL_BUILDING){
+						if(i.level>0 && i.level<4){
+							wLev =1;
+						}else if(i.level>=4 && i.level<8){
+							wLev =2;
+						}else if(i.level>=8 && i.level<10){
+							wLev =3;
+						}else if(i.level>=10){
+							wLev =4;
+						}
+						break;
+					}
+				}
+				var WallClass:Class;
+				switch(wLev){
+					case 1:
+						WallClass = ImgManager.clazz('background.wall0');
+					break;
+					case 2:
+						WallClass = ImgManager.clazz('background.wall1');
+					break;
+					case 3:
+						WallClass = ImgManager.clazz('background.wall2');
+					break;
+					case 4:
+						WallClass = ImgManager.clazz('background.wall3');
+					break;
+					default:
+						WallClass = ImgManager.clazz('background.noWall');
+				}
+				var wallBit:Bitmap = new WallClass() as Bitmap;
+				var p:Point = TownShowObj.instance.getBuildPos(20000);
+				drawScene(castleBit.bitmapData,wallBit.bitmapData,p);
+			}
+			
+			private function drawLev(i:Object):void{
+				var p:Point = TownShowObj.instance.getBuildPos(i.position);
+				var levBgPlayer:AniPlayer = new AniPlayer(AnimationManager.buildingLevelBg,p.x/2,p.y/2);
+				var levNumPlayer1:AniPlayer = new AniPlayer(AnimationManager.buildingLevelDigital,p.x/2+10,p.y/2+8);
+				var levNumPlayer2:AniPlayer = new AniPlayer(AnimationManager.buildingLevelDigital,p.x/2+14,p.y/2+8);
+				var bbgl:int = 0;
+				var bl:int = 0;
+				if(i.level>=0 && i.level<=3){
+					bbgl = 0;
+				}else if(i.level>=4 && i.level<=7){
+					bbgl = 1;
+				}else if(i.level>=8 && i.level<=9){
+					bbgl = 2;
+				}else{
+					bbgl = 3;
+				}
+				if(i.level <10){
+					bl = i.level;
+				}
+				else{
+					bl = 1;
+				}
+				
+				if(i.type == BuildingConstant.TYPE_TOWN_HALLS){
+					levBgPlayer.gotoAndStop(bbgl,castleLevBit.bitmapData,50,10);
+					levNumPlayer1.gotoAndStop(bl,castleLevBit.bitmapData,50,10);
+				}
+				else if(i.type == BuildingConstant.TYPE_WALL_BUILDING){
+					levBgPlayer.gotoAndStop(bbgl,castleLevBit.bitmapData,125,90);
+					levNumPlayer1.gotoAndStop(bl,castleLevBit.bitmapData,125,90);
+				}else{
+					levBgPlayer.gotoAndStop(bbgl,castleLevBit.bitmapData,0,0);
+					levNumPlayer1.gotoAndStop(bl,castleLevBit.bitmapData,0,0);
+				}
+				
+				if(i.level >=10){
+					if(i.type == BuildingConstant.TYPE_TOWN_HALLS)
+					levNumPlayer2.gotoAndStop(0,castleLevBit.bitmapData,50,10);
+					else if(i.type == BuildingConstant.TYPE_WALL_BUILDING)
+					levNumPlayer2.gotoAndStop(0,castleLevBit.bitmapData,125,90);
+					else{
+					levNumPlayer2.gotoAndStop(0,castleLevBit.bitmapData,0,0);}
+				}
+			}
+			
+			private function setCastleLev(a:ArrayCollection):int{
+				var cl:int = 0;
+				var castleL:int = 0;
+				var isTheTopLevel:Boolean = false;
+				for each(var b:ObjectProxy in a){
+					if(b.type == BuildingConstant.TYPE_TOWN_HALLS){
+						cl = b.level;
+						break;
+					}
+				}
+				for each(var b2:ObjectProxy in a){
+					// 该位置中有建筑,表示一定已经是最高级
+					if(b2.position >= 28 && b2.position <100){
+						isTheTopLevel = true;
+						break;
+					}
+				}
+				var bgClass:Class;
+				if(cl<=4)
+					castleL = 1;
+				else if(cl>4 && cl<=8)
+					castleL = 2;
+				else{
+					if(isTheTopLevel) castleL = 4;
+					else castleL = 3;
+				}
+				return castleL;
+			}
+			
+			private function drawScene(sceneBit:BitmapData,bit:BitmapData,p:Point=null):void{
+				if(bit == null){
+					return;
+				}
+				var rect:Rectangle = new Rectangle(0,0,bit.width,bit.height);
+				if(p == null){
+					p = new Point(0,0);
+				}else{
+					p.y -= 25;
+				}
+				sceneBit.copyPixels(
+					bit,rect,p,
+					null,null,true);
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

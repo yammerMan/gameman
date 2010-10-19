@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseOtherReport xmlns="views.windows.functionWins.mail.ReportUi.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" >
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			import roma.common.events.HostCastleUdpate;
+			import roma.common.constants.ConquestedReportConstant;
+			import mx.utils.ObjectProxy;
+			import roma.util.MultiLang;
+			
+			override public function setReportObj(t:ObjectProxy):void{
+				reportObj = t;
+				var independentStr:String = "";
+				
+				reportDesc = conquestType(reportObj.reportType);
+			}
+			
+			private function conquestType(i:int):String{
+				var hostStr:String = reportObj.hostCastleName+GameContext.getFieldPostionString(reportObj.hostCastleId);
+				var conquestedStr:String = reportObj.conqestedCastleName+GameContext.getFieldPostionString(reportObj.conqestedCastleId);
+				switch(i){
+					case ConquestedReportConstant.IS_USE_ITME:
+						return MultiLang.msg("report.conquest.userItem.desc",hostStr,conquestedStr);
+					case ConquestedReportConstant.IS_HOST:
+						return MultiLang.msg("report.conquest.hostSuccess.desc",hostStr,conquestedStr);
+					case ConquestedReportConstant.IS_CONQUESTED:
+						return MultiLang.msg("report.conquest.beVassaled.desc",conquestedStr,hostStr);
+					case ConquestedReportConstant.IS_ADD_HOST:
+						var s:String = independentCastleStr();
+						return MultiLang.msg("report.conquest.hostBeVassaled.desc",hostStr,conquestedStr)+s;
+					case ConquestedReportConstant.IS_ADD_HOST_CONQUESTED:
+						var s1:String = independentCastleStr();
+						return MultiLang.msg("report.conquest.independenteCastle.desc",conquestedStr,hostStr)+s1;
+					case ConquestedReportConstant.IS_HOST_CANCEL_CONQUESTED:
+						return MultiLang.msg("report.conquest.giveUpVassal.desc",conquestedStr,hostStr);
+					default:
+						return "";
+				}
+			}
+			
+			private function independentCastleStr():String{
+				if(reportObj.hasOwnProperty('independentCastles')){
+					var s:String = "";
+					if(reportObj.independentCastles is ObjectProxy){
+						s = reportObj.independentCastles.cityName;
+					}else if(reportObj.independentCastles  is ArrayCollection){
+						for each(var c:ObjectProxy in reportObj.independentCastles){
+							s += c.cityName;
+						}
+					}
+					return MultiLang.msg("report.conquest.independenteCastle.desc",reportObj.hostCastleName,s);
+				}else{
+					return "";
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox top="20" left="10" right="10">
+		<mx:Text htmlText="{reportDesc}" width="100%"/>
+	</mx:VBox>
+</BaseOtherReport>

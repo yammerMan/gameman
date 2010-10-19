@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="100%" height="100%" styleName="warningWinBG" 
+	creationComplete="init()" kerning="true" minWidth="285" minHeight="190">
+<mx:Script>
+	<![CDATA[
+		import views.BeginnerGuide;
+		import roma.message.EvtDispacther;
+		import roma.util.InputTextHelper;
+		import mx.resources.ResourceManager;
+		import mx.utils.StringUtil;
+		import roma.util.FiltersUtil;
+		import roma.logic.rule.ItemRule;
+		import roma.logic.rule.GameRuleHelper;
+		import roma.common.constants.FailsCode;
+		import framework.game.BaseResponse;
+		import roma.util.MultiLang;
+		import mx.core.Application;
+		import mx.managers.PopUpManager;
+		import mx.controls.Alert;
+
+		[Bindable]
+		private var winTitle:String;
+		
+		[Bindable]
+		private var submitTxt:String;
+
+		[Bindable]
+		private var cancelTxt:String;
+
+		[Bindable]
+		private var hasCanceltn:Boolean = false;
+		
+		private var callBackFunc:Function;
+		
+		private static var instance:MyAlert = new MyAlert();
+		
+		public static var instanceWidth:int = 122;
+		
+		public static var instanceHeight:int = 86;
+		
+		private var maskerSprite:Sprite = new Sprite;
+
+		private function init():void {
+			PopUpManager.centerPopUp(this);
+		}
+
+		public static function msg(key:String, ... arr):String {
+			var value:String = ResourceManager.getInstance().getString("serverMsg" , key);
+			if (value==null) {
+				value = "!!!!" + key;
+			} 
+
+			if (arr==null || arr.length==0) {
+				return value;
+			} else {
+				return StringUtil.substitute(value,arr);
+			}
+		}
+		
+		public static function showError(resp:BaseResponse, callBackFunc:Function=null, okText:String="default",cancelText:String=null,parentDisplayObject:DisplayObject=null):void {
+			var winTitle:String;
+			switch (resp.ok) {
+				case FailsCode.NEED_KEY_TO_OPEN_CHEST:
+					//需要钥匙打开宝箱，参数0为钥匙的id
+					var itemRule:ItemRule = GameRuleHelper.instance.getItemRuleById(resp.getErrorParam(0));
+					winTitle = msg(resp.errorMsg , itemRule.name);
+					break;
+				case FailsCode.USE_ITEM_LIMIT_BY_TOWN_LEVEL:
+					//使用物品的时候受官府级别的限制， 参数0为需求的官府级别
+					winTitle = msg(resp.errorMsg , resp.getErrorParam(0));
+					break;
+				case FailsCode.BAD_REQUEST:
+					//系统非法请求提示
+					winTitle = MultiLang.msg("errorCode.invalidRequest");
+					break;
+				case -99999:
+					//系统非法请求提示
+					winTitle = MultiLang.msg("errorCode.invalidRequest");
+					break;
+				default:
+					winTitle = msg(resp.errorMsg);
+			}
+			instance.useParam(winTitle,callBackFunc,okText,cancelText,parentDisplayObject);
+		}
+		
+		private function useParam(winTitle:String, callBackFunc:Function=null, okText:String="default",cancleText:String="default",parentDisplayObject:DisplayObject=null):void {
+			this.addEventListener(KeyboardEvent.KEY_DOWN,enterHandle);    
+			this.callBackFunc = callBackFunc;
+			this.winTitle = InputTextHelper.takeOutSpace(winTitle);
+			if ( okText == "default" ){
+				this.submitTxt = MultiLang.msg("public.label.sure");
+			} else {
+				this.submitTxt = okText;
+			}
+			if (cancleText == "default" ){
+				this.cancelTxt = MultiLang.msg("public.label.cancel");
+			} else {
+				this.cancelTxt = cancleText;
+			} 
+			
+			this.hasCanceltn = (callBackFunc!=null) && (cancleText!=null);
+
+			if (!this.isPopUp) {
+				if (parentDisplayObject == null) {
+					parentDisplayObject = Application.application as DisplayObject;
+				}
+				PopUpManager.addPopUp(this, parentDisplayObject ,true);
+			} else {
+				PopUpManager.bringToFront(this);
+			}
+			this.myContent.setFocus();
+			PopUpManager.centerPopUp(this);			
+		}
+		
+		//键盘enter响应
+		private function enterHandle(evt:KeyboardEvent):void{
+			 if(evt.keyCode == 13){
+			 	onClickHandle(true);
+			 } 
+		}
+		
+		public static function show(winTitle:String, callBackFunc:Function=null, okText:String="default",cancleText:String="default",parentDisplayObject:DisplayObject=null):void {
+			instance.useParam(winTitle,callBackFunc,okText,cancleText,parentDisplayObject);
+		}
+		
+		public static function close():void {
+			PopUpManager.removePopUp(instance);
+		}
+		
+		private function onClickHandle(ok:Boolean):void {
+			this.removeEventListener(KeyboardEvent.KEY_DOWN,enterHandle);   
+			PopUpManager.removePopUp(instance);
+
+			if (this.callBackFunc!=null) {
+				this.callBackFunc.apply(this , [ok]);
+			}
+		}
+		
+		private function drawMaskRec(rect:Rectangle):void{
+			graphics.beginFill(0x333333,.5);
+			graphics.drawRect((-rect.width/2+122),(-rect.height/2+86),rect.width,rect.height);
+		}
+	]]>
+</mx:Script>
+	<mx:Label top="13" left="4" right="4" textAlign="center" text="{MultiLang.msg('systemMsg.winTitle')}" styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+	<mx:VBox verticalAlign="top" horizontalAlign="center" top="40" left="15" right="15" bottom="22" verticalGap="3"> 
+		<mx:VBox height="100%" width="100%">
+			<mx:Canvas width="100%" height="100%" styleName="subContentBG">
+				<mx:Text text="{winTitle}" id="myContent"  textAlign="left" left="15" top="15" bottom="15" right="15"/>
+			</mx:Canvas>
+			
+		</mx:VBox>
+		<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
+			<mx:Button label="{submitTxt}" click="onClickHandle(true)"  styleName="subTitleButton" width="80" height="100%"/>
+			<mx:Button label="{cancelTxt}"  click="onClickHandle(false)" styleName="subTitleButton" visible="{this.hasCanceltn}" includeInLayout="{this.hasCanceltn}" width="80" height="100%"/>
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>

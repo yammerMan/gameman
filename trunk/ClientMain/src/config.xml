@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<debugMode>true</debugMode>
+	<port>443</port>
+	<version>1.1</version>
+	<clientVer>1.003</clientVer>
+	<bugMailId>1</bugMailId>
+	
+	<loading>
+		<loginBg>fla/loginBg.swf</loginBg>
+		<resManager>../../ClientResourceManager/bin-debug/ResManager.swf</resManager>
+		<styleFile>../../ClientResourceManager/bin-debug/Style.swf</styleFile>
+		<lang>../../ClientLang/bin-debug/LangPt.swf?s=1</lang>
+	</loading>
+
+	<url>
+		<reChargeUrl>http://www.baidu.com/s?wd={0}</reChargeUrl>
+		<registerUrl>http://#</registerUrl>
+		<noteUrl>newBulletin.txt</noteUrl>
+		<forumUrl>http://www.google.com</forumUrl>
+		<bugReportUrl>http://192.168.1.6/bugs/bugs.do</bugReportUrl>
+	</url>
+	
+	<battleReplay>
+		<battleUrl>http://192.168.1.4/rome/replay/wareplay.html?u={0}&l=en</battleUrl>
+		<battleDataUrl>{0}/report{1}</battleDataUrl>
+	</battleReplay>
+	
+	<autoLogin>
+		<showLogin>true</showLogin>
+		<loginUrl>http://www.baidu.com</loginUrl>
+	</autoLogin>
+
+	<specificSet>
+	    <userJsFuncRecharge>true</userJsFuncRecharge>
+		<isGuide>true</isGuide>
+		<isRoll>true</isRoll>
+		<levelBtnShow>false</levelBtnShow>
+		<bugBtnShow>true</bugBtnShow>
+		<!-- 是否是英文版本-->
+		<isEnVersion>true</isEnVersion>
+	</specificSet>
+	
+	<!-- gameone 乐古 与巴哈姆特 论坛-->
+	<forum>
+		<showLeGuForum>false</showLeGuForum>
+		<showBaHaForum>false</showBaHaForum>
+		<leGuForumUrl>http://www1.nakuz.com/bbs/forumdisplay.php?fid=1752</leGuForumUrl>
+		<baHaForumUrl>http://forum.gamer.com.tw/B.php?bsn=18415</baHaForumUrl>
+		<failForumUrl>http://www.failforum.net/forum/forumdisplay.php?fid=506</failForumUrl>
+	</forum>
+	<!-- 自定义npc-->
+	<ncpCastle>
+		<ncpAdd>0,1</ncpAdd>
+	</ncpCastle>
+</config>

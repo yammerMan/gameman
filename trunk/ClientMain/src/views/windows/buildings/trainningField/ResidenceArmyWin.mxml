@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ui="view.ui.*" creationComplete="init()" xmlns:ns1="views.windows.buildings.trainningField.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.CastleObj;
+			import roma.common.constants.HeroManConstants;
+			import roma.message.EvtDispacther;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.TroopRule;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.logic.object.player.OtherArmyObj;
+			import roma.common.valueObject.OtherArmyBean;
+			import roma.util.MultiLang;
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			[Bindable]
+			private var armyArr:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			public var host:String;
+
+			public function refresh():void{
+				this.allyArmyWin.visible=false;
+				this.host="";
+				if(GameContext.instance.getPlayerObj().getCurCastleObj().conquestManager.hostCastle!=null){
+					this.host=GameContext.instance.getPlayerObj().getCurCastleObj().conquestManager.hostCastle.castle.playerName;
+				}else{
+					this.host = null;
+				}
+				onArmyActionStatusChange();
+			}
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(EvtDispacther.ALLIANCE_ARMY_CHANGE , onArmyActionStatusChange);
+			}
+			
+			//盟友军队发生变化
+			private function onArmyActionStatusChange(event:Event=null):void{
+				this.armyArr.removeAll();
+				var c:CastleObj = GameContext.instance.getPlayerObj().getCurCastleObj();
+				for each(var army:OtherArmyObj in GameContext.instance.getPlayerObj().otherArmyManager.getLeagueArmyArray()){
+					if(army.bean.status == HeroManConstants.STATUS_GUARD && army.bean.targetFieldId == c.idField){
+						this.armyArr.addItem(army);
+					}
+				}
+			}
+			
+			/*回调函数 ，返回英雄名称 */
+			private function returnHeroName(bean:Object,column:DataGridColumn):String{
+				var otherArmyObj:OtherArmyObj=bean as OtherArmyObj;
+				return otherArmyObj.bean.heroInfo.name;
+			}
+			
+			/*回调函数 ，返回玩家名称 */
+			private function returnKingName(bean:Object,column:DataGridColumn):String{
+				var otherArmyObj:OtherArmyObj=bean as OtherArmyObj;
+				return otherArmyObj.bean.king;			
+			}
+			
+			/*回调函数 ，返回玩家所属联盟名称 */
+			private function returnAllianceName(bean:Object,column:DataGridColumn):String{
+				var otherArmyObj:OtherArmyObj=bean as OtherArmyObj;
+				return otherArmyObj.bean.leagueName;			
+			}
+			
+			/*回调函数 ，返回兵力数量*/
+			private function returnTroopNum(bean:Object,column:DataGridColumn):String{
+				var otherArmyObj:OtherArmyObj=bean as OtherArmyObj;
+				return String(otherArmyObj.calcTroopStrength());
+			}
+			
+			/*回调函数 ，驻军类型 */
+			private function returnTroopCostFood(bean:Object,column:DataGridColumn):String{
+				var otherArmyObj:OtherArmyObj=bean as OtherArmyObj;
+				var isHost:Boolean = GameContext.instance.getPlayerObj().getCurCastleObj().conquestManager.isHost(otherArmyObj.bean.king);
+
+				if(otherArmyObj.bean.hostCastleArmy || isHost){
+					return MultiLang.msg("diplomacy.conquest.leaderCityGarrison.label");
+				}else{
+					return MultiLang.msg("military.mission.reinforce");
+				}
+			}
+			
+			//查看军队
+			public function checkArmy(obj:Object):void{
+				this.allyArmyWin.show(obj as OtherArmyObj);
+			}
+			
+			//遣返军队
+			public function repatriate(obj:Object):void{
+				var otherArmyObj:OtherArmyObj=OtherArmyObj(obj);
+				ControllerFactory.getInstance().getArmyController().sendAllianceBack(
+					GameContext.instance.getPlayerObj().getCurCastleObj().cityId,
+					otherArmyObj.bean.heroInfo.id,
+					onResponse);
+			}
+			private function onResponse(event:CommonResponse):void {
+				if (!event.isSuccess()) {
+					MyAlert.showError(event);
+				}else{
+					this.refresh();
+				}
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:DataGrid textAlign="center"
+		 draggableColumns="false" sortableColumns="false" resizableColumns="false" selectable="false" dataProvider="{this.armyArr}" left="1" right="1" top="3" bottom="37">
+		
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('ranking.label.player')}" dataField="bean.king" labelFunction="returnKingName"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.alliance')}" dataField="bean.leagueName" labelFunction="returnAllianceName"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.hero')}" dataField="bean.heroName" labelFunction="returnHeroName"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('hero.soldierTotal')}" dataField="bean.heroName" labelFunction="returnTroopNum"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('trainningField.garrisonType.label')}" dataField="bean.heroName" labelFunction="returnTroopCostFood"/>
+			<mx:DataGridColumn headerText="{MultiLang.msg('dak.action')}" dataField="bean.heroName">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox horizontalAlign="center" verticalAlign="middle" left="1" right="1" top="1" bottom="1" >
+							<mx:Script>
+								<![CDATA[
+									import roma.logic.object.player.OtherArmyObj;
+									import roma.util.MultiLang;
+								]]>
+							</mx:Script>
+							<mx:Button label="{MultiLang.msg('public.label.checkOut')}" click="parentDocument.checkArmy(data)" styleName="secondaryBtn"/>
+							<mx:Button label="{MultiLang.msg('trainningField.allyRepatriate')}" click="parentDocument.repatriate(data)" styleName="secondaryBtn" 
+								enabled="{!OtherArmyObj(data).bean.hostCastleArmy}" toolTip="{MultiLang.msg('trainningField.repatriateDesc.tips')}"/>
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<ns1:AllyArmyWin horizontalCenter="0" verticalCenter="0" id="allyArmyWin" visible="false">
+	</ns1:AllyArmyWin>
+</mx:Canvas>

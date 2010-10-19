@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseOtherReport xmlns="views.windows.functionWins.mail.ReportUi.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="820" height="360">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.constants.ScoutConstants;
+			import roma.logic.GameContext;
+			import roma.util.MultiLang;
+			import mx.utils.ObjectProxy;
+			
+			override public function setReportObj(t:ObjectProxy):void{
+				reportObj = t;
+				if(reportObj.result == ScoutConstants.ANI_DEUCE_ALL_SURVIVE){
+					// 平手，双方都有剩余
+					var s:String = MultiLang.msg('report.aniScout.result.type2.desc',reportObj.scoutNum,reportObj.remainScout);
+					reportDesc = MultiLang.msg('report.aniScout.desc{0}{1}',reportObj.senderCastle+GameContext.getFieldPostionString(reportObj.senderFieldId),
+									reportObj.happeningCastle+GameContext.getFieldPostionString(reportObj.happeningFieldId))+s;
+					
+				}else if(reportObj.result == ScoutConstants.ANI_DEUCE_ALL_DEAD){
+					var s1:String = MultiLang.msg("report.aniScout.result.type1.desc",reportObj.scoutNum);
+					reportDesc = MultiLang.msg('report.aniScout.desc{0}{1}',reportObj.senderCastle+GameContext.getFieldPostionString(reportObj.senderFieldId),
+									reportObj.happeningCastle+GameContext.getFieldPostionString(reportObj.happeningFieldId))+s1;
+					// 平手，但双方都没有剩余
+					
+				}else if(reportObj.result == ScoutConstants.ANI_SUCCESS_All_ENEMY_DEAD){
+					// 反侦察成功，侦察部队全灭
+					var s2:String = MultiLang.msg('report.aniScout.result.type3.desc',reportObj.scoutNum,reportObj.remainScout);
+					reportDesc = MultiLang.msg('report.aniScout.desc{0}{1}',reportObj.senderCastle+GameContext.getFieldPostionString(reportObj.senderFieldId),
+									reportObj.happeningCastle+GameContext.getFieldPostionString(reportObj.happeningFieldId))+s2;
+				}
+				else if(reportObj.result == ScoutConstants.TARGET_CASTLE_SCOUT_ZERO){
+					// 没有斥候的返回信息
+					reportDesc = MultiLang.msg('report.aniScout.none.desc',reportObj.happeningCastle+GameContext.getFieldPostionString(reportObj.happeningFieldId));
+				}
+				else if(reportObj.result == ScoutConstants.ANI_FAIL_ALL_DEAD){
+					// 反侦察失败
+					reportDesc = MultiLang.msg('report.aniScout.lostDesc{0}',reportObj.happeningCastle+GameContext.getFieldPostionString(reportObj.happeningFieldId));
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:VBox width="100%" horizontalAlign="center">
+		<mx:Text htmlText="{reportDesc}" width="100%" paddingLeft="10" textAlign="left"/>
+		<!--mx:HRule width="98%" styleName="bufferBarVRule"/-->
+	</mx:VBox>
+</BaseOtherReport>

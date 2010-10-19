@@ -1,0 +1,152 @@
+<BaseWin xmlns="views.windows.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:functionWins="views.windows.functionWins.*" 
+	xmlns:ns1="views.spreadUI.*" 
+	xmlns:task="views.windows.functionWins.task.*" 
+	xmlns:rule="roma.logic.rule.*"
+	creationComplete="init()" 
+	width="100%" height="100%" styleName="shopBG">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.task.TaskManager;
+			import roma.resource.ImgManager;
+			import roma.logic.rule.questActionRule.CureInjuredQuestEvent;
+			import roma.util.MultiLang;
+			import roma.util.FiltersUtil;
+			import views.PopupWindows;
+		]]>
+	</mx:Script>
+	
+	<mx:Script source="taskWin_.as" />
+	<mx:HBox horizontalAlign="center" verticalAlign="bottom" horizontalCenter="0" horizontalGap="3" top="1">
+		<mx:Label text="{MultiLang.msg('task.label.task')}"  
+			styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}"/>
+	</mx:HBox>
+    <mx:Canvas styleName="mainWindowContentBG" top="56" bottom="38" width="531" height="333" right="11" label="内容显示">
+        <mx:ViewStack id="myViewstack" width="100%" top="0" bottom="0" x="0" >
+	        <mx:Canvas width="100%" top="0" bottom="0" id="questInfoVs" horizontalScrollPolicy="off">
+	            <mx:VBox width="95%" height="100%" horizontalAlign="center" horizontalCenter="0" verticalGap="2">
+					<mx:Label width="95%" text="{curQuestRule.questName}" textAlign="center" styleName="taskNameTitleLabel"/>
+					<mx:HRule width="95%" styleName="questInfoHRule"/>
+					<mx:Text width="95%" htmlText="{curQuestRule.questManual}" id="manualText" selectable="false" paddingLeft="5" textAlign="left" styleName="specialNoticeLabel" updateComplete="onManualUpdate(event)" />
+					<mx:Canvas width="98%">
+						<mx:List id="targetList" width="100%" rowHeight="22" mouseOver="null" 
+							styleName="noBGList" height="{questTargetArray.length*22}" paddingTop="0" paddingBottom="0" dataProvider="{questTargetArray}" 
+							visible="{questTargetArray.length>0}" includeInLayout="{questTargetArray.length>0}" left="0" selectable="false" mouseEnabled="false" leading="0">
+							<mx:itemRenderer>
+								<mx:Component>
+									<task:TargetItem item="{data}"/>
+								</mx:Component>
+							</mx:itemRenderer>
+						</mx:List>
+					</mx:Canvas>
+					<mx:VBox id="answers" width="95%" height="{curQuestRule.questionList.length*88}" visible="{curQuestRule.questionList.length> 0}" 
+						includeInLayout="{curQuestRule.questionList.length>0}" verticalGap="2">
+					</mx:VBox>
+					<mx:HBox width="95%" horizontalAlign="center" visible="{curQuestRule == null?false:curQuestRule.favoriteName != ''}" includeInLayout="{curQuestRule == null?false:curQuestRule.favoriteName != ''}" horizontalGap="2">
+						<mx:Button label="{curQuestRule.favoriteName}" click="{addFavorite()}"/>
+					</mx:HBox>
+					<mx:HBox width="95%" label="是否为收藏夹中进入的特殊处理" horizontalAlign="center" visible="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_FROMCOLLECT}" 
+						includeInLayout="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_FROMCOLLECT}" horizontalGap="2">
+						<mx:Button label="{MultiLang.msg('quest.reCollect.label')}" click="{linkFromFavorite()}"/>
+					</mx:HBox>
+					<mx:HBox width="95%" label="使用建筑排程加入按钮" horizontalAlign="center" visible="{curQuestRule== null?false:curQuestRule.taskId == TaskConstant.QUEST_ININCREASEBUILDINGLIMIT}"
+						includeInLayout="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_ININCREASEBUILDINGLIMIT}" horizontalGap="2">
+						<mx:Button label="{MultiLang.msg('townHall.label.increatBuilting')}" click="{useIncreaseBuildingLimit()}" width="141" height="19"/>
+					</mx:HBox>
+					<mx:HBox width="95%" label="玩家修改名字"  horizontalAlign="center" visible="{curQuestRule== null?false:curQuestRule.taskId == TaskConstant.QUEST_MODIFYPLAYERNAME}"
+						includeInLayout="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_MODIFYPLAYERNAME}" horizontalGap="2">
+						<mx:Button label="{MultiLang.msg('playInfo.modifyPlayerName')}" click="{modifyPlayerName()}" width="141" height="19" />
+					</mx:HBox>
+					<mx:HBox width="95%" label="每日任务港服‘巴哈姆特’" horizontalAlign="center" visible="{curQuestRule== null?false:(curQuestRule.taskId == TaskConstant.QUEST_GOTOBHMT)}"
+						includeInLayout="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_GOTOBHMT}" horizontalGap="2">
+						<mx:Button label="{MultiLang.msg('buttonBar.btnTip.baHa')}" click="{onGotoUrl(TaskConstant.QUEST_GOTOBHMT)}" width="141" height="19" />
+					</mx:HBox>
+					<mx:HBox width="95%" label="每日任务港服‘Nakuz’" horizontalAlign="center" visible="{curQuestRule== null?false:curQuestRule.taskId == TaskConstant.QUEST_GOTOGULE}"
+						includeInLayout="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_GOTOGULE}" horizontalGap="2">
+						<mx:Button label="{MultiLang.msg('buttonBar.btnTip.leGu')}" click="{onGotoUrl(TaskConstant.QUEST_GOTOGULE)}" width="141" height="19" />
+					</mx:HBox>
+					<mx:HBox width="95%" label="每日任务港服‘失败论坛’" horizontalAlign="center" visible="{curQuestRule== null?false:curQuestRule.taskId == TaskConstant.QUEST_FAILCALL}"
+						includeInLayout="{curQuestRule == null?false:curQuestRule.taskId == TaskConstant.QUEST_FAILCALL}" horizontalGap="2">
+						<mx:Button label="{MultiLang.msg('buttonBar.btnTip.failForum')}" click="{onGotoUrl(TaskConstant.QUEST_FAILCALL)}" width="141" height="19" />
+					</mx:HBox>
+					<mx:HRule width="95%" styleName="questInfoHRule"/>
+					<task:LabelWithIcon width="95%" iconSource="quest.miaoshu.icon" textStr="{MultiLang.msg('task.label.desc')}" horizontalGap="2"/>
+					<mx:Text  width="95%" htmlText="{curQuestRule.questDescription}" selectable="false" textAlign="left"  styleName="taskCommonLabel"/>
+					<mx:HRule width="95%" styleName="questInfoHRule"/>
+					<task:LabelWithIcon width="95%" iconSource="quest.jiangli.icon" textStr="{MultiLang.msg('task.label.award')}" horizontalGap="2"/>
+					<mx:Text  width="95%" text="{curQuestRule.getAwardStr}" selectable="false" textAlign="left" styleName="taskCommonLabel" leading="0"/>
+	            </mx:VBox>					
+	        </mx:Canvas>	            
+
+	        <mx:Canvas width="98%" top="0" bottom="0" id="questTypeInfoVs" >
+	        	<mx:Text height="100%" styleName="taskCommonLabel" htmlText="{this.noTaskTip}" top="20" left="20" right="20"/>
+				<!--mx:Label width="100%" text="{curQuestTypeRule.questTypeName}" textAlign="center" styleName="taskNameTitleLabel"/>
+				<mx:HRule width="98%" y="30" horizontalCenter="0" styleName="questInfoHRule"/>
+				<mx:Text width="100%" height="100%" text="{curQuestTypeRule.questTypeDescription}" y="35" horizontalCenter="0" styleName="taskCommonLabel"/-->
+	        </mx:Canvas>
+        </mx:ViewStack>
+
+    </mx:Canvas>
+    <mx:Canvas width="531" bottom="12" right="11">
+		<mx:Button label="{MultiLang.msg('task.label.acceptAward')}" id="acceptBtn" width="150" height="22" click="getAward()" enabled="{myViewstack.selectedIndex == 1?false:curQuestRule.isFinish}"  horizontalCenter="0"/>
+	</mx:Canvas>
+    <mx:VBox top="30" left="12" right="10" verticalGap="0">
+	    <mx:ToggleButtonBar styleName="titleToggleButtonBar" id="questTB" itemClick="onTBClick(event)" >
+	    	<mx:dataProvider>
+	    		<mx:Array>
+	    			<mx:String>{MultiLang.msg('task.label.growUp')}</mx:String>
+	    			<mx:String>{MultiLang.msg('task.label.dayly')}</mx:String>
+	    			<mx:String>{MultiLang.msg('task.label.Exchange')}</mx:String>
+	    		</mx:Array>
+	    	</mx:dataProvider>
+	    </mx:ToggleButtonBar>
+		<ns1:MulHRule />
+	</mx:VBox>
+	<mx:HBox width="{questTB.width}" top="20" left="25">
+		<mx:Canvas width="33%" visible="{TaskManager.growthCount>0}">
+			<mx:Image right="0" width="21" top="0" height="21" source="{ImgManager.clazz('toolBar.good.tipBg')}"/>
+			<mx:Label  text="{TaskManager.growthCount}" styleName="titleLevelLabel" width="21" right="0"  top="1" height="18" textAlign="center"/>
+		</mx:Canvas>
+		<mx:Canvas width="33%" visible="{TaskManager.dailyCount>0}">
+			<mx:Image right="0" width="21"  top="0" height="21" source="{ImgManager.clazz('toolBar.good.tipBg')}"/>
+			<mx:Label  text="{TaskManager.dailyCount}" styleName="titleLevelLabel" width="21" right="0"  top="1" height="18"   textAlign="center"/>
+		</mx:Canvas>
+		<mx:Canvas width="33%" visible="{TaskManager.changeCount>0}">
+			<mx:Image right="0" width="21"  top="0" height="21" source="{ImgManager.clazz('toolBar.good.tipBg')}"/>
+			<mx:Label  text="{TaskManager.changeCount}" styleName="titleLevelLabel" width="21" right="0" top="1" height="18"  textAlign="center"/>
+		</mx:Canvas>
+	</mx:HBox>
+	
+	<mx:Button click="{PopupWindows.closeAll()}" styleName="closeBtn" top="30" right="37"/>
+    <mx:VBox top="56" verticalGap="2" left="11" width="245" label="任务列表显示">
+	    <mx:Canvas styleName="alphaBlackBG" width="100%" height="209">
+		    <mx:DataGrid top="8" bottom="8" left="8" right="8" paddingTop="0" paddingBottom="0" horizontalScrollPosition="0" id="questDg" showHeaders="false" rowHeight="21" itemClick="{onChangeQuestType(event)}"
+		    	dataProvider="{this.questTypeRuleArray}" resizableColumns="false" draggableColumns="false" sortableColumns="false">
+		        <mx:columns>
+					<mx:DataGridColumn>
+						<mx:itemRenderer>
+							<mx:Component>
+								<task:ItemQuestUI contents="{data.questTypeName}" iconSource="{data.isFinish?'quest.done.icon':''}" selected="{outerDocument.curQuestTypeSelectId == data.questTypeId?'questSelectBG':''}" />
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+		        </mx:columns>
+		    </mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas styleName="alphaBlackBG" width="100%" height="123">
+		    <mx:DataGrid top="8" bottom="8" left="8" right="8" paddingTop="0" paddingBottom="0" rowHeight="21" showHeaders="false" id="subQuestDataGrid" itemClick="{onQuestChange(event)}" dataProvider="{this.questRuleArray}" resizableColumns="false" draggableColumns="false"  sortableColumns="false">
+		        <mx:columns>
+		        	<mx:DataGridColumn editorHeightOffset="0">
+		        		<mx:itemRenderer>
+		        			<mx:Component>
+		        				<task:ItemQuestUI contents="{data.questName}" iconSource="{data.isFinish?'quest.done.icon':''}" selected="{outerDocument.curQuestSelectId == data.taskId?'questSelectBG':''}" />
+		        			</mx:Component>
+		        		</mx:itemRenderer>
+		        	</mx:DataGridColumn>
+		        </mx:columns>
+		    </mx:DataGrid>
+		</mx:Canvas>
+    </mx:VBox>
+</BaseWin>
+

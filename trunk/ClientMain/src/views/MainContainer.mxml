@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="1000" height="600" 
+	xmlns:views="views.*" 
+	xmlns:mainFrame="views.mainFrame.*" 
+	styleName="mainGameBG" 
+	creationComplete="initCan()" 
+	horizontalScrollPolicy="off" 
+	verticalScrollPolicy="off"
+	implements="roma.interfaces.IModuleInterface" 
+	xmlns:castleIcon="views.spreadUI.castleIcon.*" 
+	xmlns:chat="views.spreadUI.chat.*" 
+	xmlns:tvShowWin="views.spreadUI.tvShow.*" 
+	xmlns:turntable="views.windows.functionWins.turntable.*" 
+	xmlns:ns1="views.spreadUI.mainFrameTip.*" xmlns:beginnerGuide="views.spreadUI.beginnerGuide.*" 
+	xmlns:smallMap="views.mainModules.map.smallMap.*">
+	<!--游戏主界面-->
+	<mx:Script>
+		<![CDATA[
+			import sound.MsgSound;
+			import views.windows.functionWins.myItem.MyItemsWin;
+			import roma.logic.CaesaryConfig;
+			import roma.util.JavaScriptHelper;
+			import views.windows.functionWins.task.TaskWin;
+			import mx.core.UIComponent;
+			import mx.effects.Tween;
+			import views.spreadUI.popups.PopupContainer;
+			import views.spreadUI.chat.ChatPopupBox;
+			import roma.util.FiltersUtil;
+			import views.mainFrame.CastleFrame;
+			import roma.util.ClientUtil;
+			import views.windows.functionWins.friendly.FriendlyWin;
+			import roma.logic.GameContext;
+			import roma.logic.object.castle.CastleObj;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.message.EvtDispacther;
+			import roma.message.events.WindowSwitchEvent;
+
+			public static var instance:MainContainer;
+
+			[Bindable]
+			private var castle:CastleObj;
+			
+			private var rollTextBarIsHide:Boolean=false;
+			
+			private function initCan():void{
+
+				PleaseWaitUC.instance.hide();
+				Main.instance.removeLoginFrame();
+				JavaScriptHelper.instance.trackEvent("connect","Login","Success",1);
+
+				var onCurCastleChange:Function = function(event:Event):void {
+					setCastelName();
+				}
+				
+				EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT , onCurCastleChange);
+				EvtDispacther.instance.addEventListener(Turntable.BACKGROUND_SHELTER_SHOW,onShelterShow);
+				EvtDispacther.instance.addEventListener(Turntable.BACKGROUND_SHELTER_HIDE,onShelterHide);
+				
+				EvtDispacther.instance.addEventListener(RollTextBar.ROLLTEXT_SHOW,onShowRollText);
+				EvtDispacther.instance.addEventListener(RollTextBar.ROOLTEXT_HIDE,onHideRollText);
+				
+				this.setCastelName();
+				this.addChild(ToolTipContainer.instance);
+				this.addChild(PopupContainer.instance);
+				
+								
+				instance = this;
+				this.popupWindows.mask = this.drawRect();
+				this.addEventListener(KeyboardEvent.KEY_DOWN,onPopupWinDown);
+
+				if(CaesaryConfig.instance.firstTimeLogin && CaesaryConfig.instance.isGuide){
+					addGuide();
+				}else{
+					PopupWindows.openFuncWin(TaskWin.WINDOW_SHOW);
+				}
+				
+				//MsgSound.instance.playBgSound();
+			}
+			
+			private var beginnerguide:BeginnerGuide;
+			private function addGuide():void{
+				beginnerguide = new BeginnerGuide();
+				this.addChild(beginnerguide);
+			}
+			
+			public function removeBg():void{
+				this.removeChild(beginnerguide);
+			}
+			
+			private function setCastelName():void {
+				this.castle = GameContext.instance.getPlayerObj().getCurCastleObj();
+			}
+			
+			private function drawRect():Shape{
+				var s:Shape = new Shape();
+				s.graphics.beginFill(0xffff00);
+				s.graphics.drawRect(0,30,1000,440);
+				s.graphics.endFill();
+			
+				var c:UIComponent = new UIComponent();
+				c.addChild(s);
+				this.addChild(c);
+				
+				return s; 
+			}
+			
+			
+			private function onPopupWinDown(event:KeyboardEvent):void{
+				if(event.keyCode == 27)
+					PopupWindows.closeAll();
+			}
+			
+			
+			private var tipAry:Array =[];
+			private var count:int = 0;
+			public function risePlay(str:String):void
+			{	
+				var strStyle:String ="<font color='#00ff00'>"+str+"</font>";
+				tipAry[0] = strStyle;
+				riseText.alpha =1;
+				riseText.y =this.parentApplication.height/4;
+				this.riseText.htmlText = this.tipAry[0];
+				count = 0;
+				if(!this.hasEventListener(Event.ENTER_FRAME))
+				{
+					this.addEventListener(Event.ENTER_FRAME,frameHandler);
+				}
+			}
+			
+			private function frameHandler(event:Event):void
+			{
+				count ++;
+				if(count %3 == 0){
+					this.riseText.y-=3;
+					this.riseText.alpha -=0.015;
+	 
+					if(this.riseText.y<=30 || this.riseText.alpha<=0)
+					{	
+						this.removeEventListener(Event.ENTER_FRAME,frameHandler);			
+						this.riseText.y =620;
+						this.riseText.alpha =1.0;
+					}
+				}
+			}
+			
+			private function onShelterShow(event:Event):void{
+				this.turnTableShelter.visible = true;
+				this.turnTableShelter.y =0;
+			}
+			
+			private function onShelterHide(event:Event):void{
+				this.turnTableShelter.visible = false;
+				this.turnTableShelter.y =650;
+			}
+			
+			private function onShowRollText(e:Event):void{
+				this.rollTextBar.visible = true;
+			}
+			
+			private function onHideRollText(e:Event):void{
+				this.rollTextBar.visible = false;
+			}
+			
+			private function onRollTextFun(str:String):void{
+				if(str == RollTextBar.CALL_TO_HIDE){
+					rollTextBarIsHide=true;
+				}else if(str == RollTextBar.CALL_TO_SHOW){
+					rollTextBarIsHide=false;
+				}
+				reFreshRollTextLocation();
+			}
+			
+			public function reFreshRollTextLocation():void{
+				rollTextBar.y=rollTextBarIsHide?ChatPanel.y-6:ChatPanel.y-40;
+			}
+			
+			public function destroy():void{
+			}
+			
+			public function refresh():void{
+			}
+			
+			public function update():void{
+			}
+		]]>
+	</mx:Script>
+		<mainFrame:TopButtonBar left="0" top="0"/>
+		<mainFrame:CastleFrame y="44" left="3" right="3"/>
+		<!--顶部状态栏-->
+		<!--mainFrame:StatusBar id="statusBar" top="20"/-->
+		<!--buff栏-->
+		<mainFrame:BuffPanel id="buffStatusInfoWin" top="47" left="3"/>
+		<mainFrame:CastleStatusPanel id="castleInfoWin" top="87" left="3"/>
+		<!--城池图标面板-->
+		<castleIcon:CastleIconPanel id="castleIconPanel" right="5" bottom="228"/>
+		<!--按钮工具栏-->
+		<mainFrame:ButtonBar id="buttonBar" right="0" top="0"/>
+		<!--玩家信息面板-->
+		<mainFrame:PlayerInfoPanel id="playerInfoPanel" left="0" bottom="0"/>
+		<!--各种资源面板-->
+		<mainFrame:ResourcePanel id="resourcePanel" right="0" bottom="0"/>
+		<!--城、地图切换按钮-->
+		<mainFrame:ToggleButton id="buttonSwitch" right="5" bottom="187"/>
+		<!-- 滚动文字栏 -->
+		<mainFrame:RollTextBar id="rollTextBar" left="288" y="{ChatPanel.y-40}" callFun="onRollTextFun"/>
+		<!--聊天面板-->
+		<mainFrame:ChatPanel id="ChatPanel" left="285" bottom="3"/>
+		<!--城堡名和坐标-->
+		<mx:VBox verticalGap="-5" top="65" right="5" horizontalAlign="right"
+			cacheAsBitmap="true" 
+			mouseChildren="false" mouseEnabled="false">
+				<mx:Label text="{this.castle.name}"
+					styleName="CityNameLabel" 
+					mouseChildren="false"
+					mouseEnabled="false" filters="{[FiltersUtil.glowFilter]}"/>
+				<mx:Label text="{this.castle.fieldPositionStr}" 
+					styleName="CityAddLabel"
+					mouseChildren="false"
+					mouseEnabled="false" 
+					filters="{[FiltersUtil.glowFilter]}"/>
+		</mx:VBox>
+		
+		<!--轮盘遮挡-->
+		<mx:Canvas id="turnTableShelter" width="1000" height="600" enabled="false" 
+			mouseEnabled="false" alpha="0.4" visible="false" y="650" backgroundColor="#000000"/>
+		<turntable:Turntable horizontalCenter="0" id="turntable" y="610" visible="{CaesaryConfig.instance.isRoll}"/>
+		<turntable:TurntableButton id="turntableButtton" visible="{CaesaryConfig.instance.isRoll}" y="403" x="182"/>
+		
+		<!--所有弹出窗口-->
+		<views:PopupWindows id="popupWindows" height="400" x="80" y="20"/>
+		
+		<!--小地图-->
+		<smallMap:SmallMap id="smallMap" visible="false" y="15" x="200"/>
+		<tvShowWin:TvShowWin top="50" horizontalCenter="0" visible="false"/>
+		
+		<mx:Text id="riseText" horizontalCenter="0" selectable="false" 
+			mouseEnabled="false" styleName="tvShowText" filters="{[FiltersUtil.glowFilter3Pix]}" y="620" width="300" textAlign="center"/>
+		
+		<!--韩国等级图片-->
+		<mx:Image id="levelImg" width="600" height="420" 
+			source="dynamicImages/levelImg.jpg" 
+			visible="false" x ="200" y="90"
+			includeInLayout="{CaesaryConfig.instance.levelBtnShow}"
+			mouseDown="levelImg.visible = false"/>
+</mx:Canvas>

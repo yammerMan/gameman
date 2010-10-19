@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="90" height="60" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import mx.utils.ObjectProxy;
+			import roma.resource.ImgManager;
+			
+			[Bindable]
+			private var heroName:String = "";
+			[Bindable]
+			private var heroLevel:int = 0;
+			[Bindable]
+			private var heroUrl:String = "";
+			
+			public function set hero(o:Object):void{
+				heroName = o.heroName;
+				heroLevel = o.heroLevel;
+				heroUrl = o.heroUrl;
+			}
+			
+			
+			public function set hero2(o:Object):void{
+				heroName = o.name;
+				heroLevel = o.level;
+				heroUrl = o.logo;
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="95" height="100%" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Label text="{heroName}" textAlign="center" height="20" styleName="titleBordLabel"/>
+		<mx:Canvas width="80" height="40" styleName="smallLogoBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Image width="74" height="34" scaleContent="true" source="{ImgManager.clazz(heroUrl)}" verticalCenter="0" horizontalCenter="0"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" top="1" left="1"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center" text="{heroLevel}"/>
+		</mx:Canvas>
+	</mx:VBox>
+</mx:Canvas>

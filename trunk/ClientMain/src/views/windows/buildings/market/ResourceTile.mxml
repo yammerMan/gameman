@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="55" height="47" >
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import mx.resources.ResourceManager;
+			
+			[Bindable]
+			private var rBean:ResourceItemBean;
+			[Bindable]
+			private var isSelect:Boolean = false;
+			
+			public function set resourceBean(bean:ResourceItemBean):void{
+				rBean = bean;
+			}
+			
+			public function set selected(isSelect:Boolean):void{
+				this.isSelect = isSelect;
+				if(this.isSelect){
+					this.styleName = "questSelectBG";
+				}
+				else{
+					this.styleName = "BuildingAlphaWindow";
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas top="4" width="47" height="26" styleName="marketResourceIconBG" horizontalCenter="0">
+		<mx:Image source="{ImgManager.clazz(rBean.url)}" horizontalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)"/>
+	</mx:Canvas>
+	<mx:Label text="{rBean.name}" color="{isSelect?0xffffff:0x000000}" textAlign="center" width="50" height="20" bottom="0" horizontalCenter="0"/>
+</mx:Canvas>

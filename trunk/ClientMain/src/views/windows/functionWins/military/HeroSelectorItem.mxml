@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="310" height="48" xmlns:military="views.windows.functionWins.military.*" xmlns:ns1="views.windows.functionWins.hero.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Spacer;
+			import mx.controls.HRule;
+			import views.windows.functionWins.hero.HeroTroopSmallLogo;
+			import roma.common.constants.TroopForConstants;
+			import roma.logic.object.hero.HeroObj;
+			
+			[Bindable]
+			private var _hero:HeroObj;
+			private var troopInHero:Array = new Array();
+			public function set hero(hero:HeroObj):void{
+				this._hero=hero;
+				for each (var ui:HeroTroopSmallLogo in troopInHero) {
+					ui.refresh(hero);
+				}
+			}
+			
+			public function get hero():HeroObj{
+				return this._hero;
+			}
+			
+			private function addTroop(type:int):void {
+				var ui:HeroTroopSmallLogo = new HeroTroopSmallLogo();
+				ui.troop = type;
+				this.troopInHero.push(ui);
+			}
+			
+			private function init():void{
+				addTroop(TroopForConstants.T_TRIARII);
+				addTroop(TroopForConstants.T_CAVALRY);
+				addTroop(TroopForConstants.T_URBAN_COHORT);
+				addTroop(TroopForConstants.T_ARCHERS);
+				addTroop(TroopForConstants.T_BALLISTAS);
+				addTroop(TroopForConstants.T_ONAGERS);
+				for(var i:int=0;i<this.troopInHero.length;i++){
+					var ui:HeroTroopSmallLogo=this.troopInHero[i];
+					if(_hero!=null){
+						ui.refresh(_hero);
+					}
+					troop_container.addChild(ui);
+					if(i==2){
+						var hRule:Spacer=new Spacer();
+						hRule.width=5;
+						this.troop_container.addChild(hRule);
+					}
+					
+				}
+			}
+		]]>
+	</mx:Script>
+	<military:HeroLogoUI hero="{this._hero}"/>
+	<mx:Label text="{this._hero.heroInfo.name}" styleName="titleBordLabel" left="104" color="{this._hero.heroInfo.potentiality>0?0x0082cd:0x81511c}"/>
+	<mx:HBox id="troop_container" left="104" bottom="3" horizontalGap="2"/>
+</mx:Canvas>

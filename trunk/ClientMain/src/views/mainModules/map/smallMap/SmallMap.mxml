@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="550" height="575" xmlns:smallMap="views.mainModules.map.smallMap.*"  creationComplete="init()" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ItemClickEvent;
+			import roma.util.MultiLang;
+			import roma.message.EvtDispacther;
+			
+			public static const SMALL_MAP_SHOW:String = "smallMap.show";
+			public static const IS_SMALL_MAP_BTN_SHOW:String ="hide.or.show.small.map.btn";
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(SMALL_MAP_SHOW,onShow);
+			}
+			
+			private function onShow(event:Event):void{
+				this.visible = true;
+				if(this.initialized)
+					this.npcMap.refresh();
+			}
+			
+			private function onClick(event:ItemClickEvent):void{
+				if(event.index == 0){
+					if(this.container.selectedChild !=npcMap){
+						this.container.selectedChild = npcMap;
+						npcMap.refresh();
+					}
+				}/* else if(event.index == 1){
+					if(this.container.selectedChild !=cityMap){
+						this.container.selectedChild = cityMap;
+//						cityMap.refresh();
+					}
+				} */
+			}
+			
+			private function onClose(event:MouseEvent):void{
+				this.visible = false;
+			}
+		]]>
+	</mx:Script>
+	<mx:ViewStack id="container" right="0" top="22" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<smallMap:NpcMap id="npcMap" x="25" y="25" />
+		<!--smallMap:CityMap id="cityMap" x="25" y="25"/-->
+	</mx:ViewStack>
+	<mx:Button right="0" top="22" styleName="closeBtn" click="onClose(event)"/>
+	
+	<!--mx:ToggleButtonBar styleName="titleToggleButtonBar" id="mapTB" itemClick="onClick(event)" >
+    	<mx:dataProvider>
+    		<mx:Array>
+    			<mx:String>{Lang.msg('world.map.outline')}</mx:String>
+    			<mx:String>{Lang.msg('world.map.cityRate')}</mx:String>
+    		</mx:Array>
+    	</mx:dataProvider>
+    </mx:ToggleButtonBar-->
+	<!--mx:VBox left="0" verticalGap="2">
+		<mx:Button x="550" y="21" width="50" id="npcModel" click="onClick(event)" label="{Lang.msg('world.map.outline')}"/>
+		<mx:Button x="550" width="50" id="cityModel" click="onClick(event)" label="{Lang.msg('world.map.cityRate')}"/>
+	</mx:VBox-->
+</mx:Canvas>

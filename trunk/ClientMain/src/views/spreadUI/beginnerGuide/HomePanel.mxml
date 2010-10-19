@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="beginnerHome" width="520" height="321" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.CaesaryConfig;
+			import views.BeginnerGuide;
+			import views.MainContainer;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var _guideDesc:String;
+			
+			private var _index:int;
+			
+			public var fun:Function;
+			
+			private function init():void{
+				if(fun !=null)
+					fun.call(this);
+			}
+			
+			public function setValue(str:String,index:int):void{
+				_guideDesc = MultiLang.msg('beginnerGuide.desc.htmlBegin')+str+MultiLang.msg('beginnerGuide.desc.htmlEnd');
+				_index = index;
+				
+				if(_index ==1 || _index ==2){
+					this.label2.visible = false;
+				}else{
+					this.label2.visible = true;
+				}
+				
+				if(_index >=BeginnerGuide.GUIDENUM){
+					this.label1.visible = false;
+					this.label2.htmlText = MultiLang.msg("beginnerGuide.end");
+				}
+			}
+			
+			private function quitGuide():void{
+				MainContainer.instance.removeBg();
+				CaesaryConfig.instance.firstTimeLogin = false;
+			}
+			
+			private function nextStep():void{
+				if(fun !=null)
+					fun.call(this);
+			}
+		]]>
+	</mx:Script>
+	<mx:Text left="18" top="140" right="220" bottom="40" selectable="false" htmlText="{_guideDesc}"/>
+	<mx:HBox bottom="14" horizontalGap="40" left="25">
+		<mx:Label id="label1" htmlText="{MultiLang.msg('beginnerGuide.continue')}" mouseDown ="nextStep()" buttonMode="true" useHandCursor="true" mouseChildren="false"/>
+		<mx:Label id= "label2" htmlText="{MultiLang.msg('beginnerGuide.leave')}" mouseDown="quitGuide()" buttonMode="true" useHandCursor="true" mouseChildren="false"/>
+	</mx:HBox>
+</mx:Canvas>

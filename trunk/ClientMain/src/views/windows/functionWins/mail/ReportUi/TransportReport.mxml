@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseOtherReport xmlns="views.windows.functionWins.mail.ReportUi.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:battleResult="views.windows.functionWins.mail.ReportUi.battleResult.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.castle.ResourceObj;
+			import roma.logic.GameContext;
+			import roma.util.MultiLang;
+			import mx.utils.ObjectProxy;
+			
+			override public function setReportObj(t:ObjectProxy):void{
+				reportObj = t;
+				if(reportObj.isReturn){
+					reportDesc = MultiLang.msg('report.transportBack.desc{0}{1}',reportObj.targetCastleName+GameContext.getFieldPostionString(reportObj.targetCastlePo),reportObj.startCastleName+GameContext.getFieldPostionString(reportObj.startCastlePo));
+				}else{
+					reportDesc = MultiLang.msg('report.transportTo.desc{0}{1}',reportObj.startCastleName+GameContext.getFieldPostionString(reportObj.startCastlePo),reportObj.targetCastleName+GameContext.getFieldPostionString(reportObj.targetCastlePo));
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" horizontalAlign="center">
+		<mx:Text text="{reportDesc}" textAlign="left" width="100%" paddingLeft="10"/>
+		<mx:HRule width="98%" styleName="bufferBarVRule"/>
+		<mx:Canvas width="95%"  visible="{reportObj.transportResource != null}"
+				 includeInLayout="{reportObj.transportResource != null}">
+			<mx:Text text="{MultiLang.msg('report.transport.label')}: " width="100%" paddingLeft="5" />
+			<battleResult:CommonResourceUi resourceObj="{reportObj.transportResource}" top="22"/>
+		</mx:Canvas>
+		<mx:Canvas width="95%" visible="{reportObj.robResource != null}"
+				 includeInLayout="{reportObj.robResource != null}">
+			<mx:Text htmlText="{MultiLang.msg('report.transport.isRobbed.label')}: " width="100%" paddingLeft="5" />
+			<battleResult:CommonResourceUi resourceObj="{reportObj.robResource}" top="22" />
+		</mx:Canvas>
+	</mx:VBox>
+</BaseOtherReport>

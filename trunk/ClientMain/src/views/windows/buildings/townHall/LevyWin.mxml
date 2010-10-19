@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"  xmlns:ui="views.sprendUI.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import roma.common.valueObject.BufferBean;
+			import roma.util.ClientUtil;
+			import roma.common.constants.BuffConstants;
+			import roma.util.BufferHandle;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import views.spreadUI.MyAlert;
+			import roma.common.constants.InteriorConstant;
+			import roma.common.controller.CommonResponse;
+			import mx.events.ItemClickEvent;
+			import roma.logic.RomaConstants;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.LevyWin");
+			
+			private var curPopulation:int;
+		 	[Bindable]
+		 	private var isLevy:Boolean=false;	
+		 	[Bindable]
+		    private var comformComData:Array=new Array({label:MultiLang.msg("townHall.pacify_type_relief"),data:InteriorConstant.PACIFY_TYPE_RELIEF},
+		    	{label:MultiLang.msg("townHall.pacify_type_pray"),data:InteriorConstant.PACIFY_TYPE_PRAY},
+		    	{label:MultiLang.msg("townHall.pacify_type_bless"),data:InteriorConstant.PACIFY_TYPE_BLESS},
+		    	{label:MultiLang.msg("townHall.pacify_type_raise_popu"),data:InteriorConstant.PACIFY_TYPE_RAISE_POPU});
+		    
+		    [Bindable]
+		    private var levyComData:Array=new Array({label:MultiLang.msg("label.food"),data:RomaConstants.RES_TYPE_FOOD},
+		    	{label:MultiLang.msg("label.wood"),data:RomaConstants.RES_TYPE_WOOD},
+		    	{label:MultiLang.msg("label.stone"),data:RomaConstants.RES_TYPE_STONE},
+		    	{label:MultiLang.msg("label.iron"),data:RomaConstants.RES_TYPE_IRON},
+		    	{label:MultiLang.msg("label.gold"),data:RomaConstants.RES_TYPE_GOLD});		
+		 	
+		 	public function refresh():void{
+		 		if(this.initialized){
+		 			actionEffct();
+		 		}
+			}
+		 	
+		 	
+		 	private function init():void{
+		 		actionEffct();
+		 	}
+		 	
+		 	//处理征收物资事件
+		 	private function levyHandle():void
+		 	{
+		 		ControllerFactory.getInstance().getCityController().levyResource(GameContext.instance.getPlayerObj().getCurCastleObj().getCityId(),this.levyComboBox.selectedItem.data,levyCallBackfunction);
+		 		function levyCallBackfunction(event:CommonResponse):void
+		 		{
+		 			if(event.ok == CommonResponse.OK_DEFAULT){
+		 				actionEffct();
+						MainContainer.instance.risePlay(MultiLang.msg("townHall.label.levySuccess"));
+					} else {
+//						AlertWin.show(event.errorMsg);
+						MyAlert.showError(event);
+					}
+		 		}
+		 	}
+		 	//征收物资选项改变处理
+		 	private function levyComChange(event:ItemClickEvent):void{
+		 		
+		 	}
+		 	
+		 	//处理安抚百姓事件
+		 	private function comformHandle():void
+		 	{
+		 		ControllerFactory.getInstance().getCityController().confortPeople(GameContext.instance.getPlayerObj().getCurCastleObj().getCityId(),this.comformComboBox.selectedItem.data,comformCallBackfunction);
+		 		function comformCallBackfunction(event:CommonResponse):void
+		 		{
+		 			if(event.ok == CommonResponse.OK_DEFAULT){
+		 				actionEffct();
+						MainContainer.instance.risePlay(MultiLang.msg("townHall.label.comformSuccess"));
+					} else {
+//						AlertWin.show(event.errorMsg);
+						MyAlert.showError(event);
+					}
+		 			
+		 		}
+		 	}
+		 	//安抚百姓选项改变处理
+		 	private function comformComChange(event:ItemClickEvent):void{
+		 	
+		 	}
+		 	
+		 	private function actionEffct():void{
+		 		curPopulation=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager.curPopulation;
+		 		effectTextArea.text="";
+		 		if(isLevy){
+		 			effectTextArea.text+=MultiLang.msg("townHall.levyEffect",Math.floor(curPopulation*InteriorConstant.LEVY_GOLD_AMOUNT_TIMES_POPU),MultiLang.msg("label.gold"),InteriorConstant.SUPPORT_DECREASE_BY_LEVY)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.levyEffect",Math.floor(curPopulation*InteriorConstant.LEVY_FOOD_AMOUNT_TIMES_POPU),MultiLang.msg("label.food"),InteriorConstant.SUPPORT_DECREASE_BY_LEVY)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.levyEffect",Math.floor(curPopulation*InteriorConstant.LEVY_WOOD_AMOUNT_TIMES_POPU),MultiLang.msg("label.wood"),InteriorConstant.SUPPORT_DECREASE_BY_LEVY)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.levyEffect",Math.floor(curPopulation*InteriorConstant.LEVY_STONE_AMOUNT_TIMES_POPU),MultiLang.msg("label.stone"),InteriorConstant.SUPPORT_DECREASE_BY_LEVY)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.levyEffect",Math.floor(curPopulation*InteriorConstant.LEVY_IRON_AMOUNT_TIMES_POPU),MultiLang.msg("label.iron"),InteriorConstant.SUPPORT_DECREASE_BY_LEVY);
+		 			if(BufferHandle.getBuffById(BuffConstants.CASTLE_LEVY_COOL_DOWN)!=null){
+		 				effectTextArea.text+="\n"+MultiLang.msg("townHall.increase.levyNextTime",ClientUtil.toLocalTimeStr(BufferHandle.getBuffById(BuffConstants.CASTLE_LEVY_COOL_DOWN).buffBean.endTime));
+		 			}
+		 		}else{
+		 			effectTextArea.text+=MultiLang.msg("townHall.reduceComplaint",MultiLang.msg("townHall.pacify_type_relief"),Math.floor(curPopulation*InteriorConstant.RELIEF_NEED_FOOD_TIMES_POPU)+" "+MultiLang.msg("label.food"),InteriorConstant.RELIEF_DECREASE_COMPLAINT)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.reduceComplaint",MultiLang.msg("townHall.pacify_type_pray"),Math.floor(curPopulation*InteriorConstant.PRAY_NEED_FOOD_TIMES_POPU)+" "+MultiLang.msg("label.food")+","+Math.floor(curPopulation*InteriorConstant.PRAY_NEED_GOLD_TIMES_POPU)+" "+MultiLang.msg("label.gold"),InteriorConstant.PRAY_DECREASE_COMPLAINT)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.reduceComplaint",MultiLang.msg("townHall.pacify_type_bless"),Math.floor(curPopulation*InteriorConstant.BLESS_NEED_FOOD_TIMES_POPU)+" "+MultiLang.msg("label.food")+","+Math.floor(curPopulation*InteriorConstant.BLESS_NEED_GOLD_TIMES_POPU)+" "+MultiLang.msg("label.gold"),InteriorConstant.BLESS_DECREASE_COMPLAINT)+"\n";
+		 			effectTextArea.text+=MultiLang.msg("townHall.multiplyTheEarth",MultiLang.msg("townHall.pacify_type_raise_popu"),Math.floor(curPopulation*InteriorConstant.RAISEPOPU_NEED_FOOD_TIMES_POPU)+" "+MultiLang.msg("label.food"),Math.floor(curPopulation*InteriorConstant.RAISE_POPU_TIMES_CURRENT));
+		 			if(BufferHandle.getBuffById(BuffConstants.CASTLE_COMFORTING_COOL_DOWN)!=null){
+		 				effectTextArea.text+="\n"+MultiLang.msg("townHall.increase.levyNextTime",ClientUtil.toLocalTimeStr(BufferHandle.getBuffById(BuffConstants.CASTLE_COMFORTING_COOL_DOWN).buffBean.endTime));
+		 			}
+		 		}
+		 		
+		 	}
+		]]>
+	</mx:Script>
+	<mx:Canvas left="0" top="3" bottom="37" styleName="subContentBG" width="220">
+		<mx:VBox top="10" left="10" right="10" verticalGap="8" horizontalAlign="center">
+			<mx:HBox width="100%" horizontalAlign="center">
+				<mx:RadioButton label="{MultiLang.msg('temple.comforting')}" selected="true" click="this.isLevy=false;actionEffct();"/>
+				<mx:RadioButton label="{MultiLang.msg('townHall.levy')}" click="this.isLevy=true;actionEffct();"/>
+			</mx:HBox>
+			
+			<mx:HBox width="100%" horizontalGap="3">
+				<mx:VBox height="100%" horizontalAlign="right" >
+					<mx:Label text="{MultiLang.msg('label.population')}:" styleName="discritionLabel"/>
+					<mx:Label text="{MultiLang.msg('label.support')}:" styleName="discritionLabel"/>
+					<mx:Label text="{MultiLang.msg('townHall.label.resource')}:" styleName="discritionLabel" visible="{isLevy}" includeInLayout="{isLevy}"/>
+					<mx:Label text="{MultiLang.msg('public.label.action')}:" styleName="discritionLabel" visible="{!isLevy}" includeInLayout="{!isLevy}"/>
+				</mx:VBox>
+				<mx:VBox height="100%">
+					<mx:Label text="1140"/>
+					<mx:Label text="80"/>
+					<mx:ComboBox id="levyComboBox" dataProvider="{this.levyComData}" width="105" visible="{isLevy}" includeInLayout="{isLevy}"></mx:ComboBox>
+					<mx:ComboBox id="comformComboBox" dataProvider="{this.comformComData}" width="105" visible="{!isLevy}" includeInLayout="{!isLevy}"></mx:ComboBox>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:Button label="{MultiLang.msg('public.label.sure')}" visible="{!isLevy}" includeInLayout="{!isLevy}" click="comformHandle()"/>
+			<mx:Button label="{MultiLang.msg('townHall.Button.levy')}" visible="{isLevy}" includeInLayout="{isLevy}" click="levyHandle()"/>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas left="221" top="3" right="1" bottom="37" styleName="buildingInfoContentBG">
+		<mx:TextArea id="effectTextArea" styleName="discritionTextArea" left="20" top="20" right="20" bottom="20" editable="false"/>
+		<mx:VBox>
+			
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>

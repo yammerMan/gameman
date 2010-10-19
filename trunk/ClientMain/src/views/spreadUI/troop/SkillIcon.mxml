@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="104" height="70"
+	 mouseMove="onMouseMove(event)" mouseOut="onMouseOut(event)" mouseOver="onMouseOver(event)" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	 
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.SkillTooltip;
+		
+			private var skillTip:SkillTooltip = ToolTipContainer.instance.skillTooltip;	
+
+			[Bindable]
+			private var _skillName:String;
+			[Bindable]
+			private var _skillIcon:String;
+			
+			private var _skillType:String;
+							
+			public function set skillType(type:String):void{
+				this._skillType = type;
+				this._skillName = TroopSkillHelper.instance.getSkillName(type);
+				this._skillIcon = TroopSkillHelper.instance.getSkillIcon(type);
+			}			
+
+			private function onMouseOver(event:MouseEvent):void{
+				skillTip.skillType = this._skillType;
+				skillTip.onMouseOver(event);			
+			}		
+			
+			private function onMouseOut(event:MouseEvent):void{
+				skillTip.onMouseOut();
+			}		
+			
+			private function onMouseMove(event:MouseEvent):void{
+				skillTip.onMouseMove(event);
+			}		
+		]]>
+	</mx:Script>
+
+	<mx:VBox verticalGap="1" left="0" width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off" horizontalAlign="center">
+		<mx:Canvas  styleName="bigBuildingLogo" width="104" height="48">
+				<mx:Image source="{this._skillIcon}" id="imageField" 
+					top="5" left="5" bottom="5" right="5" 
+					scaleY="{38/48}" scaleX="{94/104}"
+					updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas> 
+		<mx:Label width="104" height="20" text="{this._skillName}" textAlign="center"/>		
+	</mx:VBox>
+</mx:Canvas>

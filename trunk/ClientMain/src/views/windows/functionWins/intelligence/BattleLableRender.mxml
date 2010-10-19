@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="{this.battle.isInSelected?'questSelectBG':''}" width="335" height="25" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.player.BattleFieldObj;
+			import roma.logic.GameContext;
+			import roma.common.constants.BattleConstants;
+			import roma.common.constants.FieldConstant;
+			import roma.logic.object.field.FieldHelper;
+			import roma.util.MultiLang;
+		
+		[Bindable]
+		private var battle:BattleFieldObj;
+		[Bindable]
+		private var battleDesc:String;
+		[Bindable]
+		private var battleTypeColor:Number;
+		
+		public function set battleText(data:Object):void{
+			battle = BattleFieldObj(data);
+			var t:String = "";
+			var f:String = "";
+			if(battle.battleWildBean.battleType == BattleConstants.ARMY_MISSION_ATTACK){
+				t = MultiLang.msg('military.mission.attack');
+			}else if(battle.battleWildBean.battleType == BattleConstants.ARMY_MISSION_LOOT){
+				t = MultiLang.msg('military.mission.loot');
+			}else if(battle.battleWildBean.battleType == BattleConstants.ARMY_MISSION_REINFORCE){
+				t = MultiLang.msg('military.mission.reinforce');
+			}else if(battle.battleWildBean.battleType == BattleConstants.ARMY_MISSION_CONQUEST){
+				t = MultiLang.msg('diplomacy.conquest.label');
+			}
+			
+			if(battle.battleWildBean.targetFieldType == FieldConstant.TYPE_CITY){
+				f = battle.battleWildBean.targetFieldName+GameContext.getFieldPostionString(battle.battleWildBean.targetId);
+			}else{
+				f = FieldHelper.getFieldName(battle.battleWildBean.targetFieldType)+GameContext.getFieldPostionString(battle.battleWildBean.targetId);
+			}
+			var startStr:String = "";
+			startStr = battle.battleWildBean.startCastleName;
+			battleDesc = MultiLang.msg('battleSituation.desc{0}{1}{2}',startStr,f,t);
+			
+			if(battle.isAttack){this.battleTypeColor = 0xff0000;}
+			else if(battle.isDefend){this.battleTypeColor = 0x004eff;}
+			else if(battle.isMid){this.battleTypeColor = 0xd68300;}
+			if(battle.isInSelected)this.battleTypeColor = 0xffffff;
+		}
+		
+		public function set battleColor(data:Object):void{
+			if(battle.isAttack){this.battleTypeColor = 0xff0000;}
+			else if(battle.isDefend){this.battleTypeColor = 0x004eff;}
+			else if(battle.isMid){this.battleTypeColor = 0xd68300;}
+		}
+		]]>
+	</mx:Script>
+	
+	<mx:Label text="{battleDesc}" color="{battleTypeColor}" width="100%" height="100%"/>
+</mx:Canvas>

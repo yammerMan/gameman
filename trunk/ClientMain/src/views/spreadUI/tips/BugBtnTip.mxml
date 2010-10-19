@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip width="311" height="181"
+	xmlns="views.spreadUI.tips.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.mainFrame.CastleInfo.*" 
+	xmlns:resPanel="views.spreadUI.resPanel.*"
+	xmlns:army="views.spreadUI.army.*" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+
+		]]>
+	</mx:Script>
+	<mx:VBox left="13" top="13" right="13" bottom="13" verticalGap="3">
+		<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+			<mx:Label text="1." styleName="taskDoneLabel"/>
+			<mx:Canvas width="270" height="60" styleName="BuildingAlphaWindow">
+				<mx:Image source="{ImgManager.clazz('background.bugBtn.shubiaoBg')}" verticalCenter="0" left="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:TextArea width="180" height="40" verticalCenter="0" right="15" editable="false" styleName="discritionTextArea" text="{MultiLang.msg('buttonBar.butBtnTip.done')}"/>
+			</mx:Canvas>
+		</mx:HBox>
+		<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0">
+			<mx:Label text="2." styleName="taskDoneLabel"/>
+			<mx:Canvas width="270" height="60" styleName="BuildingAlphaWindow">
+				<mx:Image source="{MultiLang.clazz('background.bugBtn.caozuoBg')}" verticalCenter="0" updateComplete="ImageHandle.onLoadComplete(event)" horizontalCenter="0"/>
+			</mx:Canvas>
+		</mx:HBox>
+		<mx:HBox width="100%" verticalAlign="middle" horizontalGap="0" horizontalAlign="center">
+			<mx:Image source="{ImgManager.clazz('background.bugBtn.iconBg')}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label styleName="taskDoneLabel" text="{MultiLang.msg('topButtonBar.bugBtn.label')}"/>
+		</mx:HBox>
+	</mx:VBox>
+</BaseTip>

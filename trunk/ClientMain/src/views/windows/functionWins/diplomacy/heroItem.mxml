@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="355" height="65" >
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.HeroTroopBean;
+			import roma.resource.ImgManager;
+			import roma.util.ImageHandle;
+			import roma.logic.object.castle.TFHelper;
+			import roma.common.valueObject.HeroInfoBean;
+			import roma.logic.object.player.OtherArmyObj;
+			import roma.logic.object.hero.HeroObj;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var curHero:HeroInfoBean;
+			[Bindable]
+			private var troopsArr:ArrayCollection = new ArrayCollection();
+			
+			public function set bean(data:Object):void{
+				var o:OtherArmyObj = OtherArmyObj(data);
+				curHero = o.bean.heroInfo;
+				
+				troopsArr.removeAll();
+				for each(var a:HeroTroopBean in o.bean.troopsArray){
+					if(a.count>0){
+						troopsArr.addItem(a);
+					}
+				}
+			}
+			
+			public function set outSeizeBean(data:Object):void{
+				var o:HeroObj = HeroObj(data);
+				curHero = o.heroInfo;
+				
+				troopsArr.removeAll();
+				for each(var a:HeroTroopBean in o.armyManager.troopsArray){
+					if(a.count>0){
+						troopsArr.addItem(a);
+					}
+				}
+			}
+			
+			public function heroLogo(t:int):String{
+				var clazz:String = TFHelper.instance.getTroopSmallIconClass(t);
+				return clazz;
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:VBox width="95" height="100%" verticalGap="0" verticalScrollPolicy="off" horizontalScrollPolicy="off" top="0">
+		<mx:Label text="{curHero.name}" textAlign="center" height="20" styleName="titleBordLabel"/>
+		<mx:Canvas width="80" height="40" styleName="smallLogoBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Image width="74" height="34" scaleContent="true" source="{ImgManager.clazz(curHero.logoUrl)}" verticalCenter="0" horizontalCenter="0"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Image id="iconBg" source="{ImgManager.clazz('hero.heroLvBG.castellan')}" top="1" left="1"
+				updateComplete="ImageHandle.onLoadComplete(event)"/>
+			<mx:Label x="{iconBg.x}" y="{iconBg.y-1}" width="25" height="14" styleName="samllstyleLabel" textAlign="center" text="{curHero.level}"/>
+		</mx:Canvas>
+	</mx:VBox>
+	<mx:TileList dataProvider="{troopsArr}" right="0" height="60" width="240" columnWidth="38" columnCount="6" backgroundAlpha="0" borderStyle="none"
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off" verticalCenter="0" mouseChildren="false" mouseEnabled="false">
+		<mx:itemRenderer>
+			<mx:Component>
+				<mx:VBox height="60" width="35" verticalScrollPolicy="off" horizontalScrollPolicy="off" verticalGap="0" paddingTop="0" paddingBottom="0">
+					<mx:Image source="{outerDocument.heroLogo(data.troop)}"/>
+					<mx:Label text="{data.count}"/>
+				</mx:VBox>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:TileList>
+</mx:Canvas>

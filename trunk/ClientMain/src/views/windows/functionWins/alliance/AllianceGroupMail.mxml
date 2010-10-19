@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ui="views.spreadUI.*" >
+	<mx:Script>
+		<![CDATA[
+			import views.MainContainer;
+			import views.spreadUI.speedUp.ItemWin;
+			import roma.common.valueObject.PlayerInfoDataBean;
+			import mx.collections.ArrayCollection;
+			import roma.common.controller.alliance.AllianceMemberListResponse;
+			import roma.common.action.LetterController;
+			import views.spreadUI.MyAlert;
+			import roma.logic.GameContext;
+			import roma.common.constants.AllianceConstant;
+			import roma.util.ItemUseHandle;
+			import roma.util.InputTextHelper;
+			import roma.common.constants.LetterConstant;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.util.MultiLang;
+			[Bindable]
+			private var mailTitle:String = "";
+			[Bindable]
+			private var receiverName:String = "";
+			private var memberArr:ArrayCollection=new ArrayCollection();
+			
+			public var alliaceView:Function;
+			
+			public function setMes(name:String):void{
+				this.receiverName= name;
+			}
+			
+			private function sendAllResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					MainContainer.instance.risePlay(MultiLang.msg("mail.msg.success"));
+					this.gotoAllianceView();
+				}else{
+						MyAlert.showError(event);
+				}
+			}
+			
+			private function sendSingleResponse(event:CommonResponse):void{
+				if(event.isSuccess()){
+					MainContainer.instance.risePlay(MultiLang.msg("mail.msg.success"));
+					this.gotoAllianceView();
+				}else{
+						MyAlert.showError(event);
+				}
+			}
+			
+			private function onSend():void{
+				if(isSendAll.selected){
+					if(ItemUseHandle.instance.canUseItem(AllianceConstant.ALLIANCE_MAIL_NEED_ITEM,2)||GameContext.instance.getPlayerObj().itemManager.ifEnoughGold(AllianceConstant.ALLIANCE_MAIL_NEED_ITEM,2)){
+						if(this.titleInput.text == ""){
+							MyAlert.show(MultiLang.msg("mail.msg.noSubject"));
+							return;
+						}
+						else if(this.contents.text == ""){
+							MyAlert.show(MultiLang.msg("mail.msg.contentsEmpty"));
+							return;
+						}
+						ControllerFactory.getInstance().getAllianceManagementController().messagesForAll(titleInput.text,contents.text,sendAllResponse);
+					}else{
+						MyAlert.show(MultiLang.msg("alliance.canNOtGroupSent"),recharge,MultiLang.msg('systemMsg.getGold'));
+					}	
+				}else if(!isSendAll.selected){
+					MyAlert.show(MultiLang.msg("alliance.notSelected"));
+				}
+			}
+			
+			private function recharge(ok:Boolean):void{
+				if (ok){
+					ClientMain.recharge();
+				}
+			}
+			
+			private function gotoAllianceView():void{
+				if(this.alliaceView!=null){
+					this.alliaceView.apply(this);
+				}
+			}
+				//标题输入限制
+	private function titleInputChange(event:Event):void{
+ 		var textCounter:int = 0;
+ 		TextInput(event.currentTarget).maxChars = LetterConstant.TITLE_LENGTH_LIMIT;
+		for (var i:int=0;i<event.target.text.length;i++){
+			var tempStr:String = event.target.text.substr(i,1);
+			if(InputTextHelper.isDoubleByte(tempStr)){
+				textCounter +=2;
+			} else {
+				textCounter +=1;
+			}
+			if (event.currentTarget == this.titleInput && textCounter>LetterConstant.TITLE_LENGTH_LIMIT) { 
+				this.titleInput.text = this.titleInput.text.substring(0,i);
+				break;
+			}					
+		}
+	} 
+	//内容输入限制  
+	private function contentsInputChange(event:Event):void{
+ 		var textCounter:int = 0;
+ 		TextArea(event.currentTarget).maxChars = LetterConstant.CONTENT_LIMIT_LENGTH;
+		for (var i:int=0;i<event.target.text.length;i++){
+			var tempStr:String = event.target.text.substr(i,1);
+			if(InputTextHelper.isDoubleByte(tempStr)){
+				textCounter +=2;
+			} else {
+				textCounter +=1;
+			}
+			if (event.currentTarget == this.contents && textCounter>LetterConstant.CONTENT_LIMIT_LENGTH) { 
+				this.contents.text = this.contents.text.substring(0,i);
+				break;
+			}					
+		}
+	}
+	
+	public function refresh():void{
+		if(this.initialized){
+			this.isSendAll.selected=true;
+			this.titleInput.text="";
+			this.contents.text="";
+		}
+		this.receiverName="";
+		this.memberArr.removeAll();
+		ControllerFactory.getInstance().getAllianceController().getAllianceMemberList(onGetAllianceMemberList,false);
+	} 
+	private function onGetAllianceMemberList(event:AllianceMemberListResponse):void{
+		if(event.isSuccess()){
+			memberArr = event.memberInfoArray;
+			this.receiverName=getAllianceController(memberArr);
+		}else{
+			MyAlert.showError(event);
+		}
+	}
+	private function getAllianceController(arr:ArrayCollection):String{
+		var str:String="";
+		for each(var member:PlayerInfoDataBean in arr){
+			str+="\""+member.playerName+"\",";
+		}
+		return str.substr(0,str.length-1);;
+	}
+		]]>
+	</mx:Script>
+	
+		<mx:Canvas width="100%" height="100%">
+		<mx:Canvas top="36" styleName="subContentBG" height="80" left="11" right="11">
+			<mx:VBox height="100%" verticalCenter="0" left="13" verticalAlign="middle" width="100%" verticalGap="3">
+				<mx:HBox width="100%" horizontalGap="3">
+					<mx:Label text="{MultiLang.msg('mail.label.recipients')}:" width="80" textAlign="right" styleName="focusColor"/>
+					<mx:TextInput text="{receiverName}" width="430" id="receiver" editable="false"/>
+					<mx:CheckBox id="isSendAll" width="249" label="{MultiLang.msg('alliance.groundSentDis')}" selected="true"/>
+				</mx:HBox>
+				<mx:HBox width="100%" horizontalGap="3">
+					<mx:Label text="{MultiLang.msg('public.label.subject')}:" width="80" height="23" textAlign="right" styleName="focusColor"/>
+					<mx:TextInput width="430" id="titleInput" change="titleInputChange(event)"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:Canvas>
+		<mx:Canvas bottom="36" top="118" styleName="textInputBG" left="11" right="11">
+			<mx:VBox width="100%" height="100%" verticalGap="0">
+				<ui:MulHRule/>
+				<mx:TextArea id="contents" text="" width="100%" height="100%" x="0" y="0" textAlign="left" change="contentsInputChange(event)"/>
+			</mx:VBox>				
+		</mx:Canvas>
+		<mx:HBox bottom="36" right="11" alpha="0.5" mouseEnabled="false" mouseChildren="false">
+			<mx:Label text="{MultiLang.msg('mail.msg.maxWords',LetterConstant.CONTENT_LIMIT_LENGTH)}"/>
+		</mx:HBox>
+		<mx:HBox bottom="12" horizontalAlign="center" right="11">
+			<mx:Button label="{MultiLang.msg('mail.button.send')}" width="99"  click="onSend()"/>
+			<mx:Button label="{MultiLang.msg('public.label.return')}" width="99"  click="gotoAllianceView()"/>
+		</mx:HBox>
+	</mx:Canvas>
+</mx:Canvas>

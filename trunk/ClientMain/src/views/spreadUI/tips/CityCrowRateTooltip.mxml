@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseTip xmlns="views.spreadUI.tips.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="240" height="120">
+	<mx:Script>
+		<![CDATA[
+			import views.mainModules.map.diamond2.TileHelper;
+			import roma.util.MultiLang;
+			import roma.common.valueObject.ZoneInfoDataBean;
+			import roma.common.controller.common.ZoneInfoDataResponse;
+			
+			private var zone:ZoneInfoDataResponse = null;
+			
+			public function setZoneResponse(zoneInfomationmation:ZoneInfoDataResponse):void{
+				this.zone = zoneInfomationmation;
+			}
+			
+			public function setZoneInfo(zId:int):void{
+				for each(var z:ZoneInfoDataBean in zone.arrayArray){
+					if(z.id == zId){
+						zoneName.text = TileHelper.getZoneName(zId);
+						this.cityCountText.text=String(z.cityCount);
+						this.playerCountText.text=String(z.playerCount);
+						this.rateText.text=z.rate.toFixed(1)+"%";
+					}
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="mainWindowContentBG" left="5" top="5" right="5" bottom="5">
+		<mx:HBox horizontalCenter="0" width="100%" horizontalAlign="center">
+			<mx:Label text="{MultiLang.msg('chatType.zone')}:" width="60" top="10" textAlign="right" horizontalCenter="0"/>
+			<mx:Label id="zoneName" />
+		</mx:HBox>
+		<mx:HBox top="30" horizontalCenter="0" verticalGap="0" styleName="whiteBGwithBorder">
+			<mx:VBox height="100%" width="50%" verticalGap="0">
+				<mx:Label text="{MultiLang.msg('info.player.castleCount')}:" width="100%" textAlign="right"/>
+				<mx:HRule width="100%"/>
+				<mx:Label text="{MultiLang.msg('item.moveCastle.playerCount')}:" width="100%" textAlign="right"/>
+				<mx:HRule width="100%"/>
+				<mx:Label text="{MultiLang.msg('item.moveCastle.crowd')}:" width="100%" textAlign="right"/>
+			</mx:VBox>
+			<mx:VRule height="61"/>
+			<mx:VBox height="100%" width="50%" verticalGap="0">
+				<mx:Label width="100%" id="cityCountText"/>
+				<mx:HRule width="100%"/>
+				<mx:Label width="100%" id="playerCountText"/>
+				<mx:HRule width="100%"/>
+				<mx:Label width="100%" id="rateText"/>
+			</mx:VBox>
+		</mx:HBox>
+		</mx:Canvas>
+</BaseTip>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:hero="views.windows.functionWins.hero.*"
+	xmlns:spreadUI="views.spreadUI.*"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off" paddingTop="0" height="100%" width="100%" horizontalGap="-5" visible="{remainTime}" includeInLayout="{remainTime}">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.GameContext;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.util.ImageHandle;
+			import roma.resource.ImgManager;
+			[Bindable]
+			private var buffObj:BaseBuffObj;
+			[Bindable]
+			private var remainTime:Boolean=false;
+			public function set heroBuff(buff:Object):void{
+				this.buffObj=BaseBuffObj(buff);
+				var now:Number = new Date().valueOf();
+				var diff:Number = GameContext.instance.getTimeDis();
+				this.remainTime = (buffObj.buffBean.endTime + diff - now)/1000>0?true:false;
+			}
+			public function get herobuff():BaseBuffObj{
+				return this.buffObj;
+			}
+		]]>
+	</mx:Script>
+	<hero:BuffNameLabel buffName="{buffObj.buffBean.typeId}" width="115" letterSpacing="0"/>
+	<mx:Image height="20" width="20" source="{ImgManager.clazz('icon.time')}" updateComplete="ImageHandle.onLoadComplete(event)" />
+	<spreadUI:LeftTimeLabel leftTime="{buffObj.buffBean.endTime}" width="100%" textAlign="right"/>
+</mx:HBox>

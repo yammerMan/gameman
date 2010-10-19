@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="150" height="110" 
+	verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.ImageHandle;
+			import views.mainModules.town.NewBuildingWindow;
+			import views.spreadUI.tips.ToolTipContainer;
+			import views.spreadUI.tips.ConditionTip;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.logic.object.building.BuildingHelper;
+			import roma.logic.rule.BuildingRule;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var buildingName:String;
+			
+			[Bindable]
+			private var builidngIcon:String;
+			
+			[Bindable]
+			private var isCanBuilt:Boolean = false;
+			
+			public var type:int;
+			
+			private var result:RuleCheckResult;
+			private var conditionTooltip:ConditionTip = ToolTipContainer.instance.conditionTooltip;
+			
+			public function setBuildingType(typeId:int):void {
+				this.buildingName = BuildingHelper.instance.getName(typeId);
+				this.builidngIcon = BuildingHelper.instance.getLogoClass(typeId);
+				this.type = typeId;
+				
+				var rule:BuildingRule = GameRuleHelper.instance.getBuildingRule(typeId,1);
+				this.result = rule.check();
+				isCanBuilt = result.isMatch;				
+			}
+			
+			public function reCheck():void {
+				if (!this.result.isMatch) {
+					var rule:BuildingRule = GameRuleHelper.instance.getBuildingRule(type,1);
+					this.result = rule.check();
+					//当条件满足激活按钮
+					this.isCanBuilt = this.result.isMatch;
+				}
+			}
+			
+			private function onClickHandle():void {
+				this.dispatchEvent(new Event(NewBuildingWindow.BUILD_NEW_BUILDING_EVENT));
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				this.conditionTooltip.setTypeId(type);
+				this.conditionTooltip.setRuleCheckResult(this.result);
+				this.conditionTooltip.onMouseOver(event);
+			}
+			
+			private function onMouseOut():void {
+				this.conditionTooltip.onMouseOut();
+			}
+			
+			private function onMouseMove(event:MouseEvent):void {
+				this.conditionTooltip.onMouseMove(event);				
+			}
+		]]>
+	</mx:Script>
+	
+
+	<mx:Button label="{MultiLang.msg('public.label.newBuilding')}" 
+		click="onClickHandle()"
+		mouseOut="{this.onMouseOut()}"
+		mouseOver="{this.onMouseOver(event)}"
+		mouseMove="{this.onMouseMove(event)}"
+		enabled="{this.isCanBuilt}" bottom="1" left="0" right="0" fontWeight="normal"/>
+	<mx:Canvas height="85" top="0" left="0" right="0" styleName="BuildingAlphaWindow">
+		<mx:Canvas  styleName="bigBuildingLogo" top="3"  width="112" height="56" horizontalCenter="0">
+			<mx:Image source="{this.builidngIcon}"  id="imageField" top="5" left="5" bottom="5" right="5" scaleY="{46/46}" scaleX="{102/102}" updateComplete="ImageHandle.onLoadComplete(event)"/>
+		</mx:Canvas>
+		<mx:Label text="{this.buildingName}" bottom="3" horizontalCenter="0" styleName="titleNameLabel"/>
+	</mx:Canvas>
+</mx:Canvas>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="whriteBG" xmlns:troop="views.spreadUI.troop.*">
+	<mx:Script>
+		<![CDATA[
+			import roma.resource.ImgManager;
+			import roma.logic.object.castle.TFHelper;
+			import roma.logic.rule.TroopRule;
+			
+			[Bindable]
+			public var _lineWidth:int = 417;
+			[Bindable]
+			public var _labelWidth:int = 60;
+			[Bindable]
+			public var _txtAlign:String = TextFormatAlign.RIGHT;
+			
+			[Bindable]
+			private var _troopRule:TroopRule;
+			
+			public function set troopRule(rule:TroopRule):void{
+				this._troopRule = rule;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Form width="100%" height="100%" paddingLeft="0" paddingTop="0" 
+		paddingRight="0" paddingBottom="0" verticalGap="0" horizontalGap="0">
+
+		<mx:HRule width="{_lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9"  >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}" reqNum="{_troopRule.life}"  resIcon="{ImgManager.clazz('icon.life.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.LIFE}"/>
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.attack}" resIcon="{ImgManager.clazz('icon.attack.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.ATTACK}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.defence}"  resIcon="{ImgManager.clazz('icon.defence.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.DEFENCE}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.dmgMin}~{_troopRule.dmgMax}" resIcon="{ImgManager.clazz('icon.damage.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.DAMAGE}"/>
+			<mx:VRule height="24"/>
+		</mx:FormItem>
+		
+		<mx:HRule width="{_lineWidth}"/>
+		<mx:FormItem direction="horizontal" paddingLeft="-14" horizontalGap="9" >
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.foodRequest}"  resIcon="{ImgManager.clazz('icon.foodRequest.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.FOODREQUEST}"/>
+			<mx:VRule height="24"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.speed}"  resIcon="{ImgManager.clazz('icon.speed.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.SPEED}"/>
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.load}" resIcon="{ImgManager.clazz('icon.load.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.LOAD}"/>
+			<mx:VRule height="24" x="0"/>
+			<troop:ImageLabel txtWidth="{_labelWidth}"  reqNum="{_troopRule.population}" resIcon="{ImgManager.clazz('icon.population.prop')}" formatAlign="{_txtAlign}" propType="{TFPropConstant.POPULATION}"/>
+			<mx:VRule height="24" x="0"/>
+		</mx:FormItem>
+		<mx:HRule width="{_lineWidth}"/>
+	</mx:Form>
+</mx:Canvas>

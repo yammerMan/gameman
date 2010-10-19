@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:military="views.windows.functionWins.military.*"
+	width="260" height="260"
+	cacheAsBitmap="true"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.valueObject.HeroTroopBean;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import roma.common.action.ArmyController;
+			import roma.common.constants.HeroManConstants;
+			import roma.util.MultiLang;
+			import roma.util.CompCache;
+			import roma.logic.object.hero.HeroObj;
+			
+			private var helper:AssignHelper = AssignHelper.instance;
+			
+			[Bindable]
+			private  var curHero:HeroObj;
+			[Bindable]
+			private var curHeroStatus:String;
+			
+			public function setCurHero(curHero:HeroObj):void{
+				this.curHero=null;
+				this.curHero=curHero
+			}
+			
+			/*private function refreshHeroStatus():void {	
+				 if(this.curHero!=null){
+					switch( curHero.heroInfo.status){
+						case HeroManConstants.STATUS_CHIEF:
+							this.curHeroStatus=Lang.msg("info.status.chief");
+							break;
+						case HeroManConstants.STATUS_FREE:
+							this.curHeroStatus=Lang.msg("info.status.free");
+							break;
+						case HeroManConstants.STATUS_GUARD:
+							this.curHeroStatus=Lang.msg("info.status.guard");
+							break;
+						case HeroManConstants.STATUS_SEIZED:
+							this.curHeroStatus=Lang.msg("info.status.seized");
+							break;
+						case HeroManConstants.STATUS_BACKWARD:
+							this.curHeroStatus=Lang.msg("info.status.backward");
+							break;
+		 				case HeroManConstants.STATUS_FORWARD:
+							this.curHeroStatus=Lang.msg("info.status.forward");
+							break;
+						case HeroManConstants.STATUS_IN_BATTLE:
+							this.curHeroStatus=Lang.msg("info.status.battle");
+							break 
+					} 
+				}else{
+					this.curHeroStatus="";
+				}
+				
+		   }*/
+			
+			/* 卸载英雄部队 */	
+		   private function uninstallHeroTroop():void{
+				var count:int;
+				for each(var bean:HeroTroopBean in curHero.armyManager.troopsArray){
+					count +=bean.count;
+				}
+				
+				if(count<=0){
+					MyAlert.show(MultiLang.msg("hero.don't.bring.troop"));
+					return;
+				}
+
+		   		var cityId:int =GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+		   		ControllerFactory.getInstance().getArmyController().uninstallHeroTroop(cityId,curHero.heroInfo.id,onUninstallHeroTroopResponse);
+		   		
+		   		function onUninstallHeroTroopResponse(event:CommonResponse):void{
+		   			if(!event.isSuccess()){
+		   				MyAlert.showError(event)
+		   			}
+		   		}	
+		   }
+		]]>
+	</mx:Script>
+	
+	<military:HeroLogoUI label="英雄logo" hero="{this.curHero}" left="24" top="16"/>
+	<mx:HRule left="125" top="40" right="20"/>
+	<mx:VBox label="英雄属性" verticalGap="-3" left="24" top="65">
+		<mx:HBox width="100%" label="体力" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.physical')}:" width="115"/>
+			<mx:Label text="{this.curHero.heroInfo.strengthPoint}/{Math.min((this.curHero.heroInfo.level+HeroManConstants.STRENGTH_POINT_FOR_LEVEL_ONE_HERO-1),HeroManConstants.MAX_HERO_STRENGTH_POINT)}"  width="100%" styleName="discritionWithBorderAlphaTextArea"/>
+		</mx:HBox>
+		<mx:HBox width="100%" label="统帅" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.leadership')}:" width="115"/>
+			<mx:Label text="{this.curHero.troopStrength}/{this.curHero.leadership}"  width="100%" styleName="discritionWithBorderAlphaTextArea"/>
+		</mx:HBox>
+		<mx:HBox width="100%" label="管理" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.politics')}:" width="115"/>
+			<mx:Label text="{this.curHero.politics + this.curHero.politicsBuffAdd}"  width="100%" styleName="discritionWithBorderAlphaTextArea"/>
+		</mx:HBox>
+		<mx:HBox width="100%" label="攻击" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.attack')}:" width="115"/>
+			<mx:Label text="{this.curHero.powers + this.curHero.powersBuffAdd}"  width="100%" styleName="discritionWithBorderAlphaTextArea"/>
+		</mx:HBox>
+		<mx:HBox width="100%" label="防御" horizontalGap="0">
+			<mx:Label text="{MultiLang.msg('hero.defence')}:" width="115"/>
+			<mx:Label text="{this.curHero.defend + this.curHero.defendBuffAdd}"  width="100%" styleName="discritionWithBorderAlphaTextArea"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Button bottom="12" horizontalCenter="0" styleName="uninstallBtn" toolTip="{MultiLang.msg('hero.buttonTip.armyUninstall')}" click="uninstallHeroTroop()" visible="false"/>
+	<mx:Label text="{curHero.heroStatus}" styleName="discritionWithBorderAlphaTextArea" left="125" top="40" textAlign="center" right="12"/>
+</mx:Canvas>

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BaseWin xmlns="views.windows.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="290" height="226"
+	styleName="smallInfoWin" xmlns:display="flash.display.*"
+	mouseEnabled="true"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.mainModules.map.diamond2.ZoneGenerator;
+			import views.mainModules.map.diamond2.TileHelper;
+			import roma.common.constants.FieldConstant;
+			import roma.logic.CaesaryConfig;
+			import roma.util.InputTextHelper;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.message.events.FavoriteEvent;
+			import views.spreadUI.favorite.FieldFavorite;
+			import roma.logic.GameContext;
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.CommonResponse;
+			import roma.util.ClientUtil;
+			import roma.logic.rule.ruleCheck.PlayerTitleCheck;
+			import roma.util.ImageHandle;
+			import roma.logic.rule.NewCastleRule;
+			import roma.logic.rule.ruleCheck.RuleCheckResult;
+			import roma.common.constants.GeneralConstants;
+			import roma.logic.object.field.FieldHelper;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+
+			private static var newCastleRule:NewCastleRule = new NewCastleRule();
+
+			[Bindable]
+			private var field_name:String;
+			
+			[Bindable]
+			private var fieldPostion:String;
+
+			[Bindable]
+			private var resCheck:RuleCheckResult;
+
+			[Bindable]
+			private var playerTitleCheck:PlayerTitleCheck = newCastleRule.playerTitleCheck;
+
+			private static const matchColor:String="goodNoticeLabel";
+			private static const noMatchColor:String="NoticeLabel";
+			
+			private static const hboxWidth:int = 120;
+			private static const hboxHeigh:int = 20;
+			
+			private var idField:int;
+			private var fieldX:int;
+			private var fieldY:int;
+			
+			[Bindable]
+			private var reqTitle:String
+
+			[Bindable]
+			private var maxCastleTip:String;
+			
+			
+			[Bindable]
+			private var zoneName:String;
+						
+			private var timer:Timer;
+			
+			private function init():void {
+				maxCastleTip= MultiLang.msg('field.max.castle');
+			}
+			
+			public function setMapTile(fx:int,fy:int):void {
+				this.fieldPostion = "[" + fx + "," + fy + "]";
+				this.field_name = FieldHelper.getFieldName(FieldConstant.FLAT_TYPE);
+				this.idField = GameContext.getFieldId(fx,fy);
+				
+				var zone:int = ZoneGenerator.getInstance().getZoneId(this.idField);
+				this.zoneName = TileHelper.getZoneName(zone);
+				this.resCheck = newCastleRule.check();
+				this.resCheck.check();
+				
+				if (this.timer == null) {
+					this.timer = new Timer(1000);
+					this.timer.addEventListener(TimerEvent.TIMER , onTimerHandler);
+				}
+				this.timer.start();
+			}
+			
+			private function onTimerHandler(event:TimerEvent):void {
+				if (!this.visible) {
+					this.timer.stop();
+				}
+				this.resCheck.check();
+			}
+			
+			private function onCloseWin():void {
+				this.visible = false;
+			}
+			
+			/**
+			 * 筑城
+			 */
+			private function newCastle():void {
+				var cid:int = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				var cityName:String = this.input_cityName.text;
+				if (cityName ==null || cityName.length==0) {
+					cityName = MultiLang.msg('public.castleName');
+				}
+				ControllerFactory.getInstance().getCityController().constructCity(
+					cid,
+					this.idField,
+					cityName.substr(0,20),
+					onNewCastleResponse);
+			}
+			
+			private function onNewCastleResponse(event:CommonResponse):void {
+				if (event.isSuccess()) {
+					DiamondWorldMap2.instance.sendCommandToServer();
+					this.onCloseWin();
+				} else {
+					MyAlert.showError(event);
+				}
+			}
+			
+			/**
+			 * 增加到收藏夹
+			 */
+			private function addFavorite():void {
+				FieldFavorite.instance.addListener();				
+				FavoriteEvent.addFavorite(FieldFavorite.ADD_FAVORITE,this.idField,this.field_name);
+			}
+			 private function textInputChange(e:Event):void{
+ 				var c:int = 0;
+ 				TextInput(e.currentTarget).maxChars = 20;
+				for(var i:int=0;i<e.target.text.length;i++){
+					var str:String = e.target.text.substr(i,1);
+					if(InputTextHelper.isDoubleByte(str)){
+						c +=2;
+					}
+					else{
+						c +=1;
+					}
+					if(e.currentTarget == this.input_cityName && c>CaesaryConfig.instance.nameLimit) {  						
+						this.input_cityName.text = this.input_cityName.text.substring(0,i);
+						break;
+					}					
+				}
+			}   
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="dataGridHeaderBG" width="286" height="24" x="2" y="4">
+		<mx:Label 
+			text="{this.field_name}" y="2" horizontalCenter="0" styleName="darkCommonStyle"/>
+	</mx:Canvas>
+	<mx:Button click="onCloseWin()" styleName="closeBtn" right="8" top="6"/>
+
+	<mx:VBox verticalGap="0" y="30" left="8" right="8">
+		<mx:HBox width="100%" height="25" verticalAlign="middle" horizontalGap="2">
+			<mx:Label text="{MultiLang.msg('townHall.coordinate')}:"/>
+			<mx:Label text="{this.fieldPostion}" styleName="darkCommonStyle"/>
+			<mx:Button styleName="collectionBtn" width="16" height="16"
+				toolTip="{MultiLang.msg('public.label.favorites')}" click="addFavorite()"/>
+		</mx:HBox>
+		<mx:HBox width="100%" height="25" verticalAlign="middle" horizontalGap="2">
+			<mx:Label text="{MultiLang.msg('chatType.zone')}:"/>
+			<mx:Label text="{this.zoneName}" styleName="darkCommonStyle"/>
+		</mx:HBox>
+		<mx:HBox width="100%" height="25" verticalAlign="middle" horizontalGap="2">
+			<mx:Label text="{MultiLang.msg('info.player.title')}:"/>
+			<mx:Label text="{this.playerTitleCheck.dispReq}" styleName="{this.playerTitleCheck.isMatch?matchColor:noMatchColor}"/>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalAlign="center">
+			<mx:HBox width="250" horizontalGap="0" styleName="whiteBGwithBorder">
+					<mx:VBox verticalGap="0" width="100%">
+						<mx:HBox width="100%" horizontalGap="0">
+						<mx:VBox verticalGap="0" height="100%" width="100%">
+							<mx:HBox width="100%"  horizontalAlign="center" height="24" verticalAlign="middle">
+								<mx:Spacer width="3"/>
+								<mx:Image source="{ImgManager.clazz('icon.food')}" width="20" height="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								<mx:Label text="{GeneralConstants.CASTLE_CONSTRUCTING_FOOD }" width="100%" styleName="{this.resCheck.food.isMatch?matchColor:noMatchColor}"/>
+							</mx:HBox>
+							<mx:HRule width="100%"/>
+							<mx:HBox width="100%"  horizontalAlign="center" height="24" verticalAlign="middle">
+								<mx:Spacer width="3"/>
+								<mx:Image source="{ImgManager.clazz('icon.wood')}" width="20" height="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								<mx:Label text="{GeneralConstants.CASTLE_CONSTRUCTING_WOOD}" width="100%" styleName="{this.resCheck.wood.isMatch?matchColor:noMatchColor}"/>
+							</mx:HBox>
+							<mx:HRule width="100%"/>
+							<mx:HBox width="100%"  horizontalAlign="center" height="24" verticalAlign="middle">
+								<mx:Spacer width="3"/>
+								<mx:Image source="{ImgManager.clazz('icon.gold')}" width="20" height="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								<mx:Label text="{GeneralConstants.CASTLE_CONSTRUCTING_GOLD}" width="100%" styleName="{this.resCheck.golds.isMatch?matchColor:noMatchColor}"/>
+							</mx:HBox>	
+						</mx:VBox>
+						<mx:VRule height="75"/>
+						<mx:VBox verticalGap="0" width="100%">
+							<mx:HBox width="100%"  horizontalAlign="center" height="24" verticalAlign="middle">
+								<mx:Spacer width="3"/>
+								<mx:Image source="{ImgManager.clazz('icon.stone')}" width="20" height="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								<mx:Label text="{GeneralConstants.CASTLE_CONSTRUCTING_STONE}" width="100%" styleName="{this.resCheck.stone.isMatch?matchColor:noMatchColor}"/>
+							</mx:HBox>
+							<mx:HRule width="100%"/>
+							<mx:HBox width="100%"  horizontalAlign="center" height="24" verticalAlign="middle">
+								<mx:Spacer width="3"/>
+								<mx:Image source="{ImgManager.clazz('icon.iron')}" width="20" height="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								<mx:Label text="{GeneralConstants.CASTLE_CONSTRUCTING_IRON}" width="100%" styleName="{this.resCheck.iron.isMatch?matchColor:noMatchColor}"/>
+							</mx:HBox>
+							<mx:HRule width="100%"/>
+							<mx:HBox width="100%"  horizontalAlign="center" height="24" verticalAlign="middle">
+								<mx:Spacer width="3"/>
+								<mx:Image source="{ImgManager.clazz('icon.time')}" width="20" height="20" updateComplete="ImageHandle.onLoadComplete(event)"/>
+								<mx:Label text="{MultiLang.timeFormatToString(GeneralConstants.CASTLE_CONSTRUCTING_TIME*60)}" width="100%"/>
+							</mx:HBox>
+						</mx:VBox>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:HBox>
+	</mx:VBox>
+	<mx:HBox enabled="{this.resCheck.isMatch}" bottom="12" width="250" horizontalCenter="0" horizontalGap="2">
+		<mx:TextInput width="100%" id="input_cityName" text="{MultiLang.msg('public.castleName')}" maxChars="20" change="textInputChange(event)"/>
+		<mx:Button label="{MultiLang.msg('military.mission.newCastle')}"
+			click="newCastle()"  toolTip="{maxCastleTip}" width="95" styleName="commomNormalBtn"/>
+	</mx:HBox>
+</BaseWin>

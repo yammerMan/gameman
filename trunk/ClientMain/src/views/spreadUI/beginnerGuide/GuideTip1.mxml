@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" styleName="guidetip2" minWidth="200" minHeight="114" kerning="true">
+	<mx:Script>
+		<![CDATA[
+			import roma.util.MultiLang;
+			
+			[Bindable]
+			private var desc:String;
+			
+			public function setValue(str:String):void{
+				desc = MultiLang.msg('beginnerGuide.guidetip.htmlBegin')+str+MultiLang.msg('beginnerGuide.guidetip.htmlEnd');
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox left="10" top="40" right="10" bottom="10">
+		<mx:Text htmlText="{desc}" width="100%"/>
+	</mx:VBox>
+</mx:Canvas>

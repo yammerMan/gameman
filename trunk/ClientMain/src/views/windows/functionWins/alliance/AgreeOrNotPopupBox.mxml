@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BasePopup xmlns="views.spreadUI.popups.*" xmlns:mx="http://www.adobe.com/2006/mxml" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="100" styleName="baseTooltip">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.buildings.trainningField.StratagemDeployWin;
+			import roma.util.MultiLang;
+			import roma.common.valueObject.AllianceApplyBean;
+		
+			
+			[Bindable]
+			private var playerId:int;
+			private var playerName:String;
+			public var agreeApply:Function;
+			public var refuseApply:Function;
+			public var checkOutFunciton:Function;
+			
+			public function show(f:int,n:String):void{
+				this.visible = true;
+				this.playerId = f;
+				this.playerName=n;
+			}
+			
+			public function remove():void{
+				this.visible = false;
+			}
+			
+		
+			
+			 private function clickHandler(event:MouseEvent):void  {
+
+				switch(event.currentTarget){
+					case this.agreeBtn:
+						if(agreeApply!=null){
+							agreeApply.apply(this,[playerId]);
+						}
+					break;
+					
+					case this.refuseBtn:
+						if(refuseApply!=null){
+							refuseApply.apply(this,[playerId]);
+						}
+					break;
+					
+					case this.checkOutBtn:
+						if(checkOutFunciton!=null){
+							checkOutFunciton.apply(this,[playerName]);
+						}
+					break;
+
+					default:
+
+				}
+				this.remove();
+             }
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:VBox top="5" horizontalAlign="center" verticalGap=".5" bottom="5" left="3" right="3" kerning="true">
+		<mx:Button id="checkOutBtn" width="100%"   styleName="friendsPureColorBtn" horizontalGap="5" label="{MultiLang.msg('public.label.checkOut')}" click="clickHandler(event)"/>
+		<mx:Button id="agreeBtn" width="100%"   styleName="friendsPureColorBtn" horizontalGap="5" label="{MultiLang.msg('alliance.agree')}" click="clickHandler(event)"/>
+		<mx:Button id="refuseBtn" width="100%"  styleName="friendsPureColorBtn" label="{MultiLang.msg('alliance.dissent')}" click="clickHandler(event)"/>
+	</mx:VBox>
+</BasePopup>

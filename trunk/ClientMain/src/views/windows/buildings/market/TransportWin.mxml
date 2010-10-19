@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas width="100%" height="100%"
+	creationComplete="init()" 
+	xmlns:mx="http://www.adobe.com/2006/mxml"  
+	xmlns:market="views.windows.buildings.market.*" 
+	xmlns:spreadUI="views.spreadUI.*"
+	creationPolicy="all"
+	>
+	<mx:Script>
+		<![CDATA[
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import roma.util.ImageHandle;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.building.impl.Market;
+			import roma.resource.ImgManager;
+			import roma.message.events.MarketEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.valueObject.TransportBean;
+			import roma.util.MultiLang;
+			import roma.data.MapTileData;
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			import mx.logging.Log;
+			import mx.logging.ILogger;
+			
+			private static var log:ILogger = Log.getLogger("views.windows.market.TransportWin");
+			
+			[Bindable]
+			private var myCitysList:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var myFavoritesList:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var transportArr:ArrayCollection = GameContext.instance.getPlayerObj().getCurCastleObj().tradeManager.transportList;
+			[Bindable]
+			private var startTransportArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var targetTransportArr:ArrayCollection = new ArrayCollection();
+			private var curCastleId:int;
+			public var mapTileData:MapTileData = null;
+			[Bindable]
+			private var subSelectedStr:String = "transportGoBtn";
+			
+			public function refresh():void{
+				curCastleId = GameContext.instance.getPlayerObj().getCurCastleObj().cityId;
+				if(this.initialized){
+					if (this.mapTileData!=null) {
+						this.createTransport.show(mapTileData);
+						log.debug("从地图上进入运输界面，地点({0},{1})" , this.mapTileData.fieldX , this.mapTileData.fieldY);
+						this.mapTileData = null;
+					}else{
+						this.createTransport.show(null);
+					}
+				}
+				startTransportArr.removeAll();
+				targetTransportArr.removeAll();
+				transportArr = GameContext.instance.getPlayerObj().getCurCastleObj().tradeManager.transportList;
+				for each(var bean:TransportBean in transportArr){
+					if(bean.self){
+						this.startTransportArr.addItem(bean);
+					}else{
+						this.targetTransportArr.addItem(bean);
+					}
+				}
+				myCitysList = new ArrayCollection(GameContext.instance.getPlayerObj().castelArray);
+				myFavoritesList = GameContext.instance.getPlayerObj().favoriteManager.favoriteArray;
+			}
+			
+			private function init():void{
+				this.refresh();
+				EvtDispacther.instance.addEventListener(MarketEvent.TRANSPORT_UPDATE,onTransportUpdate);
+			}
+			
+			private function onTransportUpdate(event:MarketEvent):void{
+				startTransportArr.removeAll();
+				targetTransportArr.removeAll();
+				transportArr = event.eventData as ArrayCollection;
+				for each(var bean:TransportBean in transportArr){
+					if(bean.self){
+						this.startTransportArr.addItem(bean);
+					}else{
+						this.targetTransportArr.addItem(bean);
+					}
+				}
+				if(GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING)== null){
+					return;
+				}
+				// 当运输有变化的时候，显示正在运输的队列数
+				createTransport.transportings = Market(GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_MARKET_BUILDING)).getTransport();
+			}
+			
+			private function onSubBtnClick(event:MouseEvent):void{
+				if(event.currentTarget==this.transportGoBtnContainer){
+					this.transportGoBtn.selected = true;
+					subSelectedStr = this.transportGoBtn.id;
+				}else if(event.currentTarget==this.transportComeBtnContainer){
+					this.transportComeBtn.selected = true;
+					subSelectedStr = this.transportComeBtn.id;
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas id="myTraceWin" width="390" right="0" top="0" bottom="39" styleName="mainWindowContentBG">
+		<mx:HBox horizontalGap="0" top="0" paddingLeft="5" verticalAlign="middle" styleName="tecTitleBG" right="0" left="0">
+			<mx:Canvas width="160" height="25" id="transportGoBtnContainer" click="onSubBtnClick(event)">
+				<mx:Button id="transportGoBtn" width="160" height="25"  label="{MultiLang.msg('market.go.label')}" selected="{subSelectedStr == 'transportGoBtn'}" styleName="tabBtn"/>
+				<mx:Image source="{ImgManager.clazz('toolBar.numberBG')}" left="1" top="1" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{startTransportArr.length}" width="20" textAlign="center" color="0xffffff"/>
+			</mx:Canvas>
+			<mx:Canvas id="transportComeBtnContainer" click="onSubBtnClick(event)" width="160">
+				<mx:Button id="transportComeBtn" width="160" height="25"  label="{MultiLang.msg('market.come.label')}" selected="{subSelectedStr == 'transportComeBtn'}" styleName="tabBtn"/>
+				<mx:Image source="{ImgManager.clazz('toolBar.numberBG')}" left="1" top="1" updateComplete="ImageHandle.onLoadComplete(event)"/>
+				<mx:Label text="{targetTransportArr.length}" width="20" textAlign="center" color="0xffffff"/>
+			</mx:Canvas>
+		</mx:HBox>
+		<mx:DataGrid id="transportGoDg" top="27" left="5" right="5" showHeaders="false" verticalScrollPolicy="on" backgroundAlpha="0" borderStyle="none" 
+			rowHeight="87" bottom="0" dataProvider="{startTransportArr}" visible="{this.subSelectedStr == 'transportGoBtn'}" >
+			<mx:columns>
+				<mx:DataGridColumn>
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:HBox width="100%" height="100%" verticalScrollPolicy="off">
+								<market:TransportItem transBean="{data}"/>
+							</mx:HBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:DataGrid id="transportComeDg" top="27" left="5" right="5" showHeaders="false" verticalScrollPolicy="on" backgroundAlpha="0" borderStyle="none" rowHeight="87"
+			 bottom="0" dataProvider="{targetTransportArr}" visible="{this.subSelectedStr == 'transportComeBtn'}" >
+			<mx:columns>
+				<mx:DataGridColumn>
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:HBox width="100%" height="100%" verticalScrollPolicy="off">
+								<market:TransportItem transBean="{data}"/>
+							</mx:HBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:Canvas>
+
+	<mx:Canvas width="360" top="0" bottom="0" left="0">
+		<mx:Button id="submitBtn" width="148" height="22" label="{MultiLang.msg('market.transport')}" click="{createTransport.onSubmit()}" bottom="16" horizontalCenter="0"/>
+		<market:CreateTransport id="createTransport" left="0" top="0" bottom="39" width="360" label="建立运输界面"/>
+	</mx:Canvas>
+	
+</mx:Canvas>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<functionWins:BaseFunctionWindow2 
+	creationComplete="init()" 
+	xmlns:functionWins="views.windows.functionWins.*"
+	xmlns:buildings="views.windows.buildings.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ns1="views.spreadUI.*"
+	xmlns:upgradWin="views.windows.buildings.townHall.*" 
+	xmlns:herosMansion="views.windows.functionWins.hero.*"
+	title="{MultiLang.msg('hero.hero')}"
+	>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import roma.util.MultiLang;
+		]]>
+	</mx:Script>
+	<mx:Script source="herosMansionWin_.as"/>
+	
+	<mx:VBox left="11" top="30" verticalGap="0" right="11" label="导航标签">
+		<mx:HBox x="10" horizontalGap="2" verticalAlign="middle" top="32" label="城堡选择">
+			<mx:Label text="{MultiLang.msg('buff.label.belong')}:" styleName="titleBordLabel"/>
+			<mx:ComboBox id="cityCom" width="150" dataProvider="{cityComData}" labelField="name" change="onCitySelected(event)"/>
+			<mx:ToggleButtonBar id="buttonBar" styleName="titleToggleButtonBar" itemClick="this.clickHandler(event);" enabled="{this.heroArray.length>0}" selectedIndex="{this.showWinId}">
+		  	 <mx:dataProvider>
+		           <mx:Array>
+		               <mx:String>{MultiLang.msg('hero.hero')}</mx:String>
+		               <mx:String>{MultiLang.msg('hero.titleBtn.weave')}</mx:String>
+		               <mx:String>{MultiLang.msg('hero.titleBtn.outfit')}</mx:String>
+		               <mx:String>{MultiLang.msg('military.newArmy.title')}</mx:String>
+		           </mx:Array>
+		       </mx:dataProvider>
+			</mx:ToggleButtonBar>
+		</mx:HBox>
+<!--		<mx:HBox>
+			<mx:Button label="{MultiLang.msg('hero.gotoAmphitheaterWin')}" click="{callHireHero()}"/>
+			<mx:Button label="{MultiLang.msg('hero.train.label') }" width="110" click="{callTrainHero()}"/>
+		</mx:HBox>
+-->
+	    <ns1:MulHRule/>
+	</mx:VBox>
+	<mx:Canvas id="herosMansionDesc" label="英雄说明，在没有英雄的时候显示" 
+		styleName="alphaBlackBG" 
+		visible="{!(heroArray.length>0)}" includeInLayout="{!(heroArray.length>0)}"
+		top="60" bottom="11" left="11" right="11">
+		<mx:Canvas top="28" left="79" right="79" bottom="33">
+			<mx:VBox width="100%" verticalGap="0">
+				<mx:Label styleName="titleBordLabel" text="{MultiLang.msg('public.label.function')}: "/>
+				<mx:Text text="{MultiLang.msg('hero.herosMansion.function')}" width="100%"/>
+			</mx:VBox>
+			<mx:VBox width="100%" top="84" verticalGap="2">
+				<mx:Label styleName="titleBordLabel" text="{MultiLang.msg('public.label.description')}: "/>
+				<mx:Text text="{MultiLang.msg('hero.herosMansion.desc')}" width="100%"/>
+			</mx:VBox>
+			<mx:Button label="{MultiLang.msg('hero.hire')}" click="{callHireHero()}" width="100" horizontalCenter="0" bottom="0"/>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+	<mx:Canvas label="有英雄的时候" visible="{heroArray.length>0}" includeInLayout="{heroArray.length>0}"
+		top="60" bottom="11" left="11" right="11" styleName="mainWindowContentBG" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Canvas styleName="subContentBG" width="170"  label="左边的英雄列表" left="1" top="1" bottom="1">
+			<mx:DataGrid top="11" bottom="45" left="11" rowHeight="22" dataProvider="{heroArray}" showHeaders="false" right="11">
+				<mx:columns>
+					<mx:DataGridColumn>
+						<mx:itemRenderer>
+							<mx:Component>
+								<herosMansion:HeroItemUI click="{outerDocument.onHeroItemClick(data)}" heroObj="{data}" />
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+				</mx:columns>
+			</mx:DataGrid>
+			<mx:HBox width="100%" bottom="17" horizontalCenter="0" horizontalAlign="center">
+				<mx:Button id="upBtn" click="sortHeroByBtn(event)" styleName="moveUpBtn" toolTip="{MultiLang.msg('hero.sortBtn.tip')}" width="37" height="23"/>
+				<mx:Button id="downBtn" click="sortHeroByBtn(event)" styleName="moveDownBtn" toolTip="{MultiLang.msg('hero.sortBtn.tip')}" width="37" height="23"/>
+			</mx:HBox>
+		</mx:Canvas>
+		
+		
+		<mx:ViewStack width="604" height="327" id="heroViewStack" left="173" top="0">
+			<herosMansion:HeroPropertyView id="heroPropertyView" width="100%" height="100%"/>
+			<herosMansion:HeroWeaveView id="heroWeaveView" width="100%" height="100%"/>
+			<herosMansion:HeroOutfitView id="heroOutfitView" width="100%" height="100%"/>
+			<herosMansion:HeroCampaignView id="heroCampaignView" width="100%" height="100%"/>
+		</mx:ViewStack>
+	</mx:Canvas>
+</functionWins:BaseFunctionWindow2>

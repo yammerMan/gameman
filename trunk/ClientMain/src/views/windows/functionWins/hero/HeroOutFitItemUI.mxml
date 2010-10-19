@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="60" height="32" backgroundImage="{ImgManager.clazz('background.heroOutfitItemBg')}" click="clickHandle(event)" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.spreadUI.tips.EquipToolTip;
+			import views.spreadUI.tips.ToolTipContainer;
+			import roma.util.ImageHandle;
+			import roma.common.valueObject.EquipBean;
+			import roma.util.FiltersUtil;
+			import roma.resource.ImgManager;
+			[Bindable]
+			private var itemSource:String="";
+			public var showMenu:Function;
+			[Bindable]
+			public var showName:Boolean=true;
+			[Bindable]
+			private var equipBean:EquipBean;
+			
+			private var equipToolTip:EquipToolTip = ToolTipContainer.instance.equipToolTip;
+			
+			private function init():void{
+				this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+				this.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+				this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
+			}
+			
+			
+			public function setRule(bean:EquipBean):void{
+				this.equipBean=bean;
+				if(this.equipBean!=null)setQuality(this.equipBean.level);
+			}
+			
+			private function clickHandle(event:MouseEvent):void{
+				EquipHelper.instance.curSelectEquip=equipBean;
+				if(equipBean==null)return;
+				if(this.showMenu!=null){
+					this.showMenu.apply(this,[event]);
+				}
+			}
+			
+			private function setQuality(level:int):void{
+				this.nameLable.filters=[FiltersUtil.outfitGrayFilter];
+				/* var rad:int=int(Math.random()*5) 
+				switch(rad){
+					case 1:
+						this.nameLable.filters=[FiltersUtil.outfitGrayFilter];
+					break;
+					case 2:
+						this.nameLable.filters=[FiltersUtil.outfitGreenFilter];
+					break;
+					case 3:
+						this.nameLable.filters=[FiltersUtil.outfitBlueFilter];
+					break;
+					case 4:
+						this.nameLable.filters=[FiltersUtil.outfitPurpleFilter];
+					break;
+					default:
+						this.nameLable.filters=[FiltersUtil.outfitGrayFilter];
+				} */
+			}
+			
+			private function onMouseOver(event:MouseEvent):void {
+				if(this.equipBean==null)return;
+				this.equipToolTip.setEquipBean(this.equipBean);
+				this.equipToolTip.onMouseOver(event); 
+			}
+			
+			private function onMouseMove(event:MouseEvent):void{
+				if(this.equipBean==null)return;
+				this.equipToolTip.onMouseMove(event);
+			}
+			
+			private function onMouseOut(event:MouseEvent):void{
+				this.equipToolTip.onMouseOut();
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas width="56" height="28" horizontalCenter="0" verticalCenter="0" styleName="smallLogoBG" visible="{equipBean!=null}">
+		<mx:Image source="{equipBean.iconUrl}" horizontalCenter="0" verticalCenter="0" width="50" height="22" updateComplete="ImageHandle.onLoadComplete(event)" id="imageField"/>
+	</mx:Canvas>
+	<mx:Label horizontalCenter="0" text="{equipBean.name}" visible="{showName}" id="nameLable" styleName="titleLevelLabel" bottom="0" mouseChildren="false"/>
+</mx:Canvas>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" visible="{isShowBuff}">
+<mx:Script>
+	<![CDATA[
+		import gs.easing.Back;
+		import gs.TweenLite;
+		import roma.util.InputTextHelper;
+		import roma.logic.CaesaryConfig;
+		import roma.util.BufferHandle;
+		import roma.logic.object.buff.BaseBuffObj;
+		import roma.logic.GameContext;
+		import roma.util.CompCache;
+		import roma.message.EvtDispacther;
+		import mx.collections.ArrayCollection;
+		import views.spreadUI.castleStatus.GamePlayerBuffUI;
+		import views.spreadUI.TransLabel;
+		[Bindable]
+		private var buffsArray:ArrayCollection=new ArrayCollection();//当前城buffer
+		private var bufferCache:CompCache = new CompCache(20);
+		private var my_timer:Timer = new Timer(1000);
+		[Bindable]
+		private var config:CaesaryConfig = CaesaryConfig.instance;
+		
+		[Bindable]
+		private var isShowBuff:Boolean = false;
+		[Bindable]
+		private var isShow:Boolean = true;
+		
+		private function init():void{
+			this.getAllBuff();
+			
+			var onPlayerBuffChange:Function = function(event:Event):void {
+				getAllBuff();
+			}
+			EvtDispacther.instance.addEventListener(EvtDispacther.CASTLE_BUFF_UPDATE , onPlayerBuffChange);
+			
+			var cityChangeHandle:Function = function(event:Event):void{getAllBuff();}
+			EvtDispacther.instance.addEventListener(EvtDispacther.CUR_CASTLE_CHANGE_EVENT , cityChangeHandle);
+			EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_BUFF_CHANGE , onPlayerBuffChange);
+			
+			isShow = true;
+		}
+		
+		public function refresh():void{
+			
+			this.getAllBuff();
+		}
+		
+		//获取当前城所有buffer
+		private function getAllBuff():void {
+			this.buffsArray.removeAll();
+			this.bufferCache.reset();
+			this.bufferContainer.removeAllChildren();
+			
+			var tempAry:ArrayCollection = new ArrayCollection();
+			addAllArrayToTarget(GameContext.instance.getPlayerObj().buffManager.getAllBuff(),tempAry);//加入玩家的buff
+			addAllArrayToTarget(GameContext.instance.getPlayerObj().getCurCastleObj().buffManager.getAllBuff(),tempAry);//加入当前城堡的buff
+			BufferHandle.sortBuff(tempAry);//一起排序
+
+			for each(var buffObj:BaseBuffObj in tempAry) {
+				if (buffObj.isShow()) {
+					this.buffsArray.addItem(buffObj);
+					var bufferUI:GamePlayerBuffUI = GamePlayerBuffUI(this.bufferCache.getUI(GamePlayerBuffUI));
+					bufferUI.buffObj=buffObj;
+					bufferContainer.addChild(bufferUI);
+				}
+			}
+			
+			if(this.buffsArray.length>0){
+				isShowBuff = isShow = true;
+				this.buffBarHB.x = 3;
+				if(!my_timer.running)my_timer.addEventListener("timer",timerHandler);
+				my_timer.start();
+			}else{
+				isShowBuff = isShow = false;
+				if(my_timer.running)my_timer.stop();
+			}
+		}
+		
+		public function getAllBufWindth():int{
+			return this.buffsArray.length*26;
+		}
+		
+		private function timerHandler(event:TimerEvent):void{
+			if(this.buffsArray.length>0){
+				for each(var bufferUi:GamePlayerBuffUI in this.bufferContainer.getChildren()) {
+					bufferUi.remainingTime();
+				}
+			}
+		}
+		
+		private function addAllArrayToTarget(startArr:ArrayCollection,targetArr:ArrayCollection):void{
+			if(startArr.length>0){
+				for(var i:int=0;i<startArr.length;i++){
+					targetArr.addItem(startArr.getItemAt(i));
+				}
+			}
+		}
+		
+		private function onShowOrHide(e:MouseEvent):void{
+			isShow = true;
+			if(e.target == inProgressShowBtn){
+				TweenLite.to(buffBarHB,0.5,{x:3,ease:Back.easeOut,onComplete:onMoveOutComplete});
+			}else if(e.target == inProgressHideBtn){
+				TweenLite.to(buffBarHB,0.5,{x:-buffBarHB.width,ease:Back.easeIn,onComplete:onMoveInComplete});
+			}
+			function onMoveOutComplete():void{
+				isShow = true;
+			}
+			function onMoveInComplete():void{
+				isShow = false;
+			}
+		}
+	]]>
+</mx:Script>
+
+	<mx:HBox horizontalGap="2" id="buffBarHB" horizontalAlign="left" >
+		<mx:HBox id="bufferContainer" horizontalGap="1"/>
+		<mx:Button styleName="inProgressHide" id="inProgressHideBtn" click="{onShowOrHide(event)}" visible="{isShow}"/>
+	</mx:HBox>
+	<mx:Button styleName="inProgressShow" id="inProgressShowBtn" top="0" left="0" visible="{!isShow}"
+		click="{onShowOrHide(event)}"/>
+</mx:Canvas>

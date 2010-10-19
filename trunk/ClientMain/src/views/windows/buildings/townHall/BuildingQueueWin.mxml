@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"  xmlns:ui="views.spreadUI.*" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.logic.object.player.ItemResManager;
+			import views.spreadUI.speedUp.ItemSelectSpeedUpWin;
+			import views.spreadUI.speedUp.ItemWin;
+			import roma.logic.rule.GameRuleHelper;
+			import roma.logic.rule.ItemRule;
+			import roma.logic.object.buff.BaseBuffObj;
+			import roma.common.constants.BuffConstants;
+			import roma.common.valueObject.BufferBean;
+			import roma.common.valueObject.MaterialBean;
+			import views.spreadUI.MyAlert;
+			import roma.logic.object.building.impl.TownHall;
+			import roma.common.action.ControllerFactory;
+			import views.spreadUI.BuildingUpdatePanel;
+			import roma.util.CompCache;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import roma.util.MultiLang;
+			import roma.util.ClientUtil;
+			import roma.message.events.BuildingStatusChangeEvent;
+			import roma.message.EvtDispacther;
+			import roma.common.constants.BuildingConstant;
+			import roma.common.valueObject.ArchitectureBean;
+			import roma.logic.GameContext;
+			import mx.collections.ArrayCollection;
+			import roma.logic.object.building.BaseBuilding;
+			
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.BuildingQueueWin");
+
+			private var my_timer:Timer = new Timer(1000);
+			private var cacheUI:CompCache = new CompCache(10);
+	
+			[Bindable]
+			private var needTime:Number;
+			[Bindable]
+			private var canBuiltBuilting:String;
+			[Bindable]
+			private var processTime:Number;		
+		
+			public var buildingObj:TownHall;
+			
+			[Bindable]
+			private var buildingQueue:Boolean=false;
+			
+			private function init():void{
+				EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_BUFF_CHANGE,calcBuilProcessLeftTime);
+				EvtDispacther.instance.addEventListener(BuildingStatusChangeEvent.EVENT_NAME,buildingChangeHandle);
+				this.calcBuilProcessLeftTime();
+			}
+			
+			public function refresh():void{
+				if(this.initialized){
+					this.addBuildingQueue();
+					this.calcBuilProcessLeftTime();
+				}
+			}
+			
+			private function addBuildingQueue():void{
+				for each(var ui:BuildingUpdatePanel in this.buildingContainer.getChildren()) {
+					ui.setBuildingObj();
+				}
+				var allBuilingArr:Array = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUnNormalBuilidngArr();						
+				if(allBuilingArr.length>0){
+					for(var i:int=0;i<allBuilingArr.length;i++){
+						if(BuildingUpdatePanel(this["buildingUpdatePanel"+i])!=null){
+							BuildingUpdatePanel(this["buildingUpdatePanel"+i]).setBuildingObj(allBuilingArr[i]);
+						}
+					}	 
+					if(allBuilingArr.length>0){
+						if(!my_timer.running){
+						 	my_timer.addEventListener("timer", timerHandler);
+						 }
+		                 my_timer.start();
+					}else{
+						 if(my_timer.running){
+						 	my_timer.stop();
+						 }
+					}	 	 
+				}
+			}
+			
+			/*当前可建造多少建筑*/
+			private function checkCanBuildBuilding(num:int):void{
+				this.canBuiltBuilting=MultiLang.msg("townHall.label.canBuiltBuilting",num);
+			}
+			
+			/*计算需要时间*/
+			private function timerHandler(evt:TimerEvent):void {
+				needTime=0;
+				for each(var ui:BuildingUpdatePanel in this.buildingContainer.getChildren()) {
+					if(ui.buildingObject!=null){
+						needTime+=ui.buildingObject.getRemainTimeSec();
+						ui.remainingTime();
+					}				
+				}
+	        }
+					
+			private function buildingChangeHandle(event:BuildingStatusChangeEvent):void{
+				this.addBuildingQueue();
+			}
+			
+			public function destroy():void{
+				my_timer.stop();
+				EvtDispacther.instance.addEventListener(EvtDispacther.PLAYER_BUFF_CHANGE,calcBuilProcessLeftTime);
+				EvtDispacther.instance.removeEventListener(BuildingStatusChangeEvent.EVENT_NAME,buildingChangeHandle);
+			}
+			
+			/*增加建筑排程  */
+			private function addBuildProc():void{
+				ItemSelectSpeedUpWin.show(ItemResManager.prolongBuildingProcessItemArrayCollection);
+			}
+			
+			private function calcBuilProcessLeftTime(event:Event = null):void{
+				var buffObj:BaseBuffObj = GameContext.instance.getPlayerObj().buffManager.getBuffById(BuffConstants.PLAYER_INCREASE_CONSTRUCT_LIMIT);
+				if(buffObj !=null){
+					this.buildingQueue=true;
+					this.processBtn.visible = false;
+					this.processBtn.includeInLayout=false;
+					this.timeContainer.visible = true;
+					this.prolongBtn.visible = true;
+					this.checkCanBuildBuilding(BuildingConstant.AFTER_INCREASE_CONSTRUCT_LIMIT);
+					this.processTime = buffObj.buffBean.endTime;
+				}else{
+					this.buildingQueue=false;
+					this.timeContainer.visible = false;
+					this.processBtn.visible = true;
+					this.processBtn.includeInLayout=true;
+					this.prolongBtn.visible = false;
+					this.checkCanBuildBuilding(BuildingConstant.NORMAL_CONSTRUCT_LIMIT);
+				}				
+			}			
+		]]>
+	</mx:Script>
+	<mx:Canvas width="245" styleName="subContentBG" left="0" top="3" bottom="37" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:VBox left="24" top="23" verticalGap="0" right="10" bottom="23">
+			<mx:Label text="{MultiLang.msg('townHall.label.increatBuilting')}:" styleName="titleBordLabel"/>
+			<mx:Spacer height="5"/>
+			<mx:TextArea styleName="discritionTextArea" htmlText="{this.canBuiltBuilting}" width="100%" height="125" editable="false"/>
+			<mx:HBox width="100%" horizontalAlign="center" horizontalGap="0">
+				<mx:VBox width="100%" horizontalAlign="center">
+					<mx:Button label="{MultiLang.msg('townHall.label.increatBuilting')}" id="processBtn" click="addBuildProc()"/>
+					<mx:Button label="{MultiLang.msg('extend.7day')}" id="prolongBtn" click="addBuildProc()"/>
+				</mx:VBox>
+				<mx:Spacer width="14"/>
+			</mx:HBox>
+			<mx:HBox id ="timeContainer" horizontalGap="2">
+				<mx:Label text="{MultiLang.msg('public.label.remainTime')}" styleName="titleBordLabel"/>
+				<ui:LeftTimeLabel leftTime="{this.processTime}" />
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+	<mx:Canvas left="246" right="0" top="3" bottom="37" horizontalScrollPolicy="off" verticalScrollPolicy="off" styleName="mainWindowContentBG">
+		<mx:VBox id="buildingContainer" left="1" right="1" top="1" bottom="1" verticalGap="2" styleName="mainWindowContentBG">
+			<ui:BuildingUpdatePanel id="buildingUpdatePanel0" buildingQueue="true">
+			</ui:BuildingUpdatePanel>
+			<ui:BuildingUpdatePanel id="buildingUpdatePanel1" buildingQueue="{this.buildingQueue}">
+			</ui:BuildingUpdatePanel>
+			<ui:BuildingUpdatePanel id="buildingUpdatePanel2" buildingQueue="{this.buildingQueue}">
+			</ui:BuildingUpdatePanel>
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>

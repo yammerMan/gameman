@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="780"
+		   height="335"
+		   xmlns:intelligence="views.windows.functionWins.intelligence.*"
+		   xmlns:spreadUI="views.spreadUI.*"
+		   creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import views.windows.functionWins.hero.HerosMansionWin;
+			import views.windows.functionWins.hero.HeroHelper;
+			import roma.logic.object.player.BattleFieldObj;
+			import roma.common.constants.BuffConstants;
+			import roma.common.constants.BuildingConstant;
+			import roma.logic.object.building.BaseBuilding;
+			import roma.message.events.IntelligenceEvent;
+			import roma.message.EvtDispacther;
+			import roma.util.FiltersUtil;
+			import roma.common.constants.FieldConstant;
+			import views.windows.functionWins.mail.bean.BattleTroopType;
+			import roma.logic.object.field.FieldHelper;
+			import roma.common.controller.army.BattleArmysInfoResponse;
+			import roma.common.constants.BattleConstants;
+			import roma.data.MapTileData;
+			import views.PopupWindows;
+			import views.windows.functionWins.military.GoingToWarWin;
+			import views.mainModules.map.diamond2.DiamondWorldMap2;
+			import roma.common.valueObject.RelatedCastleTimeBean;
+			import roma.logic.object.castle.CastleObj;
+			import roma.logic.GameContext;
+			import roma.logic.object.player.PlayerObj;
+			import views.spreadUI.MyAlert;
+			import roma.common.controller.army.BattleArmyCountResponse;
+			import roma.common.action.ControllerFactory;
+			import roma.common.valueObject.BattleFieldBean;
+			import mx.collections.ArrayCollection;
+			import roma.resource.ImgManager;
+			import roma.util.MultiLang;
+			import roma.util.ImageHandle;
+
+			[Bindable]
+			private var battleArr:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var battleObj:BattleFieldObj;
+			[Bindable]
+			private var battleRoleStr:String="";
+			[Bindable]
+			private var attacks:int=0;
+			[Bindable]
+			private var defends:int=0;
+			[Bindable]
+			private var playerObj:PlayerObj=GameContext.instance.getPlayerObj();
+			[Bindable]
+			private var isSelect:Boolean=false;
+
+			private var battleTimer:Timer=new Timer(1000);
+			private var timerCount:int = 0;	
+			
+			public var refreshQueue:Function;
+			
+			public var heroPhysicalRequest:int=0;
+			
+			public function refresh(arr:ArrayCollection):void
+			{
+				battleArr=arr;
+				if (battleArr.length > 0)
+				{
+					if(battleTimer.running){
+					}else{
+						battleTimer.reset();
+					}
+					checkBattleObj();
+					
+					if(this.battleObj == null){
+						this.battleObj=arr.getItemAt(0) as BattleFieldObj;
+					}
+					try{
+						if(battleObj.battleWildBean != null)
+						ControllerFactory.getInstance().getArmyController().getBattleArmyCount(battleObj.battleWildBean.targetId, battleObj.battleWildBean.battleId, onGetBattleArmyCount, false);
+					}catch(e:Error){}
+				}else
+				{
+					battleObj = null;
+				}
+				setCurSelect();
+			}
+
+			public function selectBattle(data:Object):void
+			{
+				this.battleObj=BattleFieldObj(data);
+				setCurSelect();
+				ControllerFactory.getInstance().getArmyController().getBattleArmyCount(battleObj.battleWildBean.targetId, battleObj.battleWildBean.battleId, onGetBattleArmyCount, false);
+			}
+
+			private function init():void
+			{
+				battleTimer.addEventListener(TimerEvent.TIMER,timeHandle,false,0,true);
+			}
+
+			/**
+			 *	刷新所选战局的参加人数
+			 */
+			public function timeHandle(event:TimerEvent):void
+			{
+				timerCount ++;
+				if(timerCount >= 15 && this.battleObj != null){
+					timerCount = 0;
+					ControllerFactory.getInstance().getArmyController().getBattleArmyCount(battleObj.battleWildBean.targetId, battleObj.battleWildBean.battleId, onGetBattleArmyCount, false);
+				}
+			}
+			
+			private function onGetBattleArmyCount(event:BattleArmyCountResponse):void
+			{
+				if (event.isSuccess())
+				{
+					attacks=event.attacks;
+					defends = event.defends;
+				}
+				else
+				{
+					MyAlert.showError(event);
+				}
+			}
+
+			private function showBattleDetail():void
+			{
+				PopupWindows.openFuncWin(BattleSituationDetail.WINDOW_SHOW,battleObj);
+			}
+			
+			private function checkBattleObj():void{
+				var hasItem:Boolean = false;
+				for(var i:int=0;i<battleArr.length;i++){
+					var b:BattleFieldObj = battleArr[i] as BattleFieldObj;
+					if(b == this.battleObj){
+						hasItem = true;
+						break;
+					}else{
+						hasItem = false;
+						continue;
+					}
+				}
+				if(!hasItem){
+					this.battleObj = null;
+				}
+			}
+			
+			private function setCurSelect():void{
+				for each(var i:BattleFieldObj in battleArr){
+					if(i == this.battleObj && this.battleObj != null){
+						this.battleObj.isInSelected = true;
+					}else{
+						i.isInSelected = false;
+					}
+				}
+			}
+			
+			//判断是否可以加入战局
+			private function canAddBattle():Boolean{
+				var trainingField:BaseBuilding = GameContext.instance.getPlayerObj().getCurCastleObj().buildingManager.getUniqueBuildingByType(BuildingConstant.TYPE_TRAINNINGS);
+				var isCastle:Boolean = GameContext.isCastleByFieldId(battleObj.battleWildBean.targetId);
+					//没有校场
+				if(trainingField ==null){
+					MyAlert.show(MultiLang.msg("military.not.trainingField.tip",MultiLang.msg("battle.attack.label")));
+					return false;
+					//自己是新手，可以出征野地，但不可以出征城市
+				}else if(GameContext.instance.getPlayerObj().buffManager.getBuffById(BuffConstants.PLAYER_BEGINNER) !=null && isCastle){
+					MyAlert.show(MultiLang.msg('military.own.novice.tip',MultiLang.msg("playInfo.buffFreshManStatus"),MultiLang.msg("battle.attack.label")));
+					return false;
+					//自己免战
+				}else if(GameContext.instance.getPlayerObj().buffManager.getBuffById(BuffConstants.PLAYER_PEACE) !=null && isCastle){
+					MyAlert.show(MultiLang.msg('military.own.novice.tip',MultiLang.msg("playInfo.peaceStatus"),MultiLang.msg("battle.attack.label")));
+					return false;
+				}
+				
+				return true;				
+			}
+			
+			private function addBattle(event:MouseEvent):void
+			{
+				if(!canAddBattle()) return;
+				
+				var maptile:MapTileData=new MapTileData;
+				if (event.target == this.joinDefenseBtn)
+				{
+					maptile.missionType=BattleConstants.ARMY_MISSION_REINFORCE;
+				}
+				else
+				{
+					maptile.missionType=battleObj.battleWildBean.battleType;
+				}
+				if(maptile.missionType==BattleConstants.ARMY_MISSION_TRAINNING&&heroPhysicalRequest!=0){
+					maptile.heroPhysicalRequest=heroPhysicalRequest;
+				}
+				maptile.battleId=battleObj.battleWildBean.battleId;
+				maptile.fieldName=(battleObj.battleWildBean.targetFieldType == FieldConstant.TYPE_CITY) ? battleObj.battleWildBean.targetFieldName : FieldHelper.getFieldName(battleObj.battleWildBean.targetFieldType);
+				maptile.fieldX=GameContext.getFieldPostionX(battleObj.battleWildBean.targetId);
+				maptile.fieldY=GameContext.getFieldPostionY(battleObj.battleWildBean.targetId);
+				maptile.isJoin=true;
+				maptile.canAttack=this.battleObj.isAttack || this.battleObj.isMid;
+				maptile.canReinforce=this.battleObj.isDefend || this.battleObj.isMid;
+				//PopupWindows.openFuncWin(GoingToWarWin.WINDOW_SHOW, maptile);
+				HeroHelper.instance.targetMapTileData=maptile;
+				PopupWindows.openFuncWin(HerosMansionWin.WINDOW_SHOW_CAMPAIGN);
+			}
+			private function refreshBattleQueue():void{
+				if(this.refreshQueue!=null){
+					this.refreshQueue.apply(this);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:DataGrid dataProvider="{battleArr}"
+				 width="342"
+				 height="298"
+				 left="0"
+				 top="0" resizableColumns="false" draggableColumns="false"  sortableColumns="false">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{MultiLang.msg('public.label.subject')}" >
+				<mx:itemRenderer>
+					<mx:Component>
+						<intelligence:BattleLableRender battleText="{data}"
+							click="{outerDocument.selectBattle(data)}"/>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Canvas width="432"
+			   height="298"
+			   right="0"
+			   top="0"
+			   styleName="subContentBG">
+		<mx:Canvas width="100%"
+				   height="100%">
+			<mx:HBox left="10"
+					 top="10">
+				<mx:Label text="{MultiLang.msg('public.label.remainTime')}: "
+						  color="0xff0000"
+						  fontWeight="bold"/>
+				<spreadUI:LeftTimeLabel leftTime="{battleObj.battleWildBean.battleTime}"
+										  color="0xff0000"
+										  fontWeight="bold"/>
+			</mx:HBox>
+			<mx:Canvas width="182"
+					   height="208"
+					   left="20"
+					   verticalCenter="0"
+					   horizontalScrollPolicy="off"
+					   verticalScrollPolicy="off">
+				<!--mx:Button styleName="popUpWinTitle2Btn" label="{battleObj.battleWildBean.startCastleName}" top="0" horizontalCenter="0" mouseEnabled="false" mouseChildren="false"/-->
+				<mx:VBox top="0" horizontalCenter="0" mouseEnabled="false" mouseChildren="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Canvas verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Button  styleName="popUpWinTitle2Btn" horizontalCenter="0" verticalCenter="0" width="100%"/>
+						<mx:Label  styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}" verticalCenter="-1" horizontalCenter="0" text="{battleObj.battleWildBean.startCastleName}"/>
+					</mx:Canvas>
+				</mx:VBox>	
+				<mx:Canvas width="123"
+						   height="121"
+						   top="30"
+						   horizontalCenter="0">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)"
+							  source="{ImgManager.clazz('background.playerHeadBG')}"
+							  top="0"
+							  bottom="0"
+							  width="123"
+							  horizontalCenter="0"/>
+					<mx:Image source="{ImgManager.clazz('battleSituation.attack.icon')}"
+							  updateComplete="ImageHandle.onLoadComplete(event);"
+							  id="attackImg"
+							  left="10"
+							  right="10"
+							  top="10"
+							  bottom="10"/>
+					<mx:Canvas mouseChildren="false"
+							   right="0"
+							   bottom="0">
+						<mx:Image source="{ImgManager.clazz('item.countBG.icon')}"
+								  right="0"
+								  top="0"
+								  updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{battleObj == null?0:attacks}"
+								  styleName="titleLevelLabel"
+								  right="0"
+								  top="5"
+								  textAlign="center"
+								  width="30"/>
+					</mx:Canvas>
+				</mx:Canvas>
+				<mx:Button label="{battleObj.isAttack?MultiLang.msg('battleSituation.addAttack.label')+MultiLang.msg('battleSituation.mine.label'):MultiLang.msg('battleSituation.addAttack.label')}"
+						   width="150"
+						   height="30"
+						   bottom="2"
+						   horizontalCenter="0"
+						   click="{addBattle(event)}"
+						   id="joinAttackBtn"
+						   enabled="{battleObj == null?false:(battleObj.isAttack || battleObj.isMid)}"/>
+			</mx:Canvas>
+			<mx:Image source="{ImgManager.clazz('battleSituation.vs.icon')}"
+					  horizontalCenter="0"
+					  verticalCenter="0"/>
+			<mx:Canvas width="182"
+					   height="208"
+					   right="20"
+					   verticalCenter="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+				<!--mx:Button styleName="popUpWinTitle2Btn" label="{battleObj.battleWildBean.targetFieldType == FieldConstant.TYPE_CITY?battleObj.battleWildBean.targetFieldName:FieldHelper.getFieldName(battleObj.battleWildBean.targetFieldType)}" 
+					top="0" horizontalCenter="0" mouseEnabled="false" mouseChildren="false"/-->
+				<mx:VBox top="0" horizontalCenter="0" mouseEnabled="false" mouseChildren="false" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+					<mx:Canvas verticalScrollPolicy="off" horizontalScrollPolicy="off">
+						<mx:Button  styleName="popUpWinTitle2Btn" horizontalCenter="0" verticalCenter="0" width="100%"/>
+						<mx:Label  styleName="titleLabel" filters="{[FiltersUtil.glowFilter]}" verticalCenter="-1" horizontalCenter="0" text="{battleObj.battleWildBean.targetFieldType == FieldConstant.TYPE_CITY?battleObj.battleWildBean.targetFieldName:FieldHelper.getFieldName(battleObj.battleWildBean.targetFieldType)}"/>
+					</mx:Canvas>
+				</mx:VBox>	
+				<mx:Canvas width="123"
+						   height="121"
+						   top="30"
+						   horizontalCenter="0">
+					<mx:Image updateComplete="ImageHandle.onLoadComplete(event)"
+							  source="{ImgManager.clazz('background.playerHeadBG')}"
+							  top="0"
+							  bottom="0"
+							  width="123"
+							  horizontalCenter="0"/>
+					<mx:Image source="{ImgManager.clazz('battleSituation.defense.icon')}"
+							  updateComplete="ImageHandle.onLoadComplete(event);"
+							  id="defenseImg"
+							  left="10"
+							  right="10"
+							  top="10"
+							  bottom="10"/>
+					<mx:Canvas mouseChildren="false"
+							   right="0"
+							   bottom="0">
+						<mx:Image source="{ImgManager.clazz('item.countBG.icon')}"
+								  right="0"
+								  top="0"
+								  updateComplete="ImageHandle.onLoadComplete(event)"/>
+						<mx:Label text="{battleObj == null?0:defends}"
+								  styleName="titleLevelLabel"
+								  right="0"
+								  top="5"
+								  textAlign="center"
+								  width="30"/>
+					</mx:Canvas>
+				</mx:Canvas>
+				<mx:Button label="{battleObj.isDefend?MultiLang.msg('battleSituation.addDefense.label')+MultiLang.msg('battleSituation.mine.label'):MultiLang.msg('battleSituation.addDefense.label')}"
+						   width="150"
+						   height="30"
+						   bottom="2"
+						   horizontalCenter="0"
+						   click="{addBattle(event)}"
+						   id="joinDefenseBtn"
+						   enabled="{battleObj == null?false:(battleObj.isMid || battleObj.isDefend)}"/>
+			</mx:Canvas>
+		</mx:Canvas>
+	</mx:Canvas>
+
+	<mx:Canvas bottom="0"
+			   left="0"
+			   height="30"
+			   width="100%"
+			   styleName="mainWindowContentBG">
+		<mx:HBox left="12"
+				 verticalCenter="0">
+			<mx:Label text="{MultiLang.msg('battleSituation.StartTime.label')}: "/>
+			<spreadUI:TransLabel timeData="{battleObj.battleWildBean.startTime}"/>
+			<mx:Label text="{MultiLang.msg('battleSituation.time.label')}: "/>
+			<spreadUI:TransLabel timeData="{battleObj.battleWildBean.battleTime}"/>
+		</mx:HBox>
+		<mx:HBox right="12" verticalCenter="0" horizontalGap="3">
+			<mx:Button label="{MultiLang.msg('battleSituation.refreshBattle')}" click="refreshBattleQueue()"/>
+			<mx:Button
+					   label="{MultiLang.msg('battleSituation.detail.label')}" toolTip="{MultiLang.msg('battleSituation.detail.tip')}"
+					   click="{showBattleDetail()}"
+					   width="150"
+					   height="23"
+					   enabled="{battleObj==null?false:(battleObj.isAttack || battleObj.isDefend)}"
+			/>
+		</mx:HBox>
+	</mx:Canvas>
+</mx:Canvas>

@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"  xmlns:ui="views.sprendUI.*" xmlns:townHall="views.windows.buildings.townHall.production.*" horizontalScrollPolicy="off" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import roma.common.controller.castle.ResourceStaticResponse;
+			import roma.common.valueObject.ResourceStaticBean;
+			import roma.logic.object.building.impl.TownHall;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import roma.common.constants.ResourceConstant;
+			import roma.logic.RomaConstants;
+			import roma.logic.object.castle.CastleResourceManager;
+			import roma.logic.object.castle.GoldResourceObj;
+			import roma.logic.object.castle.ResourceObj;
+			import roma.util.MultiLang;
+			import views.spreadUI.MyAlert;
+			import roma.logic.GameContext;
+			import roma.common.controller.CommonResponse;
+			import roma.common.action.ControllerFactory;
+			
+			[Bindable]
+			private var food:ResourceStaticBean;
+			[Bindable]
+			private var wood:ResourceStaticBean;
+			[Bindable]
+			private var stone:ResourceStaticBean;
+			[Bindable]
+			private var iron:ResourceStaticBean;
+			[Bindable]
+			private var golds:ResourceStaticBean;
+			[Bindable]
+			private var freePopulation:int;//空闲人口
+			[Bindable]
+			private var workingPopulation:int;//正在工作的人口
+			[Bindable]
+			private var curPopulation:int;//当前人口
+			[Bindable]
+			private var townResourceManager:CastleResourceManager;
+			[Bindable]
+			private var foodWorker:int;//粮食人口
+			[Bindable]
+			private var woodWorker:int;//木材人口
+			[Bindable]
+			private var stoneWorker:int;//石料人口
+			[Bindable]
+			private var ironWorker:int;//铁矿人口
+			[Bindable]
+			private var totalWorker:int;//总工位数
+			[Bindable]
+			private var workerInNeed:int;//所需劳动力
+			[Bindable]
+			private var workerEfficiency:Number;//工作效率
+
+			
+			[Bindable]
+			private var townHallObj:TownHall;
+			
+			public function set buildingObj(obj:TownHall):void{
+				this.townHallObj=obj;
+			}
+			
+			private static var log:ILogger = Log.getLogger("views.windows.buildings.townHall.ProductionWin");
+			
+			public function refresh():void{
+				this.getResourceStatics();
+				if(this.initialized){
+					this.init();
+				}
+			}
+			
+			private function changeResourcePopu():void{
+			}
+		
+			private function init():void{
+				this.townResourceManager=GameContext.instance.getPlayerObj().getCurCastleObj().resourceManager;
+				this.curPopulation=this.townResourceManager.curPopulation;
+				this.freePopulation=this.townResourceManager.freePopulation;
+				this.workingPopulation=this.townResourceManager.workingPopulationInFact;
+				this.foodWorker=this.townResourceManager.food.worker;
+				this.woodWorker=this.townResourceManager.wood.worker;
+				this.stoneWorker=this.townResourceManager.stone.worker;
+				this.ironWorker=this.townResourceManager.iron.worker;
+				this.totalWorker=this.foodWorker+this.woodWorker+this.stoneWorker+this.ironWorker;
+				this.workerInNeed=int(this.foodWorker*this.townResourceManager.food.workRate/100)+int(this.woodWorker*this.townResourceManager.wood.workRate/100)+int(this.stoneWorker*this.townResourceManager.stone.workRate/100)+int(this.ironWorker*this.townResourceManager.iron.workRate/100);
+				this.workerEfficiency=this.workerInNeed==0?0:(this.workingPopulation/this.workerInNeed*100)/100;
+		
+			}
+			
+			private function foodChange(value:int):void{
+				this.foodWorker=value;
+				this.freePopulation = this.getFreePopulation();
+			}
+			
+			private function woodChange(value:int):void{
+				this.woodWorker=value;
+				this.freePopulation = this.getFreePopulation();
+			}
+			
+			private function stoneChange(value:int):void{
+				this.stoneWorker=value;
+				this.freePopulation = this.getFreePopulation();
+			}
+			
+			private function ironChange(value:int):void{
+				this.ironWorker=value;
+				this.freePopulation = this.getFreePopulation();
+			}
+			
+			private function getFreePopulation():int {
+				return this.curPopulation  - this.foodWorker-this.woodWorker-this.stoneWorker-this.ironWorker;
+			}
+			
+			/*获取资源生产数据*/
+			private function getResourceStatics():void{
+				this.townHallObj.getResourceStatics(callback);
+				function callback(event:ResourceStaticResponse):void{
+					food=event.foodBean;
+					wood=event.woodBean;
+					stone=event.stoneBean;
+					iron=event.ironBean;
+					if(initialized){
+						townResourceManager.refreshResource(event);	
+					}
+					init();
+				}
+			}
+			
+			//修改开工率
+			private function modifyOpeoRate():void{
+				this.townHallObj.modifyOpeoRate(this.foodProduction.getWorkerPer(),this.woodProduction.getWorkerPer(),this.stoneProduction.getWorkerPer(),this.ironProduction.getWorkerPer(),callback);
+				function callback(event:CommonResponse):void
+				{
+		   			if(event.isSuccess()){
+		   				getResourceStatics();
+					} else {
+//						AlertWin.show(event.errorMsg);
+						MyAlert.showError(event);
+					}
+		   		}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas top="1" right="0" left="0" bottom="16" >
+		<mx:VBox left="0" top="0" right="0" bottom="0" verticalGap="0"  horizontalAlign="center">
+			<mx:HBox width="100%" horizontalGap="0">
+				<mx:Canvas styleName="dataGridHeaderBG" width="100%" horizontalScrollPolicy="off">
+					<mx:HBox left="1" right="15" horizontalGap="1">
+						<mx:Label width="178" textAlign="center"/>
+						<mx:Label text="{MultiLang.msg('label.food')}" width="20%" textAlign="center"/>
+						<mx:Label text="{MultiLang.msg('label.wood')}" width="20%" textAlign="center"/>
+						<mx:Label text="{MultiLang.msg('label.stone')}" width="20%" textAlign="center"/>
+						<mx:Label text="{MultiLang.msg('label.iron')}" width="20%" textAlign="center"/>
+					</mx:HBox>
+				</mx:Canvas>
+			</mx:HBox>
+			<mx:Canvas width="100%"  height="100%" styleName="mainWindowContentBG">
+				<mx:Canvas left="0" bottom="2" right="2" top="2" horizontalScrollPolicy="off">
+					<mx:HBox horizontalGap="1" top="0" left="1" right="15" styleName="intervalBG">
+						<mx:VBox height="100%" verticalGap="0" horizontalAlign="center" width="178" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.throughput')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.throughput.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.workerInExistence')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.workerInExistence.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.workerInNeed')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.workerInNeed.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.curWorker')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.curWorker.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.workerEfficiency')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.workerEfficiency.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.basicOutPut')}" styleName="specialNoticeLabel" height="22" toolTip="{MultiLang.msg('townHall.label.basicOutPut.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.tecBuf')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.tecBuf.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.heroBuf')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.heroBuf.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.fieldBuf')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.fieldBuf.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.statusBuf')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.statusBuf.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('military.costFood')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.costFood.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('diplomacy.vassal.addition.label')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.vassal.addition.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.barbarismOutput')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.barbarismOutput.tip')}"/>
+							<mx:Label paddingTop="2" text="{MultiLang.msg('townHall.label.totalOutPut')}" styleName="specialNoticeLabel" height="22" toolTip="{MultiLang.msg('townHall.label.totalOutPut.tip')}"/>	
+							<mx:Label paddingTop="2" text="{MultiLang.msg('dak.label.supply')}" styleName="discritionLabel" height="22" toolTip="{MultiLang.msg('townHall.label.tradeOutPut.tip')}"/>
+						</mx:VBox>
+						
+						<townHall:RestrainedProduction id="foodProduction" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="20%" copyData="{this.food}" workerStation="{this.foodWorker}" workerEfficiency="{this.workerEfficiency}" output="10">
+						</townHall:RestrainedProduction>
+						
+						<townHall:RestrainedProduction id="woodProduction"  verticalScrollPolicy="off" horizontalScrollPolicy="off" width="20%" copyData="{this.wood}" workerStation="{this.woodWorker}" workerEfficiency="{this.workerEfficiency}" output="10"> 
+						</townHall:RestrainedProduction>
+						
+						<townHall:RestrainedProduction id="stoneProduction" verticalScrollPolicy="off" horizontalScrollPolicy="off" width="20%" copyData="{this.stone}" workerStation="{this.stoneWorker}" workerEfficiency="{this.workerEfficiency}" output="5">
+						</townHall:RestrainedProduction> 
+						
+						<townHall:RestrainedProduction id="ironProduction"  verticalScrollPolicy="off" horizontalScrollPolicy="off" width="20%" copyData="{this.iron}" workerStation="{this.ironWorker}" workerEfficiency="{this.workerEfficiency}" output="4">
+						</townHall:RestrainedProduction>
+					</mx:HBox>
+				</mx:Canvas>
+			</mx:Canvas>
+			<mx:Spacer height="2"/>
+			<!--mx:Canvas width="100%" styleName="alphaBlackBG" height="40">
+				<mx:HBox left="1" right="15" verticalCenter="0" horizontalGap="1">
+						<mx:Label width="20%" textAlign="center" text="{Lang.msg('diplomacy.vassal.addition.label')}"/>
+						<mx:Label text="{this.food.conquestAdd}" width="20%" textAlign="center" styleName="{this.food.conquestAdd>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Label text="{this.wood.conquestAdd}" width="20%" textAlign="center" styleName="{this.food.conquestAdd>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Label text="{this.stone.conquestAdd}" width="20%" textAlign="center" styleName="{this.food.conquestAdd>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+						<mx:Label text="{this.iron.conquestAdd}" width="20%" textAlign="center" styleName="{this.food.conquestAdd>=0?'goodNoticeLabel':'NoticeLabel'}"/>
+					</mx:HBox>
+			</mx:Canvas-->
+			<mx:Spacer height="2"/>
+			<mx:Canvas width="98%" styleName="mainWindowContentBG" height="30">
+				<mx:HBox horizontalGap="8" verticalAlign="middle" horizontalAlign="center" verticalCenter="0" left="45">
+					<mx:Label text="{MultiLang.msg('label.population.free')}:" toolTip="{MultiLang.msg('townHall.population.free.tip')}"/>
+					<mx:Label  id="availableLabour" text="{this.freePopulation}" styleName="goodNoticeLabel"/>
+					<mx:Label text="{MultiLang.msg('label.population.working')}:" toolTip="{MultiLang.msg('townHall.population.working.tip')}"/>
+					<mx:Label id="maxLabour" text="{this.workingPopulation}" styleName="goodNoticeLabel"/>
+					<mx:Label text="{MultiLang.msg('townHall.label.efficiency')}:" toolTip="{MultiLang.msg('townHall.label.efficiency.tip')}"/>
+					<mx:Label id="labourEfficiency" text="{(this.workerEfficiency*100).toFixed(2)}%" styleName="goodNoticeLabel"/>
+				</mx:HBox>
+				<mx:Button verticalCenter="0" right="10" label="{MultiLang.msg('townHall.produceSuccess.modify')}" click="this.modifyOpeoRate()"/>
+			</mx:Canvas>
+		</mx:VBox>
+	</mx:Canvas>
+</mx:Canvas>
