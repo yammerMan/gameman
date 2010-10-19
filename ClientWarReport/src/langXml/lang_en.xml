@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wareplay>
+	<wareplay.attack.group.red>assailant</wareplay.attack.group.red>
+	<wareplay.attack.group.blue>defender</wareplay.attack.group.blue>
+	<wareplay.hero>hero</wareplay.hero>
+	<wareplay.location>position</wareplay.location>
+	<wareplay.wait>waiting...</wareplay.wait>
+	  
+	<!-- #位置名称 -->  
+	<battle.leftWing.label>left wing</battle.leftWing.label>
+	<battle.rightWing.label>right wing</battle.rightWing.label>
+	<battle.center.label>center</battle.center.label>
+	<battle.troopPos.frontLeft.label>Div I</battle.troopPos.frontLeft.label>
+	<battle.troopPos.frontRight.label>Div III</battle.troopPos.frontRight.label>
+	<battle.troopPos.frontCenter.label>Div II</battle.troopPos.frontCenter.label>
+	<battle.troopPos.backLeft.label>Div IV</battle.troopPos.backLeft.label>
+	<battle.troopPos.backRight.label>Div VI</battle.troopPos.backRight.label>
+	<battle.troopPos.backCenter.label>Div V</battle.troopPos.backCenter.label>
+	  
+	<!-- 战斗解说文字 -->  
+	<wareplay.echo.turn>round {0}</wareplay.echo.turn>
+		<wareplay.echo.turn.result>  ====== Round {0} Result ======</wareplay.echo.turn.result>
+	<wareplay.echo.onLocation>[{1}] at {0}</wareplay.echo.onLocation>
+	<wareplay.echo.troop_owner>[{1}] at {0}</wareplay.echo.troop_owner>
+	<wareplay.echo.hero>[{1}] at {0}</wareplay.echo.hero>
+	
+	<wareplay.echo.hero.goAttack>launch assault</wareplay.echo.hero.goAttack>
+	<wareplay.echo.hero.goDefence>launch defensive action</wareplay.echo.hero.goDefence>
+	<wareplay.echo.hero_coming>{0} hero {1} enters arena from {2} {3}</wareplay.echo.hero_coming>
+	<wareplay.echo.hero_moving>{0} hero {1} enters arena {2}</wareplay.echo.hero_moving>
+	<wareplay.echo.who_attack_who>{0} assail {1} causing {2} damage with formation: {3}</wareplay.echo.who_attack_who>
+	<wareplay.echo.wait>  [{0}] hero [{1}] at {2} is waiting.</wareplay.echo.wait>
+	<wareplay.echo.hero_quit>  [{0}]'s [{1}] completely wiped out.</wareplay.echo.hero_quit>
+	<wareplay.echo.hero_retreat>  [{0}]'s [{1}] retreat</wareplay.echo.hero_retreat>
+	<wareplay.echo.winner>  [{0}] win</wareplay.echo.winner>
+	  
+	<!-- #兵营类型名称 -->   
+	<tf.archers.name>Archers</tf.archers.name>
+	<tf.ballistas.name>Ballistas</tf.ballistas.name>
+	<tf.cavalry.name>Cavalry</tf.cavalry.name>
+	<tf.onagers.name>Onagers</tf.onagers.name>
+	<tf.scout.name>Scout</tf.scout.name>
+	<tf.triarii.name>Triarii</tf.triarii.name>
+	<tf.urban_cohort.name>Urban Cohort</tf.urban_cohort.name>
+	<!-- #城防类型名称 -->  
+	<tf.wall.name>Wall</tf.wall.name>
+	<tf.trap.name>Traps</tf.trap.name>
+	<tf.arrowtower.name>Barbican</tf.arrowtower.name>
+	<tf.rockfall.name>Rockfall</tf.rockfall.name>
+	  
+	<!-- #军队攻击方式 -->  
+	<troop.attack.aggressive>  Double Assail</troop.attack.aggressive>
+	<troop.attack.normal>  Normal Assail</troop.attack.normal>
+	<troop.attack.defense>  Defensive Mode</troop.attack.defense>
+	<troop.attack.cavalryOver>  Sweep Assail</troop.attack.cavalryOver>
+	<troop.attack.cavalryCross>  Ambush Assail</troop.attack.cavalryCross>
+	<troop.attack.melee>  Close Assail</troop.attack.melee>
+	<troop.attack.range>  Missile Assail</troop.attack.range>
+	<troop.attack.rangeArea>  Dispersion</troop.attack.rangeArea>
+	<troop.attack.rock>  Rockfall Assail</troop.attack.rock>
+	<troop.attack.trap>  Traps Assail</troop.attack.trap>
+	<troop.attack.side>  [Troops] Flank Assail</troop.attack.side>
+	<troop.attack.ballistasPiercs>Piercing Assail </troop.attack.ballistasPiercs>
+	<troop.attack.rockWithFire>Fire Balls Assail</troop.attack.rockWithFire>
+	<troop.attack.rockIsMiss> Dodged Rockfall attack</troop.attack.rockIsMiss>
+	  
+	<!-- //英雄状态 -->  
+	<troop.heroes.wait>Waiting</troop.heroes.wait>
+	<troop.heroes.quit>Completely Impoverished</troop.heroes.quit>
+	<troop.heroes.retreat>Retreat</troop.heroes.retreat>
+	<troop.heros.inBattle>In Battle</troop.heros.inBattle>
+	  
+	<!--  //ui-->  
+	<war.ui.text.exit>Quit and Replay</war.ui.text.exit>
+	<war.ui.text.round>Round {0}</war.ui.text.round>
+	
+	<war.ui.text.result>result</war.ui.text.result>
+	<war.ui.report.label>report</war.ui.report.label>
+
+	<report.success.desc>Win</report.success.desc>
+	<report.fail.desc>Lose</report.fail.desc>
+	<battle.round.label>Round</battle.round.label>
+	<battle.attack.label>Attack</battle.attack.label>
+	<battle.defence.label>Defense</battle.defence.label>
+	<battle.conditionReach>Condition met.</battle.conditionReach>
+	<battle.conditionUnReach>Condition not met.</battle.conditionUnReach>
+	<battle.player.castle>{0}'s {1}</battle.player.castle>
+	<battle.title.label.playerFightToPlayer>Lord {0} initiated {2} to {1}.</battle.title.label.playerFightToPlayer>
+	<battle.result.desc.lastBattle>Battle last for {0} rounds and our effort to {1} {2}! Honor {3}.</battle.result.desc.lastBattle>
+	<battle.result.caslte.people.desc> Target city's Alligiance is {0}/{1}.</battle.result.caslte.people.desc>
+	<battle.result.reason.noSeize>Cannot Seize the city. Troops are returning. </battle.result.reason.noSeize>
+	<battle.result.reason.beBeat> Cannot conquer the city. Main force has been defeated. </battle.result.reason.beBeat>
+	<battle.result.reason.townhallToLow>Your current Rectorate level cannot Seize more wilderness.</battle.result.reason.townhallToLow>
+	<battle.result.reason.hasSupport>Conquer is still unrealized.</battle.result.reason.hasSupport>
+	<battle.result.reason.titleNotEnough>Your Noble Rank level is too low and cannot Seize. </battle.result.reason.titleNotEnough>
+	<battle.result.reason.seize>Seize {0} successfully, move in.</battle.result.reason.seize> 
+	<battle.result.reason.conquest> Conquer successfully. Garrison in {0}.</battle.result.reason.conquest>
+	<battle.result.bySeize>{0} is Seized.</battle.result.bySeize>
+	<battle.result.byConquest>{0} is conquered.</battle.result.byConquest>
+
+</wareplay>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reportData url="/af/a8/af2a12e15b97a5e1a841102ef960c018.xml">
+	<battleReport isAttack="true" score="538432" honor="54551">
+		<battle round="3" isAttackSuccess="true" battleFieldId="2640243" battleFieldType="15" battleFieldName="成都" battleFieldLevel="10" battleFieldLogo="logo.city.a1" battleFieldPlayer="等待风云" battleMission="4">
+			<defenderTroop LordName="等待风云" heroName="傻儿司令" heroLevel="172" heroUrl="logo.hero.26" heroExp="1" key="6" injuredPer="10" isSelfArmy="false" castleName="成都" castleFieldId="2640243">
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+				<troopUnit typeId="4" count="0" lose="33499" injured="3350" life="375"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+			</defenderTroop>
+			<defenderTroop LordName="等待风云" heroName="成都" heroLevel="201" heroUrl="tf.castle" heroExp="0" key="7" injuredPer="10" isSelfArmy="false" isNpcHeroForCastle="true">
+				<troopUnit typeId="4" count="0" lose="999" injured="100" life="375"/>
+				<troopUnit typeId="4" count="0" lose="999" injured="100" life="375"/>
+				<troopUnit typeId="4" count="0" lose="999" injured="100" life="375"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+				<troopUnit typeId="-1" count="-1" lose="0" injured="0"/>
+			</defenderTroop>
+			<attackerTroop LordName="绝世好贱" heroName="匝凯" heroLevel="2" heroUrl="logo.hero.25" heroExp="0" key="0" injuredPer="10" isSelfArmy="false" castleName="都灵" castleFieldId="2350244">
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+			</attackerTroop>
+			<attackerTroop LordName="绝世好贱" heroName="伊斯雷尔" heroLevel="2" heroUrl="logo.hero.27" heroExp="0" key="1" injuredPer="10" isSelfArmy="false" castleName="都灵" castleFieldId="2350244">
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+			</attackerTroop>
+			<attackerTroop LordName="绝世好贱" heroName="布兰克" heroLevel="6" heroUrl="logo.hero.28" heroExp="0" key="2" injuredPer="10" isSelfArmy="false" castleName="都灵" castleFieldId="2350244">
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="7" count="0" lose="1" injured="0" life="87"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+				<troopUnit typeId="2" count="0" lose="1" injured="0" life="65"/>
+			</attackerTroop>
+			<attackerTroop LordName="恶魔在世" heroName="火影" heroLevel="255" heroUrl="logo.hero.25" heroExp="208794" key="3" injuredPer="10" isSelfArmy="false" castleName="皇宫" castleFieldId="1710140">
+				<troopUnit typeId="8" count="19309" lose="776" injured="78" life="600"/>
+				<troopUnit typeId="8" count="15721" lose="670" injured="67" life="600"/>
+				<troopUnit typeId="8" count="17517" lose="735" injured="74" life="600"/>
+				<troopUnit typeId="5" count="7247" lose="0" injured="0" life="900"/>
+				<troopUnit typeId="5" count="6997" lose="0" injured="0" life="900"/>
+				<troopUnit typeId="5" count="7326" lose="0" injured="0" life="900"/>
+			</attackerTroop>
+			<attackerTroop LordName="绝世好贱" heroName="圣殿骑士团" heroLevel="255" heroUrl="logo.hero.5" heroExp="53842" key="4" injuredPer="10" isSelfArmy="false" castleName="圣城耶路撒冷" castleFieldId="2350245">
+				<troopUnit typeId="8" count="13925" lose="557" injured="56" life="600"/>
+				<troopUnit typeId="8" count="14286" lose="562" injured="56" life="600"/>
+				<troopUnit typeId="8" count="14269" lose="619" injured="62" life="600"/>
+				<troopUnit typeId="2" count="2230" lose="431" injured="43" life="67"/>
+				<troopUnit typeId="5" count="9000" lose="0" injured="0" life="900"/>
+				<troopUnit typeId="5" count="9000" lose="0" injured="0" life="900"/>
+			</attackerTroop>
+			<attackerTroop LordName="佣兵团路西法" heroName="问天·屠" heroLevel="53" heroUrl="logo.hero.3" heroExp="0" key="5" injuredPer="10" isSelfArmy="false" castleName="审判庭" castleFieldId="3730314">
+				<troopUnit typeId="8" count="2000" lose="0" injured="0" life="560"/>
+				<troopUnit typeId="8" count="2000" lose="0" injured="0" life="560"/>
+				<troopUnit typeId="8" count="2636" lose="0" injured="0" life="560"/>
+				<troopUnit typeId="5" count="2500" lose="0" injured="0" life="840"/>
+				<troopUnit typeId="5" count="2500" lose="0" injured="0" life="840"/>
+				<troopUnit typeId="5" count="2500" lose="0" injured="0" life="840"/>
+			</attackerTroop>
+			<wall totalLife="17100000" curLife="0">
+				<arrowTower count="0" lose="1579" life="380"/>
+				<trap count="23114" lose="7891"/>
+				<rockFall count="1468" lose="322"/>
+			</wall>
+			<replay>2_0_0_|2_1_1_|2_2_2_|2_6_0_|2_7_1_|1_-2_0_0_0_4_87_|7_35_18_|5_0_1_2_|5_0_2_1_|5_0_3_1_|5_0_4_1_|5_1_0_1_|5_1_1_1_|5_1_2_1_|5_1_3_1_|5_1_4_1_|5_1_5_1_|5_2_0_1_|5_2_1_1_|5_2_2_1_|5_2_3_1_|5_2_4_1_|5_2_5_1_|6_-4_0_|1_0_3_-2_0_4_3_|1_0_4_-2_0_4_4_|1_0_5_-2_0_4_3_|1_0_0_-1_0_3_5_|1_0_1_-1_0_3_3_|1_0_2_-1_0_3_5_|1_1_3_7_0_5_0_|1_1_3_7_1_5_0_|1_1_3_7_2_5_0_|1_1_4_7_0_5_0_|1_1_4_7_1_5_0_|1_1_4_7_2_5_0_|1_1_5_7_0_5_0_|1_1_5_7_1_5_0_|1_1_5_7_2_5_0_|1_1_0_-1_0_3_5_|1_1_1_-1_0_3_5_|1_1_2_-1_0_3_4_|1_2_3_-2_0_4_2_|1_2_4_-2_0_4_3_|1_2_5_-2_0_4_3_|1_2_0_-1_0_3_3_|1_2_1_-1_0_3_3_|1_2_2_-1_0_3_5_|6_6_1_|6_7_0_|6_7_1_|6_7_2_|3_1_1_|3_2_2_|</replay>
+			<replay>2_3_1_|2_4_2_|1_-2_0_4_3_4_22233_|7_3749_1896_|5_3_0_385_|5_3_1_316_|5_3_2_354_|5_4_0_256_|5_4_1_241_|5_4_2_300_|5_4_3_44_|1_-4_0_3_0_7_5359_|1_-4_0_3_1_7_5283_|1_-4_0_3_2_7_4089_|1_-4_0_4_0_7_5941_|1_-4_0_4_1_7_4495_|1_-4_0_4_2_7_4845_|9_179_|1_0_5_-1_0_3_3_|1_3_3_-1_0_4_1449400_|1_3_3_-2_0_5_600002_|1_3_4_-1_0_4_1399400_|1_3_5_-1_0_4_1465200_|1_3_0_7_0_4_374625_|1_3_0_-1_0_3_843558_|1_3_1_7_1_4_374625_|1_3_1_-1_0_3_678602_|1_3_2_7_2_4_374625_|1_3_2_-1_0_3_1038102_|1_4_3_6_1_4_6892_|1_4_4_-1_0_4_1800000_|1_4_5_-1_0_4_1800000_|1_4_0_6_1_4_944068_|1_4_0_-1_0_3_852391_|1_4_1_6_1_4_944126_|1_4_1_-1_0_3_665794_|1_4_2_6_1_4_934119_|1_4_2_-1_0_3_597339_|6_6_1_|6_7_0_|6_7_1_|6_7_2_|3_7_1_|</replay>
+			<replay>7_4107_2043_|5_3_0_377_|5_3_1_338_|5_3_2_368_|5_4_0_285_|5_4_1_308_|5_4_2_311_|5_4_3_56_|1_-4_0_3_0_7_3278_|1_-4_0_3_1_7_4495_|1_-4_0_3_2_7_4214_|1_-4_0_4_0_7_3749_|1_-4_0_4_1_7_3490_|8_4_2_|9_143_|1_0_5_-1_0_3_3_|1_3_3_-1_0_4_1449400_|1_3_4_-1_0_4_1399400_|1_3_5_-1_0_4_1465200_|1_3_0_6_1_4_1310060_|1_3_0_-1_0_3_196170_|1_3_1_6_1_4_1563621_|1_3_1_6_1_3_2421527_|1_3_2_6_1_4_1689198_|1_3_2_6_1_3_2748514_|6_4_3_|6_4_4_|6_4_5_|6_4_0_|6_4_1_|6_4_2_|1_6_1_0_5_9_65_|3_0_0_|3_6_0_|</replay>
+		</battle>
+		<conquest isConquest="false" conquestProblem="3" support="45" complaint="5"/>
+		<startCastle fieldId="2350244" logo="logo.city.a1" name="都灵" player="绝世好贱"/>
+	</battleReport>
+</reportData>
