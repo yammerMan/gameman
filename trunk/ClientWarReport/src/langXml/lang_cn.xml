@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wareplay>
+	<wareplay.attack.group.red>攻方</wareplay.attack.group.red>
+	<wareplay.attack.group.blue>守方</wareplay.attack.group.blue>
+	<wareplay.hero>英雄</wareplay.hero>
+	<wareplay.location>位置</wareplay.location>
+	<wareplay.wait>等待...</wareplay.wait>
+	
+	<!-- #位置名称  -->
+	<battle.leftWing.label>左翼</battle.leftWing.label>
+	<battle.rightWing.label>右翼</battle.rightWing.label>
+	<battle.center.label>中锋</battle.center.label>
+	<battle.troopPos.frontLeft.label>分队I</battle.troopPos.frontLeft.label>
+	<battle.troopPos.frontRight.label>分队III</battle.troopPos.frontRight.label>
+	<battle.troopPos.frontCenter.label>分队II</battle.troopPos.frontCenter.label>
+	<battle.troopPos.backLeft.label>分队IV</battle.troopPos.backLeft.label>
+	<battle.troopPos.backRight.label>分队VI</battle.troopPos.backRight.label>
+	<battle.troopPos.backCenter.label>分队V</battle.troopPos.backCenter.label>
+	
+	<!-- 战斗解说文字  -->
+	<wareplay.echo.turn> ===== 回合 {0} =====</wareplay.echo.turn>
+	<wareplay.echo.turn.result>  ====== 回合{0}结果 ======</wareplay.echo.turn.result>
+	<wareplay.echo.onLocation> {0}上的[{1}]</wareplay.echo.onLocation>
+	<wareplay.echo.troop_owner> [{0}]的[{1}]</wareplay.echo.troop_owner>
+	<wareplay.echo.hero> [{0}]英雄[{1}]</wareplay.echo.hero>
+	<!-- 攻守方英雄进入战场，从位置（展开进攻，进行防卫） -->
+	<wareplay.echo.hero.goAttack> 展开攻击</wareplay.echo.hero.goAttack>
+	<wareplay.echo.hero.goDefence> 进行防卫</wareplay.echo.hero.goDefence>
+	<wareplay.echo.hero_coming> {0}英雄{1}进入战场 从{2}{3}</wareplay.echo.hero_coming>
+	<wareplay.echo.hero_moving> {0}英雄{1}进入战场{2}</wareplay.echo.hero_moving>
+	<wareplay.echo.who_attack_who> {0}攻击{1}造成{2}伤害 攻击方式:{3}</wareplay.echo.who_attack_who>
+	<wareplay.echo.wait> [{0}]英雄[{1}]{2}处于等待状态</wareplay.echo.wait>
+	<wareplay.echo.hero_quit> [{0}]英雄[{1}]全军覆没</wareplay.echo.hero_quit>
+	<wareplay.echo.hero_retreat> [{0}]英雄[{1}]全军撤退</wareplay.echo.hero_retreat>
+	<wareplay.echo.winner> [{0}]胜利</wareplay.echo.winner>
+	
+	<!-- 兵营类型名称  -->
+	<tf.archers.name> 弓兵</tf.archers.name>
+	<tf.ballistas.name> 弩炮</tf.ballistas.name>
+	<tf.cavalry.name> 骑兵</tf.cavalry.name>
+	<tf.onagers.name> 投石器</tf.onagers.name>
+	<tf.scout.name> 斥候</tf.scout.name>
+	<tf.triarii.name> 步兵</tf.triarii.name>
+	<tf.urban_cohort.name> 军团步兵</tf.urban_cohort.name>
+	<!-- 城防类型名称   -->
+	<tf.wall.name> 城墙</tf.wall.name>
+	<tf.trap.name> 陷阱</tf.trap.name>
+	<tf.arrowtower.name> 箭塔</tf.arrowtower.name>
+	<tf.rockfall.name> 落石</tf.rockfall.name>
+	
+	<!-- //#军队攻击方式  -->
+	<troop.attack.aggressive> 激进攻击</troop.attack.aggressive>
+	<troop.attack.normal> 正常攻击</troop.attack.normal>
+	<troop.attack.defense> 进行防御</troop.attack.defense>
+	<troop.attack.cavalryOver> 横扫攻击</troop.attack.cavalryOver>
+	<troop.attack.cavalryCross> 突袭攻击</troop.attack.cavalryCross>
+	<troop.attack.melee> 肉搏攻击</troop.attack.melee>
+	<troop.attack.range> 远程攻击</troop.attack.range>
+	<troop.attack.rangeArea> 散射</troop.attack.rangeArea>
+	<troop.attack.rock> 落石攻击</troop.attack.rock>
+	<troop.attack.trap> 陷阱攻击</troop.attack.trap>
+	<troop.attack.side> 侧面攻击</troop.attack.side>
+	<troop.attack.ballistasPiercs>穿透攻击 </troop.attack.ballistasPiercs>
+	<troop.attack.rockWithFire>火焰弹</troop.attack.rockWithFire>
+	<troop.attack.rockIsMiss> 落石攻击被躲过 </troop.attack.rockIsMiss>
+	
+	<!-- //英雄状态   -->
+	<troop.heroes.wait>等待</troop.heroes.wait>
+	<troop.heroes.quit>阵亡</troop.heroes.quit>
+	<troop.heroes.retreat>逃离</troop.heroes.retreat>
+	<troop.heros.inBattle>战斗中</troop.heros.inBattle>
+	
+	<war.ui.text.exit> 退出回放</war.ui.text.exit>
+	<war.ui.text.round> 第 {0} 回合</war.ui.text.round>
+	
+	<war.ui.text.result>结果显示</war.ui.text.result>
+	<war.ui.report.label>报告</war.ui.report.label>
+	
+	
+<report.success.desc>胜利</report.success.desc>
+<report.fail.desc>失败</report.fail.desc>
+<battle.round.label>回合</battle.round.label>
+<battle.attack.label>攻击</battle.attack.label>
+<battle.defence.label>防守</battle.defence.label>
+<battle.conditionReach>达成</battle.conditionReach>
+<battle.conditionUnReach>未达成</battle.conditionUnReach>
+<battle.player.castle>{0}的{1}</battle.player.castle>
+<battle.title.label.playerFightToPlayer>玩家{0}对{1}进行了一场{2}战斗。</battle.title.label.playerFightToPlayer>
+<battle.result.desc.lastBattle>战斗持续{0}回合，我方{1}{2}！荣誉值{3}。</battle.result.desc.lastBattle>
+<battle.result.caslte.people.desc>目标城市的民心{0}/{1}。</battle.result.caslte.people.desc>
+<battle.result.reason.noSeize>无法征服城市，部队返回</battle.result.reason.noSeize>
+<battle.result.reason.townhallToLow>执政官邸等级不够，无法占领。</battle.result.reason.townhallToLow>
+<battle.result.reason.hasSupport>目标城市民心尚存，无法征服。</battle.result.reason.hasSupport>
+<battle.result.reason.titleNotEnough>官职等级不够，无法占领。</battle.result.reason.titleNotEnough>
+<battle.result.reason.leaderIsOver>发起战局的英雄全军覆没，无法{0}。</battle.result.reason.leaderIsOver>
+
+<battle.result.reason.seize>占领成功，进驻{0}。</battle.result.reason.seize>
+<battle.result.reason.conquest>征服成功，进驻{0}。</battle.result.reason.conquest>
+<battle.result.bySeize>{0}被占领。</battle.result.bySeize>
+<battle.result.byConquest>{0}被征服。</battle.result.byConquest>
+
+
+</wareplay>

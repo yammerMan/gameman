@@ -1,0 +1,11 @@
+option batch on
+option confirm off
+open ftp://rome:1@192.168.1.4
+option transfer binary
+
+cd /www/rome/replay
+
+put bin-debug\*
+
+close
+exit

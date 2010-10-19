@@ -1,0 +1,8 @@
+<war>
+	<player>
+		<fps>12</fps>
+		<rapid>2</rapid>
+		<roundtimes>1.5</roundtimes>
+		<autoplay>true</autoplay>
+	</player>
+</war>
